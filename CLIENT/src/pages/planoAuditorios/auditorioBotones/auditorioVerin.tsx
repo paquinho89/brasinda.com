@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "../../../estilos/BotonesAuditorios.css";
+import "../../../estilos/infoPagamento.css";
 import AuditorioVerinAnfiteatro, { AUDITORIO as AUDITORIO_VERIN_ANFITEATRO } from "../Planos/auditorioVerin/anfiteatro";
 import AuditorioVerinZonaCentral, { AUDITORIO as AUDITORIO_VERIN_CENTRAL } from "../Planos/auditorioVerin/zonaCentral";
 import AuditorioVerinLateralDereita, { AUDITORIO as AUDITORIO_VERIN_DEREITA } from "../Planos/auditorioVerin/zonaLateralDereita";
 import AuditorioVerinLateralEsquerda, { AUDITORIO as AUDITORIO_VERIN_ESQUERDA } from "../Planos/auditorioVerin/zonaLateralEsquerda";
-import { FaTrash } from "react-icons/fa";
+import { FaTrash, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useAuth } from "../../AuthContext";
 
 const API_BASE_URL = "http://localhost:8000";
@@ -42,6 +44,7 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
   onEntradasUpdate,
   onAforoHabilitadoChange,
 }) => {
+  const navigate = useNavigate();
   const [areaActiva, setAreaActiva] = useState<Record<Zona, boolean>>({
     anfiteatro: true,
     esquerda: true,
@@ -127,6 +130,32 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
     setEntradasSeleccionadas([]);
   };
 
+  const getNextZona = (direction: "left" | "right"): Zona | null => {
+    if (!zonaSeleccionada) return null;
+
+    // Orde circular: central => dereita => anfiteatro => esquerda => central
+    const zonaOrder: Zona[] = ["central", "dereita", "anfiteatro", "esquerda"];
+    const currentIndex = zonaOrder.indexOf(zonaSeleccionada);
+
+    if (currentIndex === -1) return null;
+
+    let nextIndex: number;
+    if (direction === "right") {
+      nextIndex = (currentIndex + 1) % zonaOrder.length;
+    } else {
+      nextIndex = (currentIndex - 1 + zonaOrder.length) % zonaOrder.length;
+    }
+
+    return zonaOrder[nextIndex];
+  };
+
+  const handleZoneNavigation = (direction: "left" | "right") => {
+    const nextZona = getNextZona(direction);
+    if (nextZona) {
+      handleClick(nextZona);
+    }
+  };
+
   const eliminarMiReserva = async (seat: SelectedSeat) => {
     if (eventoId == null || !zonaSeleccionada) return;
 
@@ -200,42 +229,14 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
     }));
   };
 
-  const reservarEntradas = async () => {
-    if (eventoId == null || !zonaSeleccionada) return;
-    if (entradasSeleccionadas.length === 0) {
-      cerrarModal();
+  const handleMostrarFormPago = () => {
+    if (entradasSeleccionadas.length === 0 || !zonaSeleccionada) {
       return;
     }
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/crear-eventos/${eventoId}/reservar/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": authToken ? `Bearer ${authToken}` : "",
-        },
-        body: JSON.stringify({
-          zona: zonaSeleccionada,
-          entradas: entradasSeleccionadas,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        alert(`Reservadas ${entradasSeleccionadas.length} entradas!`);
-        setEntradasSeleccionadas([]);
-        setEntradasDisponibles(data.entradas_dispoñibles);
-        setEntradasReservadas((prev) => [...prev, ...(data.reservas || [])]);
-        onEntradasUpdate?.();
-        cerrarModal();
-      } else {
-        alert(data.error || "Erro ao reservar entradas");
-      }
-    } catch (err) {
-      console.error("Erro ao reservar entradas:", err);
-      alert("Erro de conexión");
-    }
+    // Navigate to payment page and pass selected seats via state
+    navigate(`/pago/${eventoId}/${zonaSeleccionada}`, {
+      state: { seats: entradasSeleccionadas },
+    });
   };
 
   const currentAreaActiva = zonaSeleccionada ? areaActiva[zonaSeleccionada] : true;
@@ -248,7 +249,9 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
         onClick={() => handleClick("anfiteatro")}
       >
         <div>ANFITEATRO</div>
-        <div className="zona-estado-interno">{areaActiva.anfiteatro ? "(Activa)" : "(Inactiva)"}</div>
+        {variant === "rosa" && (
+          <div className="zona-estado-interno">{areaActiva.anfiteatro ? "(Activa)" : "(Inactiva)"}</div>
+        )}
       </button>
       <div className="platea">
         <button
@@ -256,7 +259,9 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
           onClick={() => handleClick("esquerda")}
         >
           <div>ESQUERDA</div>
-          <div className="zona-estado-interno">{areaActiva.esquerda ? "(Activa)" : "(Inactiva)"}</div>
+          {variant === "rosa" && (
+            <div className="zona-estado-interno">{areaActiva.esquerda ? "(Activa)" : "(Inactiva)"}</div>
+          )}
         </button>
         <div className="zona-central-wrapper">
           <button
@@ -264,7 +269,9 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
             onClick={() => handleClick("central")}
           >
             <div>CENTRAL</div>
-            <div className="zona-estado-interno">{areaActiva.central ? "(Activa)" : "(Inactiva)"}</div>
+            {variant === "rosa" && (
+              <div className="zona-estado-interno">{areaActiva.central ? "(Activa)" : "(Inactiva)"}</div>
+            )}
           </button>
           <div className="indicador-escenario">ESCENARIO</div>
         </div>
@@ -273,7 +280,9 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
           onClick={() => handleClick("dereita")}
         >
           <div>DEREITA</div>
-          <div className="zona-estado-interno">{areaActiva.dereita ? "(Activa)" : "(Inactiva)"}</div>
+          {variant === "rosa" && (
+            <div className="zona-estado-interno">{areaActiva.dereita ? "(Activa)" : "(Inactiva)"}</div>
+          )}
         </button>
       </div>
 
@@ -284,28 +293,52 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
             {/* HEADER */}
             <div className="modal-header-custom">
               <div className="modal-title-group">
-                <h4 className="modal-title">{zonaSeleccionada.toUpperCase()}</h4>
-                <p className="modal-subtitle">*As entradas que reserves, non se porán a venda</p>
+                <div className="modal-title-nav">
+                  <button
+                    type="button"
+                    className="zona-nav-btn"
+                    onClick={() => handleZoneNavigation("left")}
+                    aria-label="Ir á zona anterior"
+                  >
+                    <FaChevronLeft />
+                  </button>
+                  <h4 className="modal-title">{zonaSeleccionada.toUpperCase()}</h4>
+                  <button
+                    type="button"
+                    className="zona-nav-btn"
+                    onClick={() => handleZoneNavigation("right")}
+                    aria-label="Ir á zona seguinte"
+                  >
+                    <FaChevronRight />
+                  </button>
+                </div>
+                {variant === "rosa" && (
+                  <p className="modal-subtitle">*As entradas que reserves, non se porán a venda</p>
+                )}
               </div>
               <button className="close-x" onClick={cerrarModal}>✕</button>
             </div>
 
-            {/* SWITCH AREA - Debaixo do texto e centrado */}
-            <div style={{ display: "flex", justifyContent: "center", paddingBottom: "8px" }}>
-              <button
-                type="button"
-                className={`badge-prezo badge-prezo--clickable ${currentAreaActiva ? "badge-prezo--active" : "badge-prezo--inactive"}`}
-                onClick={() => handleAreaToggle(!currentAreaActiva)}
-              >
-                {currentAreaActiva ? "Zona Activa" : "Zona Inactiva"}
-              </button>
-            </div>
-            <div style={{ display: "flex", justifyContent: "center", paddingBottom: "15px" }}>
-              <label className="toggle-area-label mt-2">
-                <input type="checkbox" checked={currentAreaActiva} onChange={e => handleAreaToggle(e.target.checked)} />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
+            {/* SWITCH AREA - Debaixo do texto e centrado (só para variant rosa) */}
+            {variant === "rosa" && (
+              <>
+                <div style={{ display: "flex", justifyContent: "center", paddingBottom: "8px" }}>
+                  <button
+                    type="button"
+                    className={`badge-prezo badge-prezo--clickable ${currentAreaActiva ? "badge-prezo--active" : "badge-prezo--inactive"}`}
+                    onClick={() => handleAreaToggle(!currentAreaActiva)}
+                  >
+                    {currentAreaActiva ? "Zona Activa" : "Zona Inactiva"}
+                  </button>
+                </div>
+                <div style={{ display: "flex", justifyContent: "center", paddingBottom: "15px" }}>
+                  <label className="toggle-area-label mt-2">
+                    <input type="checkbox" checked={currentAreaActiva} onChange={e => handleAreaToggle(e.target.checked)} />
+                    <span className="toggle-slider"></span>
+                  </label>
+                </div>
+              </>
+            )}
             
 
             {/* BODY */}
@@ -314,9 +347,17 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
 
               {/* BOTONES */}
               <div style={{ marginTop: 20, marginBottom: 20, display: "flex", gap: "10px", justifyContent: "space-between" }}>
-                <button className="volver-btn" onClick={cerrarModal}>Cerrar</button>
-                <button className="reserva-entrada-btn" onClick={reservarEntradas}>
-                  Gardar Cambios
+                <button className={variant === "verde" ? "volver-verde-btn" : "volver-btn"} onClick={cerrarModal}>
+                  Cerrar
+                </button>
+                <button
+                  className="reserva-entrada-btn"
+                  onClick={handleMostrarFormPago}
+                  disabled={entradasSeleccionadas.length === 0}
+                >
+                  {variant === "rosa"
+                    ? "Gardar Cambios"
+                    : `Reservar ${entradasSeleccionadas.length} entradas`}
                 </button>
               </div>
 
@@ -326,12 +367,9 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
                   <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "center", boxShadow: "0 4px 8px rgba(0,0,0,0.1)" }}>
                     <thead>
                       <tr style={{ backgroundColor: "#f0f0f0" }}>
-                        <th colSpan={3} style={{ padding: "12px", fontWeight: 700, fontSize: "16px", color: "#333" }}>Entradas Reservadas</th>
-                      </tr>
-                      <tr style={{ backgroundColor: "#f0f0f0" }}>
                         <th style={{ padding: "8px", fontWeight: 700 }}>Fila</th>
                         <th style={{ padding: "8px", fontWeight: 700 }}>Butaca</th>
-                        <th style={{ padding: "8px", fontWeight: 700 }}>Acción</th>
+                        <th style={{ padding: "8px", fontWeight: 700 }}></th>
                       </tr>
                     </thead>
                     <tbody>

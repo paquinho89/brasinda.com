@@ -59,7 +59,6 @@
   box-shadow: none !important;
 }
 
-
 .form-check-input:checked {
   background-color: #ff0093;
   border-color: #ff0093;
@@ -161,6 +160,23 @@
   color: #ffffff !important;
   box-shadow: 0 0 0 3px rgba(255, 0, 147, 0.35) !important;
   transform: scale(0.97);
+}
+
+/* Estilos específicos para variant verde */
+.auditorio-container.verde .reserva-entrada-btn {
+  border-color: #60dd49;
+}
+
+.auditorio-container.verde .reserva-entrada-btn:hover {
+  background-color: #60dd49;
+  border-color: #60dd49;
+}
+
+.auditorio-container.verde .reserva-entrada-btn:active,
+.auditorio-container.verde .reserva-entrada-btn:focus-visible {
+  background-color: #60dd49 !important;
+  border-color: #60dd49 !important;
+  box-shadow: 0 0 0 3px rgba(96, 221, 73, 0.35) !important;
 }
 
 .reserva-entrada-btn:disabled {
@@ -332,7 +348,7 @@
   background-color: #60dd49 !important;
   border-color: #60dd49 !important;
   color: #ffffff !important;
-  box-shadow: 0 0 0 3px rgba(255, 0, 147, 0.35) !important;
+  box-shadow: 0 0 0 3px rgba(96, 221, 73, 0.35) !important;
   transform: scale(0.97);
 }
 /******************************************/

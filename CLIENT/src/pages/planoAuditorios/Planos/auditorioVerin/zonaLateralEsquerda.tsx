@@ -144,17 +144,21 @@ const AuditorioVerinZonaLateralEsquerda: React.FC<Props> = ({
                         (s) => s.row === realRow && s.seat === realSeat
                       );
 
-                      let backgroundColor = "#82CAD3";
+                      let className = "butaca ";
                       let cursor = "pointer";
+                      let title = "";
                       
                       if (!areaActiva) {
-                        backgroundColor = "#ccc";
+                        className += "butaca-inactiva";
                         cursor = "not-allowed";
+                        title = "🚫";
                       } else if (isMyReserved) {
-                        backgroundColor = "#ff0093";
-                        cursor = "pointer";
+                        className += "butaca-my-reserved";
+                        title = "Clica para eliminar";
                       } else if (isSelected) {
-                        backgroundColor = "#ff0093";
+                        className += "butaca-selected";
+                      } else {
+                        className += "butaca-dispoñible";
                       }
 
                       return (
@@ -164,17 +168,9 @@ const AuditorioVerinZonaLateralEsquerda: React.FC<Props> = ({
                             e.stopPropagation();
                             handleSeatClick(rowIndex, colIndex);
                           }}
-                          style={{
-                            width: 22,
-                            height: 22,
-                            margin: 3,
-                            backgroundColor,
-                            cursor,
-                            borderRadius: 4,
-                            transition: "0.2s",
-                            border: "none",
-                          }}
-                          title={!areaActiva ? "🚫" : (isMyReserved ? "Clica para eliminar" : "")}
+                          className={className}
+                          style={{ cursor }}
+                          title={title}
                         />
                       );
                     })}

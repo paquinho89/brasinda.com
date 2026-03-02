@@ -34,7 +34,6 @@ const AuditorioSelectorOurense: React.FC<Props> = ({ onZonaClick, onAforoHabilit
     setZonaSeleccionada(zona);
     if (onZonaClick) onZonaClick(zona);
   };
-  const seleccionadas = seats.flat().filter((s) => s).length;
 
   const renderEsquema = () => {
     if (!zonaSeleccionada) return null;
@@ -102,9 +101,8 @@ const AuditorioSelectorOurense: React.FC<Props> = ({ onZonaClick, onAforoHabilit
           </div>
           <button
             className="reserva-entrada-btn"
-            disabled={seleccionadas === 0}
           >
-            Reservar {seleccionadas > 0 && seleccionadas} Entradas
+            Reservar Entradas
           </button>
 
 </div>

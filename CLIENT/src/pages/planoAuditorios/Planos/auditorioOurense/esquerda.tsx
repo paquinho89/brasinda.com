@@ -48,20 +48,11 @@ const AuditorioOurenseEsquerda = () => {
               <div
                 key={colIndex}
                 onClick={() => handleSeatClick(rowIndex, colIndex)}
+                className={seat ? "butaca butaca-selected" : "butaca butaca-dispoñible"}
                 style={{
                   width: 20,
                   height: 20,
                   margin: 2,
-                  backgroundColor: seat ? "#ff0093" : "#ccc",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#fff",
-                  fontSize: 12,
-                  borderRadius: 4,
-                  userSelect: "none",
-                  transition: "all 0.2s",
                 }}
               >
               

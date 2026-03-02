@@ -3,6 +3,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import api_view, permission_classes
 from django.db import transaction
+from django.utils import timezone
+from datetime import timedelta
 from .models import Evento, ReservaButaca
 from .serializers import EventoSerializer
 from django.shortcuts import get_object_or_404
@@ -39,6 +41,22 @@ def crear_evento_view(request):
         return Response(serializer.data, status=201)
 
     return Response(serializer.errors, status=400)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def evento_detail_public(request, pk):
+    """Devolve os detalles públicos dun evento (sen autenticación).
+
+    Usado para a páxina de reserva de entradas.
+    """
+    try:
+        evento = Evento.objects.get(pk=pk)
+    except Evento.DoesNotExist:
+        return Response({'detail': 'Evento non atopado'}, status=404)
+
+    serializer = EventoSerializer(evento, context={'request': request})
+    return Response(serializer.data)
 
 
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
@@ -79,6 +97,8 @@ def reservar_entradas(request, evento_id):
     evento = get_object_or_404(Evento, id=evento_id)
     entradas = request.data.get("entradas")
     zona = request.data.get("zona")
+    email = request.data.get("email", "")
+    duracion_reserva = request.data.get("duracion_reserva", 10)  # minutos, default 10
 
     if not isinstance(entradas, list) or not zona:
         return Response({"error": "Formato invalido"}, status=400)
@@ -96,6 +116,14 @@ def reservar_entradas(request, evento_id):
     if len(seats) > dispoñibles:
         return Response({"error": "Non hai suficientes entradas dispoñibles"}, status=400)
 
+    # Calcular fecha de expiración
+    try:
+        duracion_minutos = int(duracion_reserva)
+    except (TypeError, ValueError):
+        duracion_minutos = 10
+    
+    fecha_expiracion = timezone.now() + timedelta(minutes=duracion_minutos)
+
     with transaction.atomic():
         for row, seat in seats:
             if ReservaButaca.objects.filter(
@@ -105,7 +133,14 @@ def reservar_entradas(request, evento_id):
 
         for row, seat in seats:
             ReservaButaca.objects.create(
-                evento=evento, zona=zona, fila=row, butaca=seat, organizador=request.user
+                evento=evento,
+                zona=zona,
+                fila=row,
+                butaca=seat,
+                organizador=request.user,
+                email=email,
+                fecha_expiracion=fecha_expiracion,
+                estado=ReservaButaca.ESTADO_TEMPORAL
             )
 
     evento.entradas_reservadas = ReservaButaca.objects.filter(evento=evento).count()

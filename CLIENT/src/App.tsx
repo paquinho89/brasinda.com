@@ -2,7 +2,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import DescripcionEvento from './pages/reservarEntrada/descripcionEvento';
 import ReservarEntrada from './pages/reservarEntrada/reservarEntrada';
-import PagoConfirmado from './pages/reservarEntrada/pagoConfirmado';
+import InfoPagamento from './pages/reservarEntrada/infoPagamento';
+// import PagoConfirmado from './pages/reservarEntrada/pagoConfirmado';
 import PanelOrganizador from './pages/panelOrganizador/panelOrganizador';
 import EventoDetalle from './pages/panelOrganizador/eventoDetalle';
 import CobroEvento from './pages/panelOrganizador/cobroEvento';
@@ -37,7 +38,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="evento/:id" element={<DescripcionEvento />} />
         <Route path="reservar-entrada/:id" element={<ReservarEntrada />} />
-        <Route path="pago-confirmado" element={<PagoConfirmado />} />
+        <Route path="pago/:eventoId/:zona" element={<InfoPagamento />} />
+        {/* <Route path="pago-confirmado" element={<PagoConfirmado />} /> */}
 
         <Route path="auditorio-ourense-central" element={<AuditorioOurenseZonaCentral />}></Route>
         <Route path="auditorio-ourense-dereita" element={<AuditorioOurenseDereita />}></Route>

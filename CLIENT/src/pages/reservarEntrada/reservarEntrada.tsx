@@ -39,10 +39,7 @@ export default function ReservarEntrada() {
     const fetchEvento = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem("access_token");
-        const resp = await fetch(`http://localhost:8000/crear-eventos/${id}/`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
+        const resp = await fetch(`http://localhost:8000/crear-eventos/publico/${id}/`);
         if (!resp.ok) throw new Error("Evento non atopado");
         const data = await resp.json();
         setEvento(data);
@@ -153,23 +150,6 @@ export default function ReservarEntrada() {
     }
   };
 
-  const deleteEvento = async () => {
-    if (!window.confirm('¿Seguro que queres eliminar este evento?')) return;
-    try {
-      const token = localStorage.getItem('access_token');
-      const resp = await fetch(`http://localhost:8000/crear-eventos/${id}/`, {
-        method: 'DELETE',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (resp.status !== 204) throw new Error('Erro ao eliminar');
-      alert('Evento eliminado');
-      navigate('/panel-organizador');
-    } catch (e) {
-      console.error(e);
-      alert('Erro ao eliminar o evento');
-    }
-  };
-
   return (
     <>
     <MainNavbar />
@@ -178,7 +158,7 @@ export default function ReservarEntrada() {
           <div className="p-3">
             <div className="d-flex align-items-start pb-2 mb-3">
               <Button
-                className="boton-avance me-3"
+                className="volver-verde-btn me-3"
                 onClick={() => navigate(-1)}
               >
                 ← Volver
@@ -190,7 +170,7 @@ export default function ReservarEntrada() {
               <div style={{ width: "100px" }}></div>
             </div>
             <p className="text-muted text-center small mt-1 mb-0">
-              *No seguinte mapa podes reservar as túas entradas.
+              *Escolle a túa butaca no seguinte mapa.
             </p>
           {AuditorioComponente && (
           <AuditorioComponente
@@ -203,62 +183,25 @@ export default function ReservarEntrada() {
         )}
         </div>
           <div className="card-body">
-            {!isEditing ? (
-              <>
-                <h2>{evento.nome_evento}</h2>
-                
-                 <p><FaCalendarAlt className="me-1" />
-                  {dataFormato}
-                  </p>
-                
-                <p><FaMapMarkerAlt className="me-1" /> {evento.localizacion}</p>
-                <p><FaTicketAlt className="me-1" />Entradas dispoñibles {evento.entradas_venta}</p>
-                {evento.prezo_evento != null && <p>{evento.prezo_evento} €</p>}
-                {evento.descripcion_evento && (
-                  <div>
-                    <h5>Descripción:</h5>
-                    <p>{evento.descripcion_evento}</p>
-                  </div>
-                )}
-                
+            <>
+              <h2>{evento.nome_evento}</h2>
+              
+                <p><FaCalendarAlt className="me-1" />
+                {dataFormato}
+                </p>
+              
+              <p><FaMapMarkerAlt className="me-1" /> {evento.localizacion}</p>
+              {evento.prezo_evento != null && (
+                <p>
+                  <FaTicketAlt className="me-1" />
+                  {evento.prezo_evento} €
+                </p>
+              )}
 
-                <div className="mt-3 d-flex">
-                  <button className="reserva-entrada-btn me-2" onClick={startEdit}>Editar evento</button>
-                  <button className="boton-avance" onClick={deleteEvento}>Cancelar evento</button>
-                </div>
-              </>
-            ) : (
-              <div>
-                <div className="mb-3">
-                  <label className="form-label">Título</label>
-                  <input name="nome_evento" value={form.nome_evento} onChange={handleChange} className="form-control" />
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Data (ISO)</label>
-                  <input name="data_evento" value={form.data_evento} onChange={handleChange} className="form-control" />
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Lugar</label>
-                  <input name="localizacion" value={form.localizacion} onChange={handleChange} className="form-control" />
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Entradas dispoñibles</label>
-                  <input name="entradas_venta" type="number" value={String(form.entradas_venta)} onChange={handleChange} className="form-control" />
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Prezo (€)</label>
-                  <input name="prezo_evento" value={form.prezo_evento} onChange={handleChange} className="form-control" />
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Descripción</label>
-                  <textarea name="descripcion_evento" value={form.descripcion_evento} onChange={handleChange} className="form-control" />
-                </div>
-                <div>
-                  <button className="btn btn-success me-2" onClick={saveEdit}>Gardar</button>
-                  <button className="btn btn-secondary" onClick={() => setIsEditing(false)}>Cancelar</button>
-                </div>
+              <div className="mt-3 d-flex">
+                <button className="reserva-entrada-verde-btn me-2" onClick={startEdit}>Reservar Entrada</button>
               </div>
-            )}
+            </>
           </div>
         </div>
       </div>

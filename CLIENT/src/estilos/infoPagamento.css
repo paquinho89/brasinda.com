@@ -1,0 +1,340 @@
+.info-pagamento-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100vh;
+  background: #fff;
+}
+
+.info-pagamento-page.verde {
+  --color-principal: #60dd49;
+}
+
+.info-pagamento-header {
+  background: white;
+  border-bottom: 2px solid #e0e0e0;
+  padding: 20px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+  min-width: 300px;
+}
+
+.info-pagamento-header h2 {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+}
+
+.evento-fecha {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.volver-btn-header {
+  background: none;
+  border: 1px solid #d9d9d9;
+  color: #666;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.volver-btn-header:hover {
+  border-color: #999;
+  color: #333;
+  background: #f5f5f5;
+}
+
+.timer-container {
+  background: #f0f8f4;
+  border: 2px solid #60dd49;
+  border-radius: 12px;
+  padding: 12px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 140px;
+}
+
+.timer-container.warning {
+  background: #fff3cd;
+  border-color: #ffc107;
+}
+
+.timer-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.timer-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #60dd49;
+  font-family: 'Courier New', monospace;
+}
+
+.timer-container.warning .timer-value {
+  color: #ff9800;
+}
+
+.info-pagamento-container {
+  flex: 1;
+  display: flex;
+  padding: 40px 60px;
+  background: white;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.info-pagamento-container form {
+  width: 100%;
+}
+
+.info-pagamento-formulario {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #212529;
+}
+
+.form-section {
+  margin-top: 30px;
+  margin-bottom: 20px;
+}
+
+.form-section h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-group {
+  margin-bottom: 25px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 400;
+  margin-bottom: 10px;
+  color: #212529;
+  font-size: 1rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  box-sizing: border-box;
+  color: #212529;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #60dd49;
+  box-shadow: 0 0 0 3px rgba(96, 221, 73, 0.1);
+}
+
+.form-group input:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+  color: #999;
+}
+
+.entradas-listado {
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 10px;
+}
+
+.entradas-listado table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  table-layout: fixed;
+}
+
+.entradas-listado table thead {
+  background: #efefef;
+}
+
+.entradas-listado table th {
+  padding: 10px;
+  text-align: left;
+  font-weight: 600;
+  color: #666;
+  border-bottom: 1px solid #d9d9d9;
+  word-break: break-word;
+}
+
+.entradas-listado table th:last-child {
+  text-align: right;
+}
+
+.entradas-listado table td {
+  padding: 10px;
+  border-bottom: 1px solid #e8e8e8;
+  color: #333;
+  word-break: break-word;
+}
+
+.entradas-listado table td:last-child {
+  text-align: right;
+}
+
+.entradas-listado table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.entradas-listado table tbody tr.total-row {
+  background: #f0f8f4;
+  border-top: 2px solid #60dd49;
+}
+
+.entradas-listado table tbody tr.total-row td {
+  font-size: 1rem;
+  padding: 12px 10px;
+  color: #333;
+}
+
+.info-reserva {
+  margin: 10px 0 0 0;
+  font-size: 1rem;
+  color: #212529;
+  font-weight: 400;
+}
+
+.error-message {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  color: #856404;
+  padding: 14px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.pagar-button-full {
+  width: 100%;
+  padding: 14px;
+  background: #60dd49;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 20px;
+}
+
+.pagar-button-full:hover:not(:disabled) {
+  background: #50c73a;
+  box-shadow: 0 4px 12px rgba(96, 221, 73, 0.3);
+}
+
+.pagar-button-full:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.info-reserva-tiempo {
+  margin: 0;
+  font-size: 12px;
+  color: #66bb6a;
+  font-weight: 600;
+  text-align: center;
+}
+
+.checkbox-group {
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+.form-group .checkbox-label-legal {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 400;
+  color: #212529;
+  font-size: 1rem;
+  margin: 0;
+  padding-left: 0;
+}
+
+.checkbox-input-legal {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  flex: 0 0 14px;
+  cursor: pointer;
+  accent-color: #60dd49;
+}
+
+.checkbox-text-legal {
+  display: inline;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .info-pagamento-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+
+  .header-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .timer-container {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .info-pagamento-container {
+    padding: 30px 20px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}

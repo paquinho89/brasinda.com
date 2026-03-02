@@ -22,21 +22,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const orgRaw = localStorage.getItem("organizador");
-      const tokenRaw = localStorage.getItem("token") || localStorage.getItem("access_token");
+    const tokenRaw = localStorage.getItem("access_token");
     if (orgRaw) setOrganizador(JSON.parse(orgRaw));
     if (tokenRaw) setToken(tokenRaw);
   }, []);
 
   const login = (data: OrganizadorType, token: string) => {
     localStorage.setItem("organizador", JSON.stringify(data));
-    localStorage.setItem("token", token);
+    localStorage.setItem("access_token", token);
     setOrganizador(data);
     setToken(token);
   };
 
   const logout = () => {
     localStorage.removeItem("organizador");
-    localStorage.removeItem("token");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
     setOrganizador(null);
     setToken(null);
   };
