@@ -10,6 +10,27 @@ from .serializers import EventoSerializer
 from django.shortcuts import get_object_or_404
 
 
+def _actualizar_contadores_evento(evento):
+    """Sincroniza en BD os contadores de reservas/vendas confirmadas do evento."""
+    entradas_reservadas = ReservaButaca.objects.filter(
+        evento=evento,
+        tipo_reserva=ReservaButaca.TIPO_RESERVA_INVITACION,
+        estado=ReservaButaca.ESTADO_CONFIRMADO,
+    ).count()
+    entradas_vendidas = ReservaButaca.objects.filter(
+        evento=evento,
+        tipo_reserva=ReservaButaca.TIPO_RESERVA_VENTA,
+        estado=ReservaButaca.ESTADO_CONFIRMADO,
+    ).count()
+
+    Evento.objects.filter(id=evento.id).update(
+        entradas_reservadas=entradas_reservadas,
+        entradas_vendidas=entradas_vendidas,
+    )
+    evento.entradas_reservadas = entradas_reservadas
+    evento.entradas_vendidas = entradas_vendidas
+
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def eventos_list_public(request):
@@ -98,6 +119,7 @@ def reservar_entradas(request, evento_id):
     entradas = request.data.get("entradas")
     zona = request.data.get("zona")
     email = request.data.get("email", "")
+    nome_titular = (request.data.get("nome_titular") or "").strip() or None
     duracion_reserva = request.data.get("duracion_reserva", 10)  # minutos, default 10
 
     if not isinstance(entradas, list) or not zona:
@@ -112,7 +134,22 @@ def reservar_entradas(request, evento_id):
             return Response({"error": "Formato invalido"}, status=400)
         seats.append((row, seat))
 
-    dispoñibles = evento.entradas_venta - evento.entradas_reservadas
+    # Calcular entradas disponibles dinámicamente
+    entradas_reservadas_actual = ReservaButaca.objects.filter(
+        evento=evento,
+        tipo_reserva=ReservaButaca.TIPO_RESERVA_INVITACION,
+        estado=ReservaButaca.ESTADO_CONFIRMADO
+    ).count()
+    
+    entradas_vendidas_actual = ReservaButaca.objects.filter(
+        evento=evento,
+        tipo_reserva=ReservaButaca.TIPO_RESERVA_VENTA,
+        estado=ReservaButaca.ESTADO_CONFIRMADO
+    ).count()
+    
+    entradas_ocupadas = entradas_reservadas_actual + entradas_vendidas_actual
+    dispoñibles = evento.entradas_venta - entradas_ocupadas
+    
     if len(seats) > dispoñibles:
         return Response({"error": "Non hai suficientes entradas dispoñibles"}, status=400)
 
@@ -134,8 +171,11 @@ def reservar_entradas(request, evento_id):
         # Determinar organizador: si está autenticado, usar request.user, sino None
         organizador = request.user if request.user.is_authenticated else None
         
-        # Determinar estado: CONFIRMADO para vendas públicas, TEMPORAL para organizador
-        estado = ReservaButaca.ESTADO_CONFIRMADO if organizador is None else ReservaButaca.ESTADO_TEMPORAL
+        # Determinar tipo de reserva
+        tipo_reserva = ReservaButaca.TIPO_RESERVA_VENTA if organizador is None else ReservaButaca.TIPO_RESERVA_INVITACION
+        
+        # Determinar estado: CONFIRMADO para invitaciones del organizador, TEMPORAL para ventas públicas (que tienen tiempo límite)
+        estado = ReservaButaca.ESTADO_CONFIRMADO if organizador is not None else ReservaButaca.ESTADO_TEMPORAL
         
         for row, seat in seats:
             ReservaButaca.objects.create(
@@ -144,19 +184,23 @@ def reservar_entradas(request, evento_id):
                 fila=row,
                 butaca=seat,
                 organizador=organizador,
+                tipo_reserva=tipo_reserva,
+                nome_titular=nome_titular if tipo_reserva == ReservaButaca.TIPO_RESERVA_INVITACION else None,
+                lugar_entrada=evento.localizacion,
+                prezo_entrada=evento.prezo_evento,
                 email=email,
                 fecha_expiracion=fecha_expiracion if estado == ReservaButaca.ESTADO_TEMPORAL else None,
                 estado=estado
             )
 
-    # Actualizar contadores de entradas
-    evento.entradas_reservadas = ReservaButaca.objects.filter(evento=evento).exclude(estado=ReservaButaca.ESTADO_CANCELADO).count()
-    evento.entradas_vendidas = ReservaButaca.objects.filter(evento=evento, estado=ReservaButaca.ESTADO_CONFIRMADO).count()
-    evento.save(update_fields=["entradas_reservadas", "entradas_vendidas"])
+        _actualizar_contadores_evento(evento)
+
+    # Recalcular entradas disponibles después de crear reservas
+    entradas_ocupadas_total = evento.entradas_reservadas + evento.entradas_vendidas
 
     return Response({
         "success": True,
-        "entradas_dispoñibles": evento.entradas_venta - evento.entradas_reservadas,
+        "entradas_dispoñibles": evento.entradas_venta - entradas_ocupadas_total,
         "reservas": [{"row": r[0], "seat": r[1]} for r in seats],
     })
 
@@ -244,10 +288,160 @@ def eliminar_reserva(request, evento_id, zona, fila, butaca):
     if evento.organizador_id != request.user.id and reserva.organizador_id != request.user.id:
         return Response({"error": "Non autorizado"}, status=403)
 
-    with transaction.atomic():
-        reserva.delete()
-        evento.entradas_reservadas = ReservaButaca.objects.filter(evento=evento).exclude(estado=ReservaButaca.ESTADO_CANCELADO).count()
-        evento.entradas_vendidas = ReservaButaca.objects.filter(evento=evento, estado=ReservaButaca.ESTADO_CONFIRMADO).count()
-        evento.save(update_fields=["entradas_reservadas", "entradas_vendidas"])
+    reserva.delete()
+    _actualizar_contadores_evento(evento)
 
-    return Response({"success": True, "entradas_dispoñibles": evento.entradas_venta - evento.entradas_reservadas})
+    # Recalcular entradas disponibles después de eliminar
+    entradas_ocupadas_total = evento.entradas_reservadas + evento.entradas_vendidas
+
+    return Response({"success": True, "entradas_dispoñibles": evento.entradas_venta - entradas_ocupadas_total})
+
+
+@api_view(["GET", "PUT"])
+@permission_classes([IsAuthenticated])
+def invitacions_sen_plano(request, evento_id):
+    """Xestión de invitacións para eventos sen plano (fila/butaca a NULL)."""
+    evento = get_object_or_404(Evento, id=evento_id, organizador=request.user)
+
+    qs = ReservaButaca.objects.filter(
+        evento=evento,
+        organizador=request.user,
+        tipo_reserva=ReservaButaca.TIPO_RESERVA_INVITACION,
+        fila__isnull=True,
+        butaca__isnull=True,
+    ).exclude(estado=ReservaButaca.ESTADO_CANCELADO).order_by("id")
+
+    if request.method == "GET":
+        data = [
+            {
+                "id": r.id,
+                "nome_titular": r.nome_titular,
+            }
+            for r in qs
+        ]
+        return Response({"cantidade": len(data), "invitacions": data})
+
+    cantidade = request.data.get("cantidade", 0)
+    nomes = request.data.get("nomes", [])
+    nome_xeral = (request.data.get("nome_xeral") or "").strip()
+
+    try:
+        cantidade = int(cantidade)
+    except (TypeError, ValueError):
+        return Response({"error": "A cantidade non é válida"}, status=400)
+
+    if cantidade < 0:
+        return Response({"error": "A cantidade non pode ser negativa"}, status=400)
+
+    if not isinstance(nomes, list):
+        return Response({"error": "Formato de nomes inválido"}, status=400)
+
+    # Verificar que non se supere o aforo total do evento
+    entradas_reservadas_actuales = ReservaButaca.objects.filter(
+        evento=evento,
+        tipo_reserva=ReservaButaca.TIPO_RESERVA_INVITACION,
+        estado=ReservaButaca.ESTADO_CONFIRMADO
+    ).count()
+    
+    entradas_vendidas_actuales = ReservaButaca.objects.filter(
+        evento=evento,
+        tipo_reserva=ReservaButaca.TIPO_RESERVA_VENTA,
+        estado=ReservaButaca.ESTADO_CONFIRMADO
+    ).count()
+    
+    entradas_ocupadas = entradas_reservadas_actuales + entradas_vendidas_actuales
+    entradas_disponibles = evento.entradas_venta - entradas_ocupadas
+    
+    if cantidade > entradas_disponibles:
+        return Response({
+            "error": f"Non podes reservar {cantidade} invitacións. Só hai {entradas_disponibles} entrada{'s' if entradas_disponibles != 1 else ''} dispoñible{'s' if entradas_disponibles != 1 else ''}."
+        }, status=400)
+
+    with transaction.atomic():
+        novas = []
+        for idx in range(cantidade):
+            nome_individual = ""
+            if idx < len(nomes) and isinstance(nomes[idx], str):
+                nome_individual = nomes[idx].strip()
+
+            titular = nome_individual or nome_xeral or "Invitación"
+
+            novas.append(
+                ReservaButaca(
+                    evento=evento,
+                    organizador=request.user,
+                    zona="sen-plano",
+                    fila=None,
+                    butaca=None,
+                    tipo_reserva=ReservaButaca.TIPO_RESERVA_INVITACION,
+                    nome_titular=titular,
+                    lugar_entrada=evento.localizacion,
+                    prezo_entrada=evento.prezo_evento,
+                    estado=ReservaButaca.ESTADO_CONFIRMADO,
+                )
+            )
+
+        if novas:
+            ReservaButaca.objects.bulk_create(novas)
+
+        _actualizar_contadores_evento(evento)
+
+    return Response({"success": True, "cantidade": cantidade})
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def listado_invitacions(request, evento_id):
+    """Devuelve el listado completo de reservas (invitaciones y ventas) del organizador para un evento."""
+    evento = get_object_or_404(Evento, id=evento_id, organizador=request.user)
+    
+    # Obtener todas las reservas del organizador (invitaciones y ventas)
+    reservas = ReservaButaca.objects.filter(
+        evento=evento,
+        organizador=request.user
+    ).exclude(estado=ReservaButaca.ESTADO_CANCELADO).order_by('zona', 'fila', 'butaca', 'id')
+    
+    data = []
+    for r in reservas:
+        data.append({
+            "id": r.id,
+            "zona": r.zona,
+            "fila": r.fila,
+            "butaca": r.butaca,
+            "nome_titular": r.nome_titular,
+            "lugar_entrada": r.lugar_entrada,
+            "prezo_entrada": str(r.prezo_entrada) if r.prezo_entrada else None,
+            "tipo_reserva": r.tipo_reserva,
+            "estado": r.estado,
+            "data_creacion": r.data_creacion.isoformat() if r.data_creacion else None,
+        })
+    
+    return Response({
+        "invitacions": data,
+        "total": len(data)
+    })
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def eliminar_invitacion(request, evento_id, invitacion_id):
+    """Elimina unha invitación específica (só invitacións do organizador, non ventas)."""
+    evento = get_object_or_404(Evento, id=evento_id, organizador=request.user)
+    
+    try:
+        invitacion = ReservaButaca.objects.get(id=invitacion_id, evento=evento)
+    except ReservaButaca.DoesNotExist:
+        return Response({"error": "Invitación non atopada"}, status=404)
+    
+    # Verificar que é unha invitación e non unha venta
+    if invitacion.tipo_reserva != ReservaButaca.TIPO_RESERVA_INVITACION:
+        return Response({"error": "Non se poden eliminar entradas vendidas"}, status=403)
+    
+    # Verificar que pertence ao organizador
+    if invitacion.organizador_id != request.user.id:
+        return Response({"error": "Non autorizado"}, status=403)
+    
+    invitacion.delete()
+    _actualizar_contadores_evento(evento)
+    
+    return Response({"success": True, "message": "Invitación eliminada correctamente"})

@@ -41,6 +41,14 @@ class Evento(models.Model):
 
 
 class ReservaButaca(models.Model):
+    TIPO_RESERVA_INVITACION = 'invitacion'
+    TIPO_RESERVA_VENTA = 'venta'
+
+    TIPO_RESERVA_CHOICES = [
+        (TIPO_RESERVA_INVITACION, 'Invitación'),
+        (TIPO_RESERVA_VENTA, 'Venda'),
+    ]
+
     ESTADO_TEMPORAL = 'temporal'
     ESTADO_CONFIRMADO = 'confirmado'
     ESTADO_CANCELADO = 'cancelado'
@@ -54,8 +62,12 @@ class ReservaButaca(models.Model):
     evento = models.ForeignKey(Evento, on_delete=models.CASCADE, related_name="reservas_butacas")
     organizador = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reservas_butacas", null=True, blank=True)
     zona = models.CharField(max_length=20)
-    fila = models.PositiveIntegerField()
-    butaca = models.PositiveIntegerField()
+    fila = models.PositiveIntegerField(null=True, blank=True)
+    butaca = models.PositiveIntegerField(null=True, blank=True)
+    tipo_reserva = models.CharField(max_length=20, choices=TIPO_RESERVA_CHOICES, default=TIPO_RESERVA_INVITACION)
+    nome_titular = models.CharField(max_length=200, null=True, blank=True)
+    lugar_entrada = models.CharField(max_length=200, null=True, blank=True)
+    prezo_entrada = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     data_creacion = models.DateTimeField(auto_now_add=True)
     email = models.EmailField(blank=True, null=True)
     fecha_expiracion = models.DateTimeField(blank=True, null=True)
