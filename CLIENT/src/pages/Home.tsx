@@ -62,7 +62,7 @@ function Home() {
       <MainNavbar />
 
       {/* Controles superiores */}
-      <div className="top-right-controls">
+      <div className={`top-right-controls ${organizador ? "with-organizador" : ""}`}>
         <CrearEventoBoton />
         {!organizador && <ToggleHamburguer />}
       </div>

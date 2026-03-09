@@ -388,7 +388,7 @@ export default function ListadoEntradas() {
                                     invitacion.nome_titular || "Invitación"
                                   )}
                                 </td>
-                                <td>{invitacion.tipo_reserva === "invitacion" ? "-" : (invitacion.prezo_entrada ? `${invitacion.prezo_entrada} €` : "-")}</td>
+                                <td>{invitacion.tipo_reserva === "invitacion" ? "-" : `${invitacion.prezo_entrada ?? 0} €`}</td>
                                 <td>{formatTipoReservaDisplay(invitacion.tipo_reserva)}</td>
                                 <td className="no-print text-center">
                                   {invitacion.tipo_reserva === "invitacion" && (
@@ -443,7 +443,7 @@ export default function ListadoEntradas() {
                                     invitacion.nome_titular || "Invitación"
                                   )}
                                 </td>
-                                <td>{invitacion.tipo_reserva === "invitacion" ? "-" : (invitacion.prezo_entrada ? `${invitacion.prezo_entrada} €` : "-")}</td>
+                                <td>{invitacion.tipo_reserva === "invitacion" ? "-" : `${invitacion.prezo_entrada ?? 0} €`}</td>
                                 <td>{formatTipoReservaDisplay(invitacion.tipo_reserva)}</td>
                                 <td className="no-print text-center">
                                   {invitacion.tipo_reserva === "invitacion" && (

@@ -7,6 +7,7 @@ import InfoPagamento from './pages/reservarEntrada/infoPagamento';
 // import PagoConfirmado from './pages/reservarEntrada/pagoConfirmado';
 import PanelOrganizador from './pages/panelOrganizador/panelOrganizador';
 import EventoDetalle from './pages/panelOrganizador/eventoDetalle';
+import ResumoEvento from './pages/panelOrganizador/resumoEvento';
 import CobroEvento from './pages/panelOrganizador/cobroEvento';
 import ListadoEntradas from './pages/panelOrganizador/componentes/listadoEntradas';
 import SettingsOrganizador from './pages/panelOrganizador/settingsOrganizador';
@@ -59,6 +60,7 @@ function App() {
 
         <Route path="panel-organizador" element={<PanelOrganizador />} />
         <Route path="panel-organizador/evento/:id" element={<EventoDetalle />} />
+        <Route path="panel-organizador/evento/:id/resumo" element={<ResumoEvento />} />
           <Route path="panel-organizador/evento/:id/entradas" element={<ListadoEntradas />} />
         <Route path="panel-organizador/cobro/:id" element={<CobroEvento />} />
         <Route path="panel-organizador/settings" element={<SettingsOrganizador />} />

@@ -36,6 +36,7 @@ interface Props {
   variant?: Variant;
   onEntradasUpdate?: () => void;
   onAforoHabilitadoChange?: (value: number) => void;
+  openZonaCentralSignal?: number;
 }
 
 const AuditorioSelectorVerin: React.FC<Props> = ({
@@ -44,6 +45,7 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
   variant = "rosa",
   onEntradasUpdate,
   onAforoHabilitadoChange,
+  openZonaCentralSignal,
 }) => {
   const navigate = useNavigate();
   const [areaActiva, setAreaActiva] = useState<Record<Zona, boolean>>({
@@ -168,6 +170,11 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
     setEstadoInicialArea(areaActiva[zona]);
     onZonaClick?.(zona);
   };
+
+  useEffect(() => {
+    if (!openZonaCentralSignal) return;
+    handleClick("central");
+  }, [openZonaCentralSignal]);
 
   const cerrarModal = () => {
     setZonaSeleccionada(null);

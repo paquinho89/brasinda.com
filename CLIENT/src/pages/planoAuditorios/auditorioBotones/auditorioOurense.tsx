@@ -12,6 +12,7 @@ interface Props {
   onZonaClick?: (zona: Zona) => void; // opcional
   onEntradasUpdate?: () => void;
   onAforoHabilitadoChange?: (value: number) => void;
+  openZonaCentralSignal?: number;
 }
 
 const countSeats = (layout: (number | null)[][]) =>
@@ -23,7 +24,7 @@ const AFORO_TOTAL_OURENSE =
   countSeats(AUDITORIO_OURENSE_ESQUERDA) +
   countSeats(AUDITORIO_OURENSE_DEREITA);
 
-const AuditorioSelectorOurense: React.FC<Props> = ({ onZonaClick, onAforoHabilitadoChange }) => {
+const AuditorioSelectorOurense: React.FC<Props> = ({ onZonaClick, onAforoHabilitadoChange, openZonaCentralSignal }) => {
   const [zonaSeleccionada, setZonaSeleccionada] = useState<Zona | null>(null);
 
   useEffect(() => {
@@ -34,6 +35,11 @@ const AuditorioSelectorOurense: React.FC<Props> = ({ onZonaClick, onAforoHabilit
     setZonaSeleccionada(zona);
     if (onZonaClick) onZonaClick(zona);
   };
+
+  useEffect(() => {
+    if (!openZonaCentralSignal) return;
+    handleClick("central");
+  }, [openZonaCentralSignal]);
 
   const renderEsquema = () => {
     if (!zonaSeleccionada) return null;

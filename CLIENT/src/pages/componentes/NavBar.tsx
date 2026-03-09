@@ -48,17 +48,9 @@ function MainNavbar() {
           eventospink
         </Navbar.Brand>
 
-        <Nav className="ms-auto d-flex align-items-center position-relative">
+        <Nav className={`ms-auto d-flex align-items-center position-relative ${organizadorUI ? "organizador-nav-group" : ""}`}>
           {organizadorUI && (
             <>
-              {/* Foto do organizador */}
-              <img
-                src={organizadorUI.foto_url || "/default-avatar.png"}
-                alt="Foto organizador"
-                className="rounded-circle me-2"
-                style={{ width: "38px", height: "38px", objectFit: "cover" }}
-              />
-
               {/* Botón co nome */}
               <Button
                 className="reserva-entrada-btn"
@@ -66,6 +58,14 @@ function MainNavbar() {
               >
                 {organizadorUI.nome_organizador}
               </Button>
+
+              {/* Foto do organizador */}
+              <img
+                src={organizadorUI.foto_url || "/default-avatar.png"}
+                alt="Foto organizador"
+                className="rounded-circle ms-2"
+                style={{ width: "38px", height: "38px", objectFit: "cover" }}
+              />
 
               {/* Toggle menú */}
               {open && (

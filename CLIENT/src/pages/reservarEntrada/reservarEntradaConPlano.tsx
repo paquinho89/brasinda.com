@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "react-bootstrap";
 import AuditorioSelectorVerin from "../planoAuditorios/auditorioBotones/auditorioVerin";
@@ -26,6 +26,8 @@ export default function ReservarEntrada() {
   const [evento, setEvento] = useState<Evento | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [openZonaCentralSignal, setOpenZonaCentralSignal] = useState(0);
+  const butacasRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -116,23 +118,25 @@ export default function ReservarEntrada() {
             </div>
           </div>
           <div className="card-body">
-
-            <AuditorioComponente
-              eventoId={evento.id}
-              variant="verde"
-              onZonaClick={(zona) => {
-                console.log("Zona seleccionada:", zona);
-              }}
-            />
+            <div ref={butacasRef}>
+              <AuditorioComponente
+                eventoId={evento.id}
+                variant="verde"
+                openZonaCentralSignal={openZonaCentralSignal}
+                onZonaClick={(zona) => {
+                  console.log("Zona seleccionada:", zona);
+                }}
+              />
+            </div>
 
             {evento.procedimiento_cobro_manual && (
               <div className="mt-3 p-3 border-left-4" style={{
-                backgroundColor: "#fff3cd",
-                borderLeftColor: "#ffc107",
+                backgroundColor: "#e8f5e9",
+                borderLeftColor: "#2e7d32",
                 borderLeftWidth: "4px",
                 borderRadius: "4px"
               }}>
-                <strong style={{ color: "#856404", fontSize: "1.1em" }}>Procedemento para o pago:</strong>
+                <strong style={{ color: "#1b5e20", fontSize: "1.1em" }}>Procedemento para o pago:</strong>
                 <p className="mt-2 mb-0" style={{ color: "#333" }}>
                   {evento.procedimiento_cobro_manual}
                 </p>
@@ -140,10 +144,21 @@ export default function ReservarEntrada() {
             )}
 
             {evento.prezo_evento != null && (
-              <p className="mt-3">
-                <FaTicketAlt className="me-1" />
-                <strong>Prezo: </strong>{evento.prezo_evento} €
-              </p>
+              <>
+                <p className="mt-3 mb-2">
+                  <FaTicketAlt className="me-1" />
+                  <strong>Prezo: </strong>{evento.prezo_evento} €
+                </p>
+                <Button
+                  className="reserva-entrada-verde-btn mt-3"
+                  onClick={() => {
+                    butacasRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    setOpenZonaCentralSignal((prev) => prev + 1);
+                  }}
+                >
+                  Escoller entrada
+                </Button>
+              </>
             )}
           </div>
         </div>

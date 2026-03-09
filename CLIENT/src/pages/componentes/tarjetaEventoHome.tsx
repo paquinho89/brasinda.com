@@ -108,8 +108,8 @@ export default function TarjetaEventoHome({ evento }: EventoHomeProps) {
       <div className="card-body d-flex flex-column">
 
         <p className="card-text mb-2">
-            <FaEuroSign style={{ marginRight: "6px" }} />
-           {evento.prezo_evento}
+          <FaEuroSign style={{ marginRight: "6px" }} />
+          {Number(evento.prezo_evento ?? 0) > 0 ? `${evento.prezo_evento} €` : "Evento de Balde"}
         </p>
 
         <p className="card-text mb-2">

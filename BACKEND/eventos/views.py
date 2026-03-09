@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view, permission_classes
 from django.db import transaction
 from django.utils import timezone
 from datetime import timedelta
-from .models import Evento, ReservaButaca
+from .models import Evento, ReservaButaca, SuscripcionNewsletter
 from .serializers import EventoSerializer
 from django.shortcuts import get_object_or_404
 
@@ -111,6 +111,19 @@ def evento_detail_view(request, pk):
         evento.xustificacion_cancelacion = razon
         evento.save()
         return Response(status=204)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def eliminar_evento_definitivo_view(request, pk):
+    """Elimina definitivamente un evento do organizador autenticado."""
+    try:
+        evento = Evento.objects.get(pk=pk, organizador=request.user)
+    except Evento.DoesNotExist:
+        return Response({'detail': 'Evento non atopado'}, status=404)
+
+    evento.delete()
+    return Response(status=204)
     
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -236,19 +249,25 @@ def reservas_butacas(request, evento_id):
 @permission_classes([AllowAny])
 def reservas_vendidas(request, evento_id):
     """
-    Devuelve solo las butacas vendidas (con estado CONFIRMADO)
+    Devolve só butacas de tipo venda activas (confirmadas e temporais non expiradas).
     """
     evento = get_object_or_404(Evento, id=evento_id)
     zona = request.query_params.get("zona")
 
-    qs = ReservaButaca.objects.filter(evento=evento, estado=ReservaButaca.ESTADO_CONFIRMADO)
+    qs = ReservaButaca.objects.filter(
+        evento=evento,
+        tipo_reserva=ReservaButaca.TIPO_RESERVA_VENTA,
+    )
     if zona:
         qs = qs.filter(zona=zona)
 
-    data = [
-        {"row": r.fila, "seat": r.butaca, "zona": r.zona}
-        for r in qs.order_by("fila", "butaca")
-    ]
+    data = []
+    for r in qs.order_by("fila", "butaca"):
+        if r.estado == ReservaButaca.ESTADO_CANCELADO:
+            continue
+        if r.estado == ReservaButaca.ESTADO_TEMPORAL and r.esta_expirada():
+            continue
+        data.append({"row": r.fila, "seat": r.butaca, "zona": r.zona})
 
     return Response({"reservas": data})
 
@@ -259,9 +278,20 @@ def mis_reservas(request, evento_id):
     zona = request.query_params.get("zona")
 
     if evento.organizador_id == request.user.id:
-        qs = ReservaButaca.objects.filter(evento=evento)
+        # No panel rosa o organizador só debe ver invitacións editables,
+        # nunca entradas vendidas.
+        qs = ReservaButaca.objects.filter(
+            evento=evento,
+            tipo_reserva=ReservaButaca.TIPO_RESERVA_INVITACION,
+            estado=ReservaButaca.ESTADO_CONFIRMADO,
+        )
     else:
-        qs = ReservaButaca.objects.filter(evento=evento, organizador=request.user)
+        qs = ReservaButaca.objects.filter(
+            evento=evento,
+            organizador=request.user,
+            tipo_reserva=ReservaButaca.TIPO_RESERVA_INVITACION,
+            estado=ReservaButaca.ESTADO_CONFIRMADO,
+        )
     if zona:
         qs = qs.filter(zona=zona)
 
@@ -288,6 +318,9 @@ def eliminar_reserva(request, evento_id, zona, fila, butaca):
     if evento.organizador_id != request.user.id and reserva.organizador_id != request.user.id:
         return Response({"error": "Non autorizado"}, status=403)
 
+    if reserva.tipo_reserva == ReservaButaca.TIPO_RESERVA_VENTA:
+        return Response({"error": "As entradas vendidas non se poden eliminar"}, status=400)
+
     reserva.delete()
     _actualizar_contadores_evento(evento)
 
@@ -298,20 +331,27 @@ def eliminar_reserva(request, evento_id, zona, fila, butaca):
 
 
 @api_view(["GET", "PUT"])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def invitacions_sen_plano(request, evento_id):
     """Xestión de invitacións para eventos sen plano (fila/butaca a NULL)."""
-    evento = get_object_or_404(Evento, id=evento_id, organizador=request.user)
+    evento = get_object_or_404(Evento, id=evento_id)
 
-    qs = ReservaButaca.objects.filter(
-        evento=evento,
-        organizador=request.user,
-        tipo_reserva=ReservaButaca.TIPO_RESERVA_INVITACION,
-        fila__isnull=True,
-        butaca__isnull=True,
-    ).exclude(estado=ReservaButaca.ESTADO_CANCELADO).order_by("id")
-
+    # For GET: show all confirmed invitations for the event
+    # For PUT: allow public users to book invitations
     if request.method == "GET":
+        # If user is authenticated and is the organizer, show all their invitations
+        if request.user and request.user.is_authenticated and hasattr(request, 'user'):
+            qs = ReservaButaca.objects.filter(
+                evento=evento,
+                organizador=request.user,
+                tipo_reserva=ReservaButaca.TIPO_RESERVA_INVITACION,
+                fila__isnull=True,
+                butaca__isnull=True,
+            ).exclude(estado=ReservaButaca.ESTADO_CANCELADO).order_by("id")
+        else:
+            # For public users, don't return invitation details
+            qs = []
+        
         data = [
             {
                 "id": r.id,
@@ -324,6 +364,7 @@ def invitacions_sen_plano(request, evento_id):
     cantidade = request.data.get("cantidade", 0)
     nomes = request.data.get("nomes", [])
     nome_xeral = (request.data.get("nome_xeral") or "").strip()
+    email_suscripcion = (request.data.get("email_suscripcion") or "").strip()
 
     try:
         cantidade = int(cantidade)
@@ -359,6 +400,10 @@ def invitacions_sen_plano(request, evento_id):
 
     with transaction.atomic():
         novas = []
+        # Determine reservation type based on authentication
+        # If authenticated (organizer), it's an invitation; if not, it's a sale
+        tipo_reserva = ReservaButaca.TIPO_RESERVA_INVITACION if (request.user and request.user.is_authenticated) else ReservaButaca.TIPO_RESERVA_VENTA
+        
         for idx in range(cantidade):
             nome_individual = ""
             if idx < len(nomes) and isinstance(nomes[idx], str):
@@ -369,15 +414,16 @@ def invitacions_sen_plano(request, evento_id):
             novas.append(
                 ReservaButaca(
                     evento=evento,
-                    organizador=request.user,
+                    organizador=request.user if request.user and request.user.is_authenticated else None,
                     zona="sen-plano",
                     fila=None,
                     butaca=None,
-                    tipo_reserva=ReservaButaca.TIPO_RESERVA_INVITACION,
+                    tipo_reserva=tipo_reserva,
                     nome_titular=titular,
                     lugar_entrada=evento.localizacion,
                     prezo_entrada=evento.prezo_evento,
                     estado=ReservaButaca.ESTADO_CONFIRMADO,
+                    email=email_suscripcion if email_suscripcion else None,
                 )
             )
 
@@ -385,6 +431,19 @@ def invitacions_sen_plano(request, evento_id):
             ReservaButaca.objects.bulk_create(novas)
 
         _actualizar_contadores_evento(evento)
+        
+        # Gardar suscripción á newsletter se se proporcionou email
+        if email_suscripcion:
+            suscripcion, created = SuscripcionNewsletter.objects.get_or_create(
+                email=email_suscripcion,
+                defaults={
+                    'zonas_interes': evento.localizacion,
+                    'activo': True
+                }
+            )
+            # Se xa existía a suscripción, engadir a nova zona
+            if not created:
+                suscripcion.engadir_zona(evento.localizacion)
 
     return Response({"success": True, "cantidade": cantidade})
 
@@ -395,10 +454,9 @@ def listado_invitacions(request, evento_id):
     """Devuelve el listado completo de reservas (invitaciones y ventas) del organizador para un evento."""
     evento = get_object_or_404(Evento, id=evento_id, organizador=request.user)
     
-    # Obtener todas las reservas del organizador (invitaciones y ventas)
+    # Obtener todas las reservas del evento (invitaciones del organizador + ventas públicas)
     reservas = ReservaButaca.objects.filter(
-        evento=evento,
-        organizador=request.user
+        evento=evento
     ).exclude(estado=ReservaButaca.ESTADO_CANCELADO).order_by('zona', 'fila', 'butaca', 'id')
     
     data = []

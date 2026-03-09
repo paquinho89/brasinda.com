@@ -88,3 +88,31 @@ class ReservaButaca(models.Model):
         if self.fecha_expiracion is None:
             return False
         return timezone.now() > self.fecha_expiracion
+
+
+class SuscripcionNewsletter(models.Model):
+    """Modelo para xestionar as suscripcións á newsletter de eventos"""
+    email = models.EmailField(unique=True, verbose_name="Email")
+    zonas_interes = models.TextField(blank=True, null=True, verbose_name="Zonas de interese", 
+                                     help_text="Lugares dos eventos nos que comprou entradas (separados por comas)")
+    fecha_alta = models.DateTimeField(auto_now_add=True, verbose_name="Data de alta")
+    activo = models.BooleanField(default=True, verbose_name="Activo")
+    
+    class Meta:
+        verbose_name = "Suscripción Newsletter"
+        verbose_name_plural = "Suscripcións Newsletter"
+        ordering = ['-fecha_alta']
+    
+    def __str__(self):
+        return f"{self.email} ({'Activo' if self.activo else 'Inactivo'})"
+    
+    def engadir_zona(self, nova_zona):
+        """Engade unha nova zona á lista de zonas de interese se non existe"""
+        if not self.zonas_interes:
+            self.zonas_interes = nova_zona
+        else:
+            zonas = [z.strip() for z in self.zonas_interes.split(',')]
+            if nova_zona not in zonas:
+                zonas.append(nova_zona)
+                self.zonas_interes = ', '.join(zonas)
+        self.save()

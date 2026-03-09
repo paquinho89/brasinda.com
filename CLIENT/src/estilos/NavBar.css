@@ -64,12 +64,19 @@
   font-size: 0.95rem;
 }
 
+.organizador-nav-group {
+  margin-right: -40px;
+}
+
 @media (max-width: 992px) {
   .site-name {
     font-size: 1.25rem;
   }
   .navbar-search-input {
     width: 140px;
+  }
+  .organizador-nav-group {
+    margin-right: 0;
   }
 }
 

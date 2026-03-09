@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, Modal } from "react-bootstrap";
-import { FaCalendarAlt, FaTicketAlt, FaExclamationTriangle } from "react-icons/fa";
+import { FaCalendarAlt, FaTicketAlt, FaExclamationTriangle, FaCreditCard } from "react-icons/fa";
 import MainNavbar from "../componentes/NavBar";
 
 interface Evento {
@@ -26,10 +26,11 @@ export default function ReservarEntradaSinPlano() {
 	const [cantidadeReservar, setCantidadeReservar] = useState<number>(0);
 	const [nomeXeral, setNomeXeral] = useState("");
 	const [nomearTodas, setNomearTodas] = useState(false);
-	const [nomesInvitacions, setNomesInvitacions] = useState<string[]>([]);
+	const [nomesAsistentes, setNomesAsistentes] = useState<string[]>([]);
 	const [gardando, setGardando] = useState(false);
-	const [cargandoInvitacions, setCargandoInvitacions] = useState(true);
 	const [showModal, setShowModal] = useState(false);
+	const [suscribirseEventos, setSuscribirseEventos] = useState(false);
+	const [emailSuscripcion, setEmailSuscripcion] = useState("");
 	const navigate = useNavigate();
 	const API_BASE_URL = "http://localhost:8000";
 
@@ -55,34 +56,8 @@ export default function ReservarEntradaSinPlano() {
 	}, [id]);
 
 	useEffect(() => {
-		if (!id) return;
-
-		const cargarInvitacions = async () => {
-			setCargandoInvitacions(true);
-			try {
-				const token = localStorage.getItem("access_token");
-				const resp = await fetch(`${API_BASE_URL}/crear-eventos/${id}/invitacions-sen-plano/`, {
-					headers: {
-						...(token ? { Authorization: `Bearer ${token}` } : {}),
-					},
-				});
-
-				if (!resp.ok) {
-					throw new Error("Non se puideron cargar as invitacións");
-				}
-			} catch (e: any) {
-				setError(e.message || "Erro ao cargar invitacións");
-			} finally {
-				setCargandoInvitacions(false);
-			}
-		};
-
-		cargarInvitacions();
-	}, [id]);
-
-	useEffect(() => {
 		if (!nomearTodas) return;
-		setNomesInvitacions((prev) => {
+		setNomesAsistentes((prev) => {
 			const trimmed = prev.slice(0, cantidadeReservar);
 			while (trimmed.length < cantidadeReservar) {
 				trimmed.push("");
@@ -106,8 +81,8 @@ export default function ReservarEntradaSinPlano() {
 		setCantidadeReservar(Math.max(0, parsed));
 	};
 
-	const handleNomeInvitacionChange = (idx: number, value: string) => {
-		setNomesInvitacions((prev) => {
+	const handleNomeAsistenteChange = (idx: number, value: string) => {
+		setNomesAsistentes((prev) => {
 			const next = [...prev];
 			next[idx] = value;
 			return next;
@@ -117,8 +92,10 @@ export default function ReservarEntradaSinPlano() {
 	const limparFormulario = () => {
 		setCantidadeReservar(0);
 		setNomeXeral("");
-		setNomesInvitacions([]);
+		setNomesAsistentes([]);
 		setNomearTodas(false);
+		setSuscribirseEventos(false);
+		setEmailSuscripcion("");
 	};
 
 	const isFormValid = () => {
@@ -127,11 +104,20 @@ export default function ReservarEntradaSinPlano() {
 		}
 
 		if (nomearTodas) {
-			const nomesValidos = nomesInvitacions.slice(0, cantidadeReservar);
+			const nomesValidos = nomesAsistentes.slice(0, cantidadeReservar);
 			return nomesValidos.every((nome) => nome.trim().length > 0);
 		}
 
-		return nomeXeral.trim().length > 0;
+		if (!nomeXeral.trim().length) {
+			return false;
+		}
+
+		// If subscription is checked, email is required
+		if (suscribirseEventos && !emailSuscripcion.trim().length) {
+			return false;
+		}
+
+		return true;
 	};
 
 	const gardarReserva = async () => {
@@ -145,39 +131,40 @@ export default function ReservarEntradaSinPlano() {
 			return;
 		}
 
-		if (nomearTodas && cantidadeReservar > 0 && nomesInvitacions.length !== cantidadeReservar) {
-			setError("Revisa os nomes das invitacións antes de gardar.");
+		if (nomearTodas && cantidadeReservar > 0 && nomesAsistentes.length !== cantidadeReservar) {
+			setError("Revisa os nomes das entradas antes de gardar.");
 			limparFormulario();
 			return;
 		}
 
 		setGardando(true);
 		try {
-			const token = localStorage.getItem("access_token");
-			const nomesParaGardar = nomearTodas ? nomesInvitacions.slice(0, cantidadeReservar) : [];
+			const nomesParaGardar = nomearTodas ? nomesAsistentes.slice(0, cantidadeReservar) : [];
 
 			const resp = await fetch(`${API_BASE_URL}/crear-eventos/${evento.id}/invitacions-sen-plano/`, {
 				method: "PUT",
 				headers: {
 					"Content-Type": "application/json",
-					...(token ? { Authorization: `Bearer ${token}` } : {}),
 				},
 				body: JSON.stringify({
 					cantidade: cantidadeReservar,
 					nomes: nomesParaGardar,
 					nome_xeral: nomeXeral,
+					...(suscribirseEventos && { email_suscripcion: emailSuscripcion }),
 				}),
 			});
 
 			if (!resp.ok) {
 				const data = await resp.json().catch(() => null);
-				throw new Error(data?.detail || data?.error || "Non se puideron gardar as entradas reservadas.");
+				throw new Error(data?.detail || data?.error || "Non se puideron gardar as entradas.");
 			}
 
 			setShowModal(true);
 			limparFormulario();
+			setSuscribirseEventos(false);
+			setEmailSuscripcion("");
 		} catch (e: any) {
-			setError(e.message || "Produciuse un erro ao gardar as invitacións.");
+			setError(e.message || "Produciuse un erro ao gardar as entradas.");
 			limparFormulario();
 		} finally {
 			setGardando(false);
@@ -234,11 +221,9 @@ export default function ReservarEntradaSinPlano() {
 					</div>
 
 					<div className="card-body">
-						{cargandoInvitacions && <p className="text-muted">Cargando invitacións...</p>}
-
 						<div className="mb-3" style={{ maxWidth: "400px" }}>
 							<label htmlFor="cantidade-reserva" className="form-label">
-								Cantas invitacións novas queres engadir?
+								Número de entradas a reservar:
 							</label>
 							<input
 								id="cantidade-reserva"
@@ -254,7 +239,7 @@ export default function ReservarEntradaSinPlano() {
 						{!nomearTodas && (
 							<div className="mb-3" style={{ maxWidth: "400px" }}>
 								<label htmlFor="nome-xeral" className="form-label">
-									Nome xeral para as invitacións
+									Nome:
 								</label>
 								<input
 									id="nome-xeral"
@@ -277,33 +262,26 @@ export default function ReservarEntradaSinPlano() {
 									onChange={(e) => setNomearTodas(e.target.checked)}
 								/>
 								<label htmlFor="nomear-todas" className="form-check-label">
-									Quero nomear todas as invitacións individualmente
+									Quero nomear todos os asistentes individualmente
 								</label>
 							</div>
 						)}
 
 						{nomearTodas && cantidadeReservar > 0 && (
 							<div className="mb-3">
-								<p className="mb-2">Nomes das invitacións</p>
+								<p className="mb-2">Nomes dos asistentes</p>
 								<div className="d-grid" style={{ gap: "8px" }}>
 									{Array.from({ length: cantidadeReservar }).map((_, idx) => (
 										<input
 											key={`invitacion-${idx}`}
 											type="text"
 											className="form-control"
-											placeholder={`Nome invitacion ${idx + 1}`}
-											value={nomesInvitacions[idx] || ""}
-											onChange={(e) => handleNomeInvitacionChange(idx, e.target.value)}
+											placeholder={`Nome asistente ${idx + 1}`}
+											value={nomesAsistentes[idx] || ""}
+											onChange={(e) => handleNomeAsistenteChange(idx, e.target.value)}
 										/>
 									))}
 								</div>
-							</div>
-						)}
-
-						{evento.procedimiento_cobro_manual && (
-							<div className="mt-3">
-								<strong>Procedemento para o pago: </strong>
-								{evento.procedimiento_cobro_manual}
 							</div>
 						)}
 
@@ -313,6 +291,47 @@ export default function ReservarEntradaSinPlano() {
 								<strong>Prezo: </strong>
 								{evento.prezo_evento} €
 							</p>
+						)}
+
+						{evento.procedimiento_cobro_manual && (
+							<div className="mt-3">
+								<FaCreditCard className="me-1" style={{ color: "#155724" }} />
+								<strong>Xestión do pago: </strong>
+								{evento.procedimiento_cobro_manual}
+							</div>
+						)}
+
+						<div className="form-group checkbox-group mt-4">
+							<label className="checkbox-label-legal">
+								<input
+									type="checkbox"
+									className="checkbox-input-legal"
+									checked={suscribirseEventos}
+									onChange={(e) => setSuscribirseEventos(e.target.checked)}
+									disabled={gardando}
+									style={{ width: "18px", height: "18px", cursor: "pointer" }}
+								/>
+								<span className="checkbox-text-legal">
+									<strong>Quero estar informado dos eventos que acontecen na miña zona</strong>
+								</span>
+							</label>
+						</div>
+
+						{suscribirseEventos && (
+							<div className="mb-3" style={{ maxWidth: "400px", marginTop: "8px" }}>
+								<label htmlFor="email-suscripcion" className="form-label">
+									Email para manterte informado
+								</label>
+								<input
+									id="email-suscripcion"
+									type="email"
+									value={emailSuscripcion}
+									onChange={(e) => setEmailSuscripcion(e.target.value)}
+									className="form-control"
+									placeholder="Introduce o teu email"
+									required={suscribirseEventos}
+								/>
+							</div>
 						)}
 
 						<div className="d-flex justify-content-start">
@@ -342,16 +361,22 @@ export default function ReservarEntradaSinPlano() {
 				<Modal.Body>
 					{evento?.procedimiento_cobro_manual && (
 						<div className="d-flex align-items-start">
-							<FaExclamationTriangle style={{ fontSize: "1.5em", marginRight: "12px", color: "#000", marginTop: "4px" }} />
+							<FaCreditCard style={{ fontSize: "1.5em", marginRight: "12px", color: "#155724", marginTop: "4px" }} />
 							<div className="flex-grow-1">
-								<strong style={{ fontSize: "1.2em" }}>Procedemento para o pago:</strong>
+								<strong style={{ fontSize: "1.2em" }}>Xestión do pago:</strong>
 								<p className="mt-2 mb-0">{evento.procedimiento_cobro_manual}</p>
 							</div>
 						</div>
 					)}
 				</Modal.Body>
 				<Modal.Footer>
-					<button className="reserva-entrada-verde-btn" onClick={() => setShowModal(false)}>
+					<button 
+						className="reserva-entrada-verde-btn" 
+						onClick={() => {
+							setShowModal(false);
+							navigate('/');
+						}}
+					>
 						Entendido
 					</button>
 				</Modal.Footer>

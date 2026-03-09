@@ -166,7 +166,9 @@ const Resumen: React.FC = () => {
               <div className="col-md-6">
                 <strong>Prezo por entrada (€):</strong>
               </div>
-              <div className="col-md-6">{evento.precio || "Gratuíto"}</div>
+              <div className="col-md-6">
+                {evento.precio && parseFloat(evento.precio) > 0 ? evento.precio : "Gratuíto"} €
+              </div>
             </div>
 
             {evento.tipo_gestion_entrada && evento.tipo_gestion_entrada !== "gratis" && (

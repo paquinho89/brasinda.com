@@ -512,12 +512,12 @@ export default function EventoDetalle() {
                   Xestión das invitacións
                 </button>
 
-                <p><FaMoneyBill className="me-1" />Diñeiro recadado: {evento.prezo_evento != null ? (Number(evento.prezo_evento) * (evento.entradas_vendidas ?? 0)).toFixed(2) : "0.00"} €</p>
-                {evento.prezo_evento != null && <p><FaEuroSign className="me-1" />Prezo Evento: {evento.prezo_evento} €</p>}
-                {textoXestionImporte && <p><FaTicketAlt className="me-1" />Xestión do importe da entrada: {textoXestionImporte}</p>}
+                {evento.prezo_evento != null && Number(evento.prezo_evento) > 0 && <p><FaMoneyBill className="me-1" /><strong>Diñeiro recadado:</strong> {(Number(evento.prezo_evento) * (evento.entradas_vendidas ?? 0)).toFixed(2)} €</p>}
+                {evento.prezo_evento != null && <p><FaEuroSign className="me-1" /><strong>Prezo:</strong> {evento.prezo_evento} €</p>}
+                {textoXestionImporte && <p><FaTicketAlt className="me-1" /><strong>Xestión do pago:</strong> {textoXestionImporte}</p>}
                 {img && (
                   <div>
-                    <p><FaImage className="me-1" />Imaxe do Evento: {evento.imaxe_evento?.split("/").pop()}</p>
+                    <p><FaImage className="me-1" /><strong>Imaxe:</strong> {evento.imaxe_evento?.split("/").pop()}</p>
                     <img
                       src={img}
                       alt={evento.nome_evento}
@@ -527,7 +527,7 @@ export default function EventoDetalle() {
                 )}
                 {evento.descripcion_evento && (
                   <div className="mt-3">
-                    <p><FaRegFileAlt className="me-1" />Descripción:</p>
+                    <p><FaRegFileAlt className="me-1" /><strong>Descripción:</strong></p>
                     <p><em>{evento.descripcion_evento}</em></p>
                   </div>
                 )}
@@ -592,7 +592,7 @@ export default function EventoDetalle() {
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title d-flex align-items-center mb-0">
-                  <FaExclamationTriangle className="me-2" style={{ color: "#000" }} />
+                  <FaExclamationTriangle className="me-2" style={{ color: "#ff0093" }} />
                   Cancelar evento
                 </h5>
                 <button
@@ -603,7 +603,8 @@ export default function EventoDetalle() {
               </div>
               <div className="modal-body">
                 <div className="mb-3" style={{ color: "#ff0093", fontWeight: 700 }}>
-                  No caso de existir entradas a venda, o importe será devolto aos asistentes.
+                  No caso de que o importe das entradas se xestione a través da páxina,
+                  éste será devolto aos asistentes.
                 </div>
 
                 <div className="mb-3">

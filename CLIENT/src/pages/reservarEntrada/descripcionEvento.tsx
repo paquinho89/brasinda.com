@@ -195,7 +195,11 @@ export default function DescripcionEvento() {
                 <strong>Localizacion:</strong> {evento.localizacion}
               </p>
               <p className="mb-0">
-                <strong className="text-success fs-5">Prezo: {evento.prezo_evento} €</strong>
+                <strong className="text-success fs-5">
+                  {typeof evento.prezo_evento === "number" && evento.prezo_evento > 0
+                    ? `Prezo: ${evento.prezo_evento} €`
+                    : "Evento de Balde"}
+                </strong>
               </p>
             </div>
 

@@ -1,6 +1,5 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
-import { FaCalendarAlt, FaMapMarkerAlt, FaTicketAlt, FaEuroSign } from "react-icons/fa";
+import { FaCalendarAlt, FaMapMarkerAlt, FaTicketAlt, FaEuroSign, FaCreditCard } from "react-icons/fa";
 
 interface EventoProps {
   evento: {
@@ -10,6 +9,8 @@ interface EventoProps {
     data_evento: string;
     localizacion: string;
     entradas_venta: number;
+    prezo_evento?: number | null;
+    tipo_gestion_entrada?: "pagina" | "manual" | "gratis" | null;
   };
   isPast?: boolean;
 }
@@ -51,9 +52,23 @@ export default function TarjetaEvento({ evento, isPast = false }: EventoProps) {
     navigate(`/panel-organizador/evento/${evento.id}`);
   };
 
+  const handleResumo = () => {
+    navigate(`/panel-organizador/evento/${evento.id}/resumo`);
+  };
+
   const handleCobrar = () => {
     navigate(`/panel-organizador/cobro/${evento.id}`);
   };
+
+  const isEventoGratuito =
+    evento.tipo_gestion_entrada === "gratis" || Number(evento.prezo_evento ?? 0) <= 0;
+
+  const textoXestionImporte =
+    evento.tipo_gestion_entrada === "pagina"
+      ? "Xestionado a través da páxina"
+      : evento.tipo_gestion_entrada === "manual"
+      ? "Xestionado polo organizador"
+      : null;
 
   return (
     <div
@@ -82,6 +97,20 @@ export default function TarjetaEvento({ evento, isPast = false }: EventoProps) {
           Entradas en venta: {evento.entradas_venta}
         </p>
 
+        {evento.prezo_evento != null && (
+          <p className="card-text mb-2">
+            <FaEuroSign style={{ marginRight: "6px" }} />
+            Prezo: {Number(evento.prezo_evento) > 0 ? `${evento.prezo_evento} €` : "Evento de Balde"}
+          </p>
+        )}
+
+        {textoXestionImporte && (
+          <p className="card-text mb-2">
+            <FaCreditCard style={{ marginRight: "6px" }} />
+            Xestión do pago: {textoXestionImporte}
+          </p>
+        )}
+
         <p className="card-text mb-2">
           <FaMapMarkerAlt style={{ marginRight: "6px" }} />
           {evento.localizacion}
@@ -93,13 +122,29 @@ export default function TarjetaEvento({ evento, isPast = false }: EventoProps) {
         </p>
 
         {isPast ? (
-          <button
-            className="cancelar-evento-btn mt-auto"
-            onClick={handleCobrar}
-          >
-            <FaEuroSign className="me-1" />
-            Cobrar evento
-          </button>
+          isEventoGratuito ? (
+            <button
+              className="reserva-entrada-btn mt-auto"
+              onClick={handleResumo}
+            >
+              Ver resumo do evento
+            </button>
+          ) : evento.tipo_gestion_entrada === "manual" ? (
+            <button
+              className="reserva-entrada-btn mt-auto"
+              onClick={handleResumo}
+            >
+              Ver resumo evento
+            </button>
+          ) : (
+            <button
+              className="reserva-entrada-btn mt-auto"
+              onClick={handleCobrar}
+            >
+              <FaEuroSign className="me-1" />
+              Cobrar evento
+            </button>
+          )
         ) : (
           <button
             className="reserva-entrada-btn mt-auto"
