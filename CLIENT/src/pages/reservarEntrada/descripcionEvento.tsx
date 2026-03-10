@@ -4,7 +4,20 @@ import { Container, Button, Spinner, Alert } from "react-bootstrap";
 import MainNavbar from "../componentes/NavBar";
 import "../../estilos/TarjetaEventoHome.css";
 import "../../estilos/Botones.css";
-import { FaCalendarAlt, FaMapMarkerAlt, FaClock } from "react-icons/fa";
+import {
+  FaCalendarAlt,
+  FaMapMarkerAlt,
+  FaClock,
+  FaArrowLeft,
+  FaMusic,
+  FaTheaterMasks,
+  FaCommentDots,
+  FaUtensils,
+  FaGlassCheers,
+  FaGuitar,
+  FaStore,
+  FaStar,
+} from "react-icons/fa";
 
 interface evento {
   id: number;
@@ -24,6 +37,30 @@ const normalizarTexto = (texto: string) =>
 const usaPlanoAuditorio = (localizacion: string) => {
   const lugar = normalizarTexto(localizacion);
   return lugar.includes("auditorio") && (lugar.includes("verin") || lugar.includes("ourense"));
+};
+
+const getTipoIcon = (tipo?: string) => {
+  switch (tipo) {
+    case "Concerto":
+    case "Musical":
+      return <FaMusic className="me-2" />;
+    case "Obra de Teatro":
+    case "Monólogo":
+      return <FaTheaterMasks className="me-2" />;
+    case "Coloquio":
+    case "Charla":
+      return <FaCommentDots className="me-2" />;
+    case "Comida/Cena Popular":
+      return <FaUtensils className="me-2" />;
+    case "Festa Popular":
+      return <FaGlassCheers className="me-2" />;
+    case "Festival":
+      return <FaGuitar className="me-2" />;
+    case "Feira":
+      return <FaStore className="me-2" />;
+    default:
+      return <FaStar className="me-2" />;
+  }
 };
 
 export default function DescripcionEvento() {
@@ -112,6 +149,7 @@ export default function DescripcionEvento() {
         <Container className="mt-5">
           <Alert variant="danger">{error || "Evento non encontrado"}</Alert>
           <Button variant="primary" onClick={() => navigate("/")}>
+            <FaArrowLeft className="me-2" />
             Volver a Inicio
           </Button>
         </Container>
@@ -137,6 +175,11 @@ export default function DescripcionEvento() {
     minute: "2-digit",
   });
 
+  const prezoEvento = Number(evento.prezo_evento ?? 0);
+  const prezoFormatado = Number.isInteger(prezoEvento)
+    ? String(prezoEvento)
+    : prezoEvento.toFixed(2);
+
   return (
     <>
       <MainNavbar />
@@ -157,7 +200,8 @@ export default function DescripcionEvento() {
             <h1 className="mb-3">{evento.nome_evento}</h1>
 
             {evento.tipo_evento && (
-              <p className="text-muted">
+              <p className="text-muted" style={{ fontSize: "1.1rem" }}>
+                {getTipoIcon(evento.tipo_evento)}
                 {evento.tipo_evento}
               </p>
             )}
@@ -165,15 +209,16 @@ export default function DescripcionEvento() {
             {/* Botones arriba */}
             <div className="d-flex gap-3 mb-3">
               <Button
-                className="volver-verde-btn"
+                className="volver-btn"
                 onClick={() => navigate("/")}
               >
+                <FaArrowLeft className="me-2" />
                 Volver
               </Button>
               <Button
                 variant="success"
                 size="lg"
-                className="reserva-entrada-verde-btn"
+                className="reserva-entrada-btn"
                 onClick={handleReservation}
                 disabled={evento.entradas_venta === 0}
               >
@@ -184,20 +229,20 @@ export default function DescripcionEvento() {
             <div className="card mb-4 p-3">
               <p className="mb-2">
                 <FaCalendarAlt className="me-1" />
-                <strong>Fecha:</strong> {dataFormato}
+                <strong>{dataFormato}</strong>
               </p>
               <p className="mb-2">
                 <FaClock className="me-1" />
-                <strong>Hora:</strong> {horaFormato}
+                <strong>{horaFormato}</strong>
               </p>
               <p className="mb-2">
                 <FaMapMarkerAlt className="me-1" />
-                <strong>Localizacion:</strong> {evento.localizacion}
+                <strong>{evento.localizacion}</strong>
               </p>
               <p className="mb-0">
                 <strong className="text-success fs-5">
-                  {typeof evento.prezo_evento === "number" && evento.prezo_evento > 0
-                    ? `Prezo: ${evento.prezo_evento} €`
+                  {prezoEvento > 0
+                    ? `Prezo: ${prezoFormatado} €`
                     : "Evento de Balde"}
                 </strong>
               </p>
@@ -214,7 +259,7 @@ export default function DescripcionEvento() {
               <Button
                 variant="success"
                 size="lg"
-                className="reserva-entrada-verde-btn"
+                className="reserva-entrada-btn"
                 onClick={handleReservation}
                 disabled={evento.entradas_venta === 0}
               >

@@ -108,13 +108,13 @@ export default function TarjetaEventoHome({ evento }: EventoHomeProps) {
       <div className="card-body d-flex flex-column">
 
         <p className="card-text mb-2">
-          <FaEuroSign style={{ marginRight: "6px" }} />
-          {Number(evento.prezo_evento ?? 0) > 0 ? `${evento.prezo_evento} €` : "Evento de Balde"}
+          {getTipoIcon(evento.tipo_evento)}
+          {evento.tipo_evento}
         </p>
 
         <p className="card-text mb-2">
-          {getTipoIcon(evento.tipo_evento)}
-          {evento.tipo_evento}
+          <FaEuroSign style={{ marginRight: "6px" }} />
+          {Number(evento.prezo_evento ?? 0) > 0 ? `${evento.prezo_evento} €` : "Evento de Balde"}
         </p>
 
         <p className="card-text mb-2">
@@ -130,7 +130,7 @@ export default function TarjetaEventoHome({ evento }: EventoHomeProps) {
         {/* Botón de reserva */}
         <Button 
           variant="success" 
-          className="reserva-entrada-verde-btn"
+          className="reserva-entrada-btn"
           onClick={handleReservation}
           disabled={evento.entradas_venta === 0}
         >

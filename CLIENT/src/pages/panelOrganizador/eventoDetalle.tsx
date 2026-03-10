@@ -156,6 +156,10 @@ export default function EventoDetalle() {
     ? auditorios.find((a) => lugarKey.includes(a.ciudad))?.componente
     : null;
 
+  const formatImporteEuro = (value: number) => {
+    return Number.isInteger(value) ? String(value) : value.toFixed(2);
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setForm((s) => ({ ...s, [name]: value }));
@@ -303,12 +307,22 @@ export default function EventoDetalle() {
               onEntradasUpdate={() => fetchEvento(true)}
             />
           )}
-          <p className="text-muted text-center small mt-0 mb-0">
-            {AuditorioComponente ? (
-              <>*No anterior mapa do <strong>{evento.localizacion}</strong>, podes xestionar as túas entradas.</>
-            ) : (
-              <>*As invitacións reservadas non se porán á venda.</>
-            )}
+          <p className="text-center mt-1 mb-1">
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  fontSize: "1rem",
+                  fontWeight: "bold",
+                  color: "#222222",
+                  borderRadius: "999px",
+                  padding: "0.3rem 0.75rem",
+                }}
+              >
+                <FaExclamationTriangle style={{ color: "#ff0093" }} />
+                As invitacións reservadas non se porán á venda.
+              </span>
             <br />
           </p>
         </div>
@@ -335,9 +349,6 @@ export default function EventoDetalle() {
                     return (
                       <>
                         <div className="mb-3">
-                          <h5 className="mb-2">
-                            <strong>{evento.localizacion}</strong>
-                          </h5>
                           <p className="mb-2">
                             <FaUsers className="me-1" />Aforo Habilitado: <strong>{aforoHab}</strong> | Aforo Total: <strong>{aforoTotal}</strong>
                           </p>
@@ -512,9 +523,9 @@ export default function EventoDetalle() {
                   Xestión das invitacións
                 </button>
 
-                {evento.prezo_evento != null && Number(evento.prezo_evento) > 0 && <p><FaMoneyBill className="me-1" /><strong>Diñeiro recadado:</strong> {(Number(evento.prezo_evento) * (evento.entradas_vendidas ?? 0)).toFixed(2)} €</p>}
-                {evento.prezo_evento != null && <p><FaEuroSign className="me-1" /><strong>Prezo:</strong> {evento.prezo_evento} €</p>}
-                {textoXestionImporte && <p><FaTicketAlt className="me-1" /><strong>Xestión do pago:</strong> {textoXestionImporte}</p>}
+                {evento.prezo_evento != null && Number(evento.prezo_evento) > 0 && <p><FaMoneyBill className="me-1" /><strong>Diñeiro recadado:</strong> {formatImporteEuro(Number(evento.prezo_evento) * (evento.entradas_vendidas ?? 0))} €</p>}
+                {evento.prezo_evento != null && <p><FaEuroSign className="me-1" /><strong>Prezo:</strong> {formatImporteEuro(Number(evento.prezo_evento))} €</p>}
+                {textoXestionImporte && <p><FaTicketAlt className="me-1" /><strong>Xestión do cobro:</strong> {textoXestionImporte}</p>}
                 {img && (
                   <div>
                     <p><FaImage className="me-1" /><strong>Imaxe:</strong> {evento.imaxe_evento?.split("/").pop()}</p>

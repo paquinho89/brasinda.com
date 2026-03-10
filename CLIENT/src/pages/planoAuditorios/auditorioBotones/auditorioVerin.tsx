@@ -25,6 +25,15 @@ const AFORO_ZONA_VERIN: Record<Zona, number> = {
   dereita: countSeats(AUDITORIO_VERIN_DEREITA),
 };
 
+const AREA_ACTIVA_DEFAULT: Record<Zona, boolean> = {
+  anfiteatro: true,
+  esquerda: true,
+  central: true,
+  dereita: true,
+};
+
+const getAreaActivaStorageKey = (eventoId: number) => `auditorio_verin_area_activa_${eventoId}`;
+
 interface SelectedSeat {
   row: number;
   seat: number;
@@ -48,12 +57,8 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
   openZonaCentralSignal,
 }) => {
   const navigate = useNavigate();
-  const [areaActiva, setAreaActiva] = useState<Record<Zona, boolean>>({
-    anfiteatro: true,
-    esquerda: true,
-    central: true,
-    dereita: true,
-  });
+  const [areaActiva, setAreaActiva] = useState<Record<Zona, boolean>>(AREA_ACTIVA_DEFAULT);
+  const [areaActivaHydrated, setAreaActivaHydrated] = useState(false);
   const [zonaSeleccionada, setZonaSeleccionada] = useState<Zona | null>(null);
   const [entradasSeleccionadasPorZona, setEntradasSeleccionadasPorZona] = useState<Record<Zona, SelectedSeat[]>>({
     anfiteatro: [],
@@ -77,6 +82,36 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
 
   const { token } = useAuth();
   const authToken = token ?? localStorage.getItem("access_token");
+
+  useEffect(() => {
+    if (eventoId == null) return;
+
+    try {
+      const raw = localStorage.getItem(getAreaActivaStorageKey(eventoId));
+      if (!raw) {
+        setAreaActiva(AREA_ACTIVA_DEFAULT);
+        setAreaActivaHydrated(true);
+        return;
+      }
+
+      const parsed = JSON.parse(raw) as Partial<Record<Zona, boolean>>;
+      setAreaActiva({
+        anfiteatro: parsed.anfiteatro ?? true,
+        esquerda: parsed.esquerda ?? true,
+        central: parsed.central ?? true,
+        dereita: parsed.dereita ?? true,
+      });
+    } catch {
+      setAreaActiva(AREA_ACTIVA_DEFAULT);
+    } finally {
+      setAreaActivaHydrated(true);
+    }
+  }, [eventoId]);
+
+  useEffect(() => {
+    if (eventoId == null || !areaActivaHydrated) return;
+    localStorage.setItem(getAreaActivaStorageKey(eventoId), JSON.stringify(areaActiva));
+  }, [eventoId, areaActiva, areaActivaHydrated]);
 
   useEffect(() => {
     if (eventoId == null) return;

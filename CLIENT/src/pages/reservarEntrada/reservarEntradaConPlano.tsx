@@ -4,7 +4,7 @@ import { Button } from "react-bootstrap";
 import AuditorioSelectorVerin from "../planoAuditorios/auditorioBotones/auditorioVerin";
 import AuditorioSelectorOurense from "../planoAuditorios/auditorioBotones/auditorioOurense";
 import MainNavbar from "../componentes/NavBar";
-import { FaCalendarAlt, FaTicketAlt } from "react-icons/fa";
+import { FaCalendarAlt, FaTicketAlt, FaArrowLeft } from "react-icons/fa";
 
 
 interface Evento {
@@ -77,6 +77,7 @@ export default function ReservarEntrada() {
   };
   
   const dataFormato = formatDataCompleta(evento.data_evento);
+  const prezoEvento = Number(evento.prezo_evento ?? 0);
 
   const normalizar = (t: string) =>
     t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -96,10 +97,11 @@ export default function ReservarEntrada() {
           <div className="p-3">
             <div className="d-flex align-items-start pb-2 mb-3">
               <Button
-                className="volver-verde-btn me-3"
+                className="volver-btn me-3"
                 onClick={() => navigate(-1)}
               >
-                ← Volver
+                <FaArrowLeft className="me-2" />
+                Volver
               </Button>
               <div className="flex-grow-1 text-center">
                 <h2 className="m-0 mb-2">
@@ -118,7 +120,14 @@ export default function ReservarEntrada() {
             </div>
           </div>
           <div className="card-body">
-            <div ref={butacasRef}>
+            <div
+              className="venta-rosa-solo-color"
+              ref={butacasRef}
+              style={{
+                ["--color-principal" as any]: "#ff0093",
+                ["--color-fondo" as any]: "rgba(255, 0, 147, 0.05)",
+              }}
+            >
               <AuditorioComponente
                 eventoId={evento.id}
                 variant="verde"
@@ -147,10 +156,14 @@ export default function ReservarEntrada() {
               <>
                 <p className="mt-3 mb-2">
                   <FaTicketAlt className="me-1" />
-                  <strong>Prezo: </strong>{evento.prezo_evento} €
+                  {prezoEvento > 0 ? (
+                    <><strong>Prezo: </strong>{prezoEvento} €</>
+                  ) : (
+                    <strong>Evento de Balde</strong>
+                  )}
                 </p>
                 <Button
-                  className="reserva-entrada-verde-btn mt-3"
+                  className="reserva-entrada-btn mt-3"
                   onClick={() => {
                     butacasRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
                     setOpenZonaCentralSignal((prev) => prev + 1);

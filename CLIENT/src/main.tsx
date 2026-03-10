@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import App from './App.tsx'
 import { AuthProvider } from './pages/AuthContext.tsx'
+import { LanguageProvider } from './pages/LanguageContext.tsx'
 
 <script
   src="https://maps.googleapis.com/maps/api/js?key=TU_API_KEY&libraries=places"
@@ -14,7 +15,9 @@ import { AuthProvider } from './pages/AuthContext.tsx'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AuthProvider>
-      <App />
+      <LanguageProvider>
+        <App />
+      </LanguageProvider>
     </AuthProvider>
   </StrictMode>,
 )

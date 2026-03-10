@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, Modal } from "react-bootstrap";
-import { FaCalendarAlt, FaTicketAlt, FaExclamationTriangle, FaCreditCard } from "react-icons/fa";
+import { FaCalendarAlt, FaTicketAlt, FaCreditCard, FaArrowLeft } from "react-icons/fa";
 import MainNavbar from "../componentes/NavBar";
 
 interface Evento {
@@ -195,6 +195,10 @@ export default function ReservarEntradaSinPlano() {
 	};
 
 	const dataFormato = formatDataCompleta(evento.data_evento);
+	const prezoEvento = Number(evento.prezo_evento ?? 0);
+	const prezoFormatado = Number.isInteger(prezoEvento)
+		? String(prezoEvento)
+		: prezoEvento.toFixed(2);
 
 	return (
 		<>
@@ -203,8 +207,9 @@ export default function ReservarEntradaSinPlano() {
 				<div className="card shadow-sm">
 					<div className="p-3">
 						<div className="d-flex align-items-start pb-2 mb-3">
-							<Button className="volver-verde-btn me-3" onClick={() => navigate(-1)}>
-								← Volver
+							<Button className="volver-btn me-3" onClick={() => navigate(-1)}>
+								<FaArrowLeft className="me-2" />
+								Volver
 							</Button>
 							<div className="flex-grow-1 text-center">
 								<h2 className="m-0 mb-2">{evento.nome_evento}</h2>
@@ -260,6 +265,7 @@ export default function ReservarEntradaSinPlano() {
 									className="form-check-input checkbox-verde"
 									checked={nomearTodas}
 									onChange={(e) => setNomearTodas(e.target.checked)}
+									style={{ accentColor: "#ff0093" }}
 								/>
 								<label htmlFor="nomear-todas" className="form-check-label">
 									Quero nomear todos os asistentes individualmente
@@ -288,8 +294,11 @@ export default function ReservarEntradaSinPlano() {
 						{evento.prezo_evento != null && (
 							<p className="mt-3 mb-4">
 								<FaTicketAlt className="me-1" />
-								<strong>Prezo: </strong>
-								{evento.prezo_evento} €
+								{prezoEvento > 0 ? (
+									<strong>{prezoFormatado} €</strong>
+								) : (
+									<strong>Evento de Balde</strong>
+								)}
 							</p>
 						)}
 
@@ -301,27 +310,23 @@ export default function ReservarEntradaSinPlano() {
 							</div>
 						)}
 
-						<div className="form-group checkbox-group mt-4">
-							<label className="checkbox-label-legal">
-								<input
-									type="checkbox"
-									className="checkbox-input-legal"
-									checked={suscribirseEventos}
-									onChange={(e) => setSuscribirseEventos(e.target.checked)}
-									disabled={gardando}
-									style={{ width: "18px", height: "18px", cursor: "pointer" }}
-								/>
-								<span className="checkbox-text-legal">
-									<strong>Quero estar informado dos eventos que acontecen na miña zona</strong>
-								</span>
+						<div className="form-check mb-3 mt-4">
+							<input
+								id="suscribirse-eventos"
+								type="checkbox"
+								className="form-check-input checkbox-verde"
+								checked={suscribirseEventos}
+								onChange={(e) => setSuscribirseEventos(e.target.checked)}
+								disabled={gardando}
+								style={{ accentColor: "#ff0093" }}
+							/>
+							<label htmlFor="suscribirse-eventos" className="form-check-label">
+								<strong>Quero estar informado dos eventos que acontecen na miña zona</strong>
 							</label>
 						</div>
 
 						{suscribirseEventos && (
 							<div className="mb-3" style={{ maxWidth: "400px", marginTop: "8px" }}>
-								<label htmlFor="email-suscripcion" className="form-label">
-									Email para manterte informado
-								</label>
 								<input
 									id="email-suscripcion"
 									type="email"
@@ -337,7 +342,7 @@ export default function ReservarEntradaSinPlano() {
 						<div className="d-flex justify-content-start">
 							<button
 								type="button"
-								className="reserva-entrada-verde-btn"
+								className="reserva-entrada-btn"
 								onClick={gardarReserva}
 								disabled={gardando || !isFormValid()}
 							>
@@ -356,7 +361,9 @@ export default function ReservarEntradaSinPlano() {
 
 			<Modal show={showModal} onHide={() => setShowModal(false)} centered>
 				<Modal.Header closeButton>
-					<Modal.Title>✓ Entradas Reservadas</Modal.Title>
+					<Modal.Title>
+						<span style={{ color: "#ff0093" }}>✓</span> Entradas Reservadas
+					</Modal.Title>
 				</Modal.Header>
 				<Modal.Body>
 					{evento?.procedimiento_cobro_manual && (
@@ -371,7 +378,7 @@ export default function ReservarEntradaSinPlano() {
 				</Modal.Body>
 				<Modal.Footer>
 					<button 
-						className="reserva-entrada-verde-btn" 
+						className="reserva-entrada-btn" 
 						onClick={() => {
 							setShowModal(false);
 							navigate('/');

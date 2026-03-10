@@ -23,6 +23,12 @@
   --color-fondo: rgba(28, 206, 40, 0.08);
 }
 
+/* En venta mantemos variant verde (lóxica), pero só cambiamos a cor a rosa */
+.venta-rosa-solo-color .auditorio-container.verde {
+  --color-principal: #ff0093;
+  --color-fondo: rgba(255, 0, 147, 0.05);
+}
+
 /* =====================================================
    BOTÓNS ZONAS
 ===================================================== */
@@ -31,18 +37,30 @@
   border: 2px solid var(--color-principal);
   background: var(--color-fondo);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.18s ease;
   font-weight: bold;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 8px 12px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.10);
+  letter-spacing: 0.05em;
+  user-select: none;
 }
 
 .zona:hover {
   background-color: var(--color-principal);
-  transform: scale(1.03);
+  transform: scale(1.04) translateY(-2px);
+  color: #fff;
+  box-shadow: 0 7px 16px rgba(0, 0, 0, 0.22), 0 2px 5px rgba(0, 0, 0, 0.12);
+}
+
+.zona:active {
+  transform: scale(0.97) translateY(1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  background-color: var(--color-principal);
   color: #fff;
 }
 
@@ -51,12 +69,19 @@
   border-color: #cccccc;
   color: #333333;
   cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.10);
 }
 
 .zona.zona-inactiva:hover {
   background-color: #bbbbbb;
-  transform: scale(1.03);
+  transform: scale(1.04) translateY(-2px);
   color: #333333;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.zona.zona-inactiva:active {
+  transform: scale(0.97) translateY(1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.10);
 }
 
 /* Anfiteatro */
@@ -273,6 +298,35 @@
 
 .auditorio-container.verde .close-x:hover {
   color: #60dd49;
+}
+
+/* En venta mantemos variant verde (lóxica), pero forzamos só a cor a rosa */
+.venta-rosa-solo-color .auditorio-container.verde .zona-nav-btn:hover {
+  border-color: #ff0093;
+  color: #ff0093;
+}
+
+.venta-rosa-solo-color .auditorio-container.verde .close-x:hover {
+  color: #ff0093;
+}
+
+.venta-rosa-solo-color .auditorio-container.verde .reserva-entrada-btn,
+.venta-rosa-solo-color .auditorio-container.verde .volver-verde-btn {
+  border-color: #ff0093;
+}
+
+.venta-rosa-solo-color .auditorio-container.verde .reserva-entrada-btn:hover,
+.venta-rosa-solo-color .auditorio-container.verde .volver-verde-btn:hover {
+  background-color: #ff0093;
+  border-color: #ff0093;
+}
+
+.venta-rosa-solo-color .auditorio-container.verde .reserva-entrada-btn:active,
+.venta-rosa-solo-color .auditorio-container.verde .reserva-entrada-btn:focus-visible,
+.venta-rosa-solo-color .auditorio-container.verde .volver-verde-btn:active,
+.venta-rosa-solo-color .auditorio-container.verde .volver-verde-btn:focus-visible {
+  background-color: #ff0093 !important;
+  border-color: #ff0093 !important;
 }
 
 /* Close button en modal de confirmación */

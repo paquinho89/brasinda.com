@@ -4,6 +4,7 @@ import MainNavbar from "./componentes/NavBar";
 import CrearEventoBoton from "./componentes/CrearEventoBoton";
 import ToggleHamburguer from "./componentes/Toggle";
 import TarjetaEventoHome from "./componentes/tarjetaEventoHome";
+import Footer from "./componentes/footer";
 import "../estilos/Botones.css";
 import { useAuth } from "./AuthContext";
 
@@ -23,6 +24,15 @@ function Home() {
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState("");
+
+  const normalizarTexto = (texto: string) => {
+    return texto
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
+  };
 
   useEffect(() => {
     const fetchEventos = async () => {
@@ -45,7 +55,11 @@ function Home() {
           return dataEvento >= hoy;
         });
 
-        setEventos(eventosActivos);
+        const eventosOrdenados = [...eventosActivos].sort((a, b) => {
+          return new Date(a.data_evento).getTime() - new Date(b.data_evento).getTime();
+        });
+
+        setEventos(eventosOrdenados);
       } catch (e: any) {
         console.error("Error fetching eventos", e);
         setError(e.message || "Error al cargar eventos");
@@ -57,33 +71,58 @@ function Home() {
     fetchEventos();
   }, []);
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+  };
+
+  const filteredEventos = eventos.filter((evento) => {
+    const query = normalizarTexto(searchInput);
+    if (!query) return true;
+
+    const dataEvento = new Date(evento.data_evento);
+    const dataIso = Number.isNaN(dataEvento.getTime())
+      ? ""
+      : dataEvento.toISOString().slice(0, 10); // YYYY-MM-DD
+    const dataLocale = Number.isNaN(dataEvento.getTime())
+      ? ""
+      : dataEvento.toLocaleDateString("gl-ES"); // DD/MM/YYYY
+
+    const searchable = normalizarTexto(
+      `${evento.nome_evento} ${evento.tipo_evento} ${evento.localizacion} ${evento.data_evento} ${dataIso} ${dataLocale}`
+    );
+
+    return searchable.includes(query);
+  });
+
   return (
     <>
       <MainNavbar />
 
       {/* Controles superiores */}
-      <div className={`top-right-controls ${organizador ? "with-organizador" : ""}`}>
+      <div className="top-right-controls">
         <CrearEventoBoton />
         {!organizador && <ToggleHamburguer />}
       </div>
 
       {/* Hero / Buscador */}
       <Container className="text-center home-hero">
-        <h2 className="mb-4 mt-4">Encuentra tu próximo evento</h2>
-        <Form className="d-flex justify-content-center">
+        <h2 className="mb-4 mt-4">Atopa o teu próximo evento</h2>
+        <Form className="d-flex justify-content-center" onSubmit={handleSearch}>
           <FormControl
             type="search"
-            placeholder="Buscar por nombre, tipo o lugar"
+            placeholder="Buscar por nome, tipo, lugar ou data"
             className="me-2 w-50"
             aria-label="Search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
           />
-          <Button className="boton-avance">Buscar</Button>
+          <Button type="submit" className="reserva-entrada-btn">Buscar</Button>
         </Form>
       </Container>
 
       {/* Eventos activos */}
       <Container className="mt-3">
-        <h2 className="mb-3 mt-5">Eventos en Auditorio</h2>
+        <h2 className="mb-3 mt-5">Recomendacións:</h2>
 
         {loading && <p className="text-center">Cargando eventos...</p>}
         {error && <div className="alert alert-danger text-center">{error}</div>}
@@ -92,9 +131,13 @@ function Home() {
           <p className="text-center text-muted">Non hai eventos activos agora mesmo.</p>
         )}
 
-        {!loading && !error && eventos.length > 0 && (
+        {!loading && !error && eventos.length > 0 && filteredEventos.length === 0 && (
+          <p className="text-center text-muted">Non hai resultados para esa busca.</p>
+        )}
+
+        {!loading && !error && filteredEventos.length > 0 && (
           <div className="row g-4">
-            {eventos.map((evento) => (
+            {filteredEventos.map((evento) => (
               <div className="col-md-4 col-sm-6" key={evento.id}>
                 {/* ✅ Pasamos evento tipado correctamente */}
                 <TarjetaEventoHome evento={evento as Evento} />
@@ -103,6 +146,8 @@ function Home() {
           </div>
         )}
       </Container>
+      
+      <Footer />
     </>
   );
 }

@@ -107,7 +107,7 @@ export default function TarjetaEvento({ evento, isPast = false }: EventoProps) {
         {textoXestionImporte && (
           <p className="card-text mb-2">
             <FaCreditCard style={{ marginRight: "6px" }} />
-            Xestión do pago: {textoXestionImporte}
+            Cobro entradas: {textoXestionImporte}
           </p>
         )}
 

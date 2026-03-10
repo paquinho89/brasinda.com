@@ -15,16 +15,6 @@
   z-index: 5000;
 }
 
-.top-right-controls.with-organizador {
-  right: 240px;
-}
-
-@media (max-width: 992px) {
-  .top-right-controls.with-organizador {
-    right: 20px;
-  }
-}
-
 /* Reutilizamos airbnb-host-btn para todo */
 .boton-avance {
   background-color: #ffffff;
@@ -39,6 +29,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
   gap: 6px;
 
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
@@ -294,18 +285,18 @@
 
 /* Checkbox en verde */
 .checkbox-verde {
-  border-color: #60dd49 !important;
+  border-color: #ff0093 !important;
   cursor: pointer;
 }
 
 .checkbox-verde:checked {
-  background-color: #60dd49 !important;
-  border-color: #60dd49 !important;
+  background-color: #ff0093 !important;
+  border-color: #ff0093 !important;
 }
 
 .checkbox-verde:focus {
-  border-color: #60dd49 !important;
-  box-shadow: 0 0 0 0.25rem rgba(96, 221, 73, 0.25) !important;
+  border-color: #ff0093 !important;
+  box-shadow: 0 0 0 0.25rem rgba(255, 0, 147, 0.25) !important;
 }
 
 /************/
@@ -411,18 +402,28 @@
 }
 
 .toggle-hamburguer:hover {
-  background-color: #f8f9fa; /* amarelo cando está activo */
+  background-color: #f8f9fa;
 }
 
-.toggle-hamburguer:active {
-  background-color: #ffeb3b; /* amarelo cando está activo */
+.toggle-hamburguer:active,
+.toggle-hamburguer:focus,
+.toggle-hamburguer:focus-visible,
+.toggle-hamburguer.btn:active,
+.toggle-hamburguer.btn-primary:active,
+.toggle-hamburguer.btn-primary:focus,
+.toggle-hamburguer.btn-primary:focus-visible {
+  background-color: #ff0093 !important;
+  border-color: #ff0093 !important;
+  box-shadow: 0 0 0 0.2rem rgba(255, 0, 147, 0.25) !important;
 }
 
 .toggle-card{
   position: absolute;
   top: 60px;
   right: 0;
-  width: 200px;
+  width: fit-content;
+  min-width: 270px;
+  max-width: min(90vw, 320px);
   border-radius: 15px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }

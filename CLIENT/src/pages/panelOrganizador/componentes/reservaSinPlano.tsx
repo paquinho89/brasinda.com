@@ -197,13 +197,13 @@ export default function ReservaSinPlano({
 
   return (
     <div className="border rounded p-3 mt-2 mb-2" style={{ backgroundColor: "#fff" }}>
-      <h5 className="mb-3">Reserva de invitacións do organizador</h5>
+      <h5 className="mb-3">Invitacións</h5>
 
       {cargando && <p className="text-muted">Cargando invitacións...</p>}
 
       <div className="mb-3" style={{ maxWidth: "400px" }}>
         <label htmlFor="cantidade-reserva" className="form-label">
-          Cantas invitacións novas queres engadir?
+          Cantas invitacións queres reservar?
         </label>
         <input
           id="cantidade-reserva"
@@ -219,7 +219,7 @@ export default function ReservaSinPlano({
       {!nomearTodas && (
         <div className="mb-3" style={{ maxWidth: "400px" }}>
           <label htmlFor="nome-xeral" className="form-label">
-            Nome xeral para as invitacións
+            Nome para as invitacións
           </label>
           <input
             id="nome-xeral"
@@ -284,7 +284,6 @@ export default function ReservaSinPlano({
 
       {mensaxeOk && (
         <div className="mt-3 p-3" style={{
-          backgroundColor: "#d4edda",
           borderLeft: "4px solid #28a745",
           borderRadius: "4px",
           color: "#155724"
@@ -293,7 +292,7 @@ export default function ReservaSinPlano({
             ✓ Invitacións actualizadas correctamente
           </div>
           {procedimientoCobro && (
-            <div style={{ marginTop: "8px", paddingTop: "8px", borderTop: "1px solid #c3e6cb" }}>
+            <div style={{ marginTop: "8px", paddingTop: "8px", color: "#ff0093", fontWeight: "bold" }}>
               <strong>Procedemento de cobro:</strong>
               <div style={{ marginTop: "4px" }}>{procedimientoCobro}</div>
             </div>

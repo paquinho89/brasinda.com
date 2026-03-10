@@ -11,9 +11,9 @@ class Evento(models.Model):
     TIPO_ENTRADA_GRATIS = 'gratis'
     
     TIPO_ENTRADA_CHOICES = [
-        (TIPO_ENTRADA_PAGINA, 'Xestionado a través da páxina'),
-        (TIPO_ENTRADA_MANUAL, 'Xestionado polo organizador'),
-        (TIPO_ENTRADA_GRATIS, 'Evento gratuíto'),
+        (TIPO_ENTRADA_PAGINA, 'a través da páxina'),
+        (TIPO_ENTRADA_MANUAL, 'a través do organizador'),
+        (TIPO_ENTRADA_GRATIS, 'De balde'),
     ]
     
     organizador = models.ForeignKey(User, on_delete=models.CASCADE)
