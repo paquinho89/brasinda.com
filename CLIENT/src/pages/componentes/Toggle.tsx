@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button, Card, ListGroup } from "react-bootstrap";
 import CreateAccountModal from "./CreacionCuentaCuadro";
 import LoginModal from "./InicioSesionCrearEventoCuadro";
@@ -16,6 +17,7 @@ function ToggleHamburguer() {
   const [showRecuperacionEntradas, setShowRecuperacionEntradas] = useState(false);
   const [showIdioma, setShowIdioma] = useState(false);
   const { language } = useLanguage();
+  const navigate = useNavigate();
   const handleOpenCreateAccount = () => setShowCreateAccount(true);
   const handleCloseCreateAccount = () => setShowCreateAccount(false);
   const handleOpenLogIn = () => setShowLogIn(true);
@@ -49,7 +51,14 @@ function ToggleHamburguer() {
                   <FaTicketAlt style={{ marginRight: "8px", color: "#ff0093" }} />
                   Volver imprimir tu entrada
                 </ListGroup.Item>
-                <ListGroup.Item action onClick={() => { setShowIdioma(true); setOpen(false); }} className="seccion-secundaria">
+                <ListGroup.Item
+                  action
+                  onClick={() => {
+                    setShowIdioma(true);
+                    setOpen(false);
+                  }}
+                  className="seccion-secundaria"
+                >
                   <FaGlobe style={{ marginRight: "8px", color: "#ff0093" }} />
                   Cambiar idioma:
                   <span style={{ marginLeft: 10, fontWeight: 600, color: "#ff0093", fontSize: "1.05em" }}>
@@ -61,9 +70,9 @@ function ToggleHamburguer() {
             <LoginModal show={showLogIn} onClose={handleCloseLogIn} redirectTo="/panel-organizador"/>
             <CreateAccountModal show={showCreateAccount} onClose={handleCloseCreateAccount}/>
             <RecuperarEntradaModal show={showRecuperacionEntradas} onClose={handleCloseRecuperacionEntradas}/>
-            <IdiomaModal show={showIdioma} onClose={() => setShowIdioma(false)}/>
         </>
       )}
+      <IdiomaModal show={showIdioma} onClose={() => setShowIdioma(false)}/>
     </div>
   );
 }
