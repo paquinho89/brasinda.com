@@ -55,12 +55,10 @@ def crear_evento_view(request):
         serializer = EventoSerializer(eventos, many=True, context={'request': request})
         return Response(serializer.data)
 
-    # POST
     serializer = EventoSerializer(data=request.data, context={'request': request})
     if serializer.is_valid():
         serializer.save(organizador=request.user)
         return Response(serializer.data, status=201)
-
     return Response(serializer.errors, status=400)
 
 

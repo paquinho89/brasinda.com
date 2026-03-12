@@ -51,6 +51,7 @@ export default function Fecha() {
               value={fecha}
               onChange={(e) => setFecha(e.target.value)}
               min={fechaMinima}
+              onFocus={e => (e.target as HTMLInputElement).showPicker && (e.target as HTMLInputElement).showPicker()}
             />
           </Form.Group>
           {/* Hora */}

@@ -5,7 +5,7 @@ import AuditorioSelectorVerin from "../planoAuditorios/auditorioBotones/auditori
 import AuditorioSelectorOurense from "../planoAuditorios/auditorioBotones/auditorioOurense";
 import ReservaSinPlano from "./componentes/reservaSinPlano";
 import MainNavbar from "../componentes/NavBar";
-import { FaCalendarAlt, FaUsers, FaEuroSign, FaImage, FaRegFileAlt, FaExclamationTriangle, FaMoneyBill, FaArrowLeft, FaTicketAlt } from "react-icons/fa";
+import { FaCalendarAlt, FaUsers, FaEuroSign, FaImage, FaRegFileAlt, FaExclamationTriangle, FaMoneyBill, FaArrowLeft, FaTicketAlt, FaMapMarkerAlt } from "react-icons/fa";
 
 
 interface Evento {
@@ -15,6 +15,7 @@ interface Evento {
   descripcion_evento?: string;
   data_evento: string;
   localizacion: string;
+  nota_lugar?: string;
   entradas_venta: number;
   entradas_reservadas?: number;
   entradas_vendidas?: number;
@@ -48,6 +49,7 @@ export default function EventoDetalle() {
     localizacion: "",
     prezo_evento: "",
     imaxe_evento: "",
+    nota_lugar: "",
   });
   const navigate = useNavigate();
 
@@ -127,6 +129,7 @@ export default function EventoDetalle() {
       localizacion: evento.localizacion || "",
       prezo_evento: evento.prezo_evento != null ? String(evento.prezo_evento) : "",
       imaxe_evento: evento.imaxe_evento || "",
+      nota_lugar: evento.nota_lugar || "",
     });
     setImageFileName(evento.imaxe_evento ? evento.imaxe_evento.split("/").pop() || "" : "");
     setImagePreviewUrl(null);
@@ -182,6 +185,7 @@ export default function EventoDetalle() {
         const formData = new FormData();
         formData.append("descripcion_evento", form.descripcion_evento);
         formData.append("imaxe_evento", imageFile);
+        formData.append("nota_lugar", form.nota_lugar || "");
 
         resp = await fetch(`http://localhost:8000/crear-eventos/${id}/`, {
           method: 'PATCH',
@@ -193,6 +197,7 @@ export default function EventoDetalle() {
       } else {
         const payload: any = {
           descripcion_evento: form.descripcion_evento,
+          nota_lugar: form.nota_lugar || "",
         };
 
         resp = await fetch(`http://localhost:8000/crear-eventos/${id}/`, {
@@ -283,31 +288,35 @@ export default function EventoDetalle() {
                   {dataFormato}
                 </p>
                 <p className="text-center mb-0 mt-0">
-                  <strong>{evento.localizacion}</strong>
+                  <FaMapMarkerAlt className="me-2"/>
+                  <strong>{evento.localizacion}</strong> ({evento.nota_lugar})
                 </p>
               </div>
               {/* Espaciador para equilibrar o botón */}
               <div style={{ width: "100px" }}></div>
             </div>
-          {AuditorioComponente ? (
-            <AuditorioComponente
-              eventoId={evento.id}
-              onZonaClick={(zona) => {
-                console.log("Zona seleccionada:", zona);
-              }}
-              onEntradasUpdate={() => fetchEvento(true)}
-              onAforoHabilitadoChange={setAforoHabilitado}
-            />
-          ) : (
-            <ReservaSinPlano
-              eventoId={evento.id}
-              entradasVenta={evento.entradas_venta || 0}
-              entradasVendidas={evento.entradas_vendidas || 0}
-              entradasReservadas={evento.entradas_reservadas || 0}
-              onEntradasUpdate={() => fetchEvento(true)}
-            />
+          {!isEditing && (
+            AuditorioComponente ? (
+              <AuditorioComponente
+                eventoId={evento.id}
+                onZonaClick={(zona) => {
+                  console.log("Zona seleccionada:", zona);
+                }}
+                onEntradasUpdate={() => fetchEvento(true)}
+                onAforoHabilitadoChange={setAforoHabilitado}
+              />
+            ) : (
+              <ReservaSinPlano
+                eventoId={evento.id}
+                entradasVenta={evento.entradas_venta || 0}
+                entradasVendidas={evento.entradas_vendidas || 0}
+                entradasReservadas={evento.entradas_reservadas || 0}
+                onEntradasUpdate={() => fetchEvento(true)}
+              />
+            )
           )}
-          <p className="text-center mt-1 mb-1">
+          {!isEditing && (
+            <p className="text-center mt-1 mb-1">
               <span
                 style={{
                   display: "inline-flex",
@@ -323,8 +332,9 @@ export default function EventoDetalle() {
                 <FaExclamationTriangle style={{ color: "#ff0093" }} />
                 As invitacións reservadas non se porán á venda.
               </span>
-            <br />
-          </p>
+              <br />
+            </p>
+          )}
         </div>
           <div className="card-body">
             {!isEditing ? (
@@ -519,7 +529,7 @@ export default function EventoDetalle() {
                   })()}
                 </div>
 
-                <button className="boton-avance mb-3" onClick={() => navigate(`/panel-organizador/evento/${id}/entradas`)}>
+                <button className="reserva-entrada-btn mb-3" onClick={() => navigate(`/panel-organizador/evento/${id}/entradas`)}>
                   Xestión das invitacións
                 </button>
 
@@ -550,6 +560,17 @@ export default function EventoDetalle() {
               </>
             ) : (
               <div>
+                <div className="mb-3">
+                  <label className="form-label">Información sobre o lugar</label>
+                  <input
+                    type="text"
+                    name="nota_lugar"
+                    value={form.nota_lugar || ""}
+                    onChange={handleChange}
+                    className="form-control"
+                    placeholder="Nota adicional sobre o lugar (opcional)"
+                  />
+                </div>
                 <div className="mb-3">
                   <label className="form-label">Descripción</label>
                   <textarea name="descripcion_evento" value={form.descripcion_evento} onChange={handleChange} className="form-control" />

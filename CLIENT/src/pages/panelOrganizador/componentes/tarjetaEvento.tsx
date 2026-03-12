@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { FaCalendarAlt, FaMapMarkerAlt, FaTicketAlt, FaEuroSign, FaCreditCard } from "react-icons/fa";
+import { FaCalendarAlt, FaMapMarkerAlt, FaTicketAlt, FaEuroSign, FaCreditCard, FaInstagram, FaFacebookF, FaWhatsapp } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
 
 interface EventoProps {
   evento: {
@@ -8,6 +9,7 @@ interface EventoProps {
     nome_evento: string;
     data_evento: string;
     localizacion: string;
+    localidade: string;
     entradas_venta: number;
     prezo_evento?: number | null;
     tipo_gestion_entrada?: "pagina" | "manual" | "gratis" | null;
@@ -112,8 +114,23 @@ export default function TarjetaEvento({ evento, isPast = false }: EventoProps) {
         )}
 
         <p className="card-text mb-2">
-          <FaMapMarkerAlt style={{ marginRight: "6px" }} />
-          {evento.localizacion}
+            <FaMapMarkerAlt style={{ marginRight: "6px" }} />
+            {(() => {
+              if (!evento.localizacion) return "";
+              // Eliminar só 'GA' e 'España' e posibles comas/espazos antes/despois, pero nunca eliminar a localidade
+              let loc = evento.localizacion
+                .replace(/,?\s*GA\b(?![a-zA-Z])/gi, "")
+                .replace(/,?\s*España\b(?![a-zA-Z])/gi, "")
+                .replace(/\s+,/g, ",")
+                .replace(/,+/g, ",")
+                .replace(/^,|,$/g, "")
+                .trim();
+              return loc;
+            })()}
+            {evento.localidade &&
+              !["ga", "españa"].includes(evento.localidade.trim().toLowerCase())
+              ? ` | ${evento.localidade}`
+              : ""}
         </p>
 
         <p className="card-text mb-2">
@@ -146,12 +163,52 @@ export default function TarjetaEvento({ evento, isPast = false }: EventoProps) {
             </button>
           )
         ) : (
-          <button
-            className="reserva-entrada-btn mt-auto"
-            onClick={handleManage}
-          >
-            Gestionar este evento
-          </button>
+          <>
+            <button
+              className="reserva-entrada-btn mt-auto"
+              onClick={handleManage}
+            >
+              Gestionar este evento
+            </button>
+            <div className="d-flex justify-content-center mt-1 gap-3">
+              <a
+                href={`https://www.facebook.com/share_channel/?link=${encodeURIComponent(`${window.location.origin}/evento/${evento.id}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Compartir en Facebook"
+                style={{ color: '#000', fontSize: 19 }}
+              >
+                <FaFacebookF />
+              </a>
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Consulta este evento: ${evento.nome_evento} - ${window.location.origin}/evento/${evento.id}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Compartir en X"
+                style={{ color: '#000', fontSize: 20 }}
+              >
+                <FaXTwitter />
+              </a>
+              <a
+                href={`https://www.instagram.com/?url=${encodeURIComponent(`${window.location.origin}/evento/${evento.id}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Compartir en Instagram"
+                style={{ color: '#000', fontSize: 20 }}
+              >
+                <FaInstagram />
+              </a>
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(`${window.location.origin}/evento/${evento.id}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Compartir en WhatsApp"
+                style={{ color: '#000', fontSize: 20 }}
+              >
+                <FaWhatsapp />
+              </a>
+            </div>
+          </>
         )}
       </div>
     </div>

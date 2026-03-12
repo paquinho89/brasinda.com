@@ -24,14 +24,14 @@ const LugarPaso: React.FC = () => {
   const { evento, setEvento } = useOutletContext<OutletContext>();
   const [selectedPlace, setSelectedPlace] = useState("");
   const [inputValue, setInputValue] = useState("");
-  const [showManualInput, setShowManualInput] = useState(false);
+  const [showNotaLugar, setShowNotaLugar] = useState(false);
+  const [notaLugar, setNotaLugar] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const initialized = useRef(false);
   const navigate = useNavigate();
 
-  const formularioIncompleto = !selectedPlace || (!evento?.lugar?.trim() && !inputValue.trim());
-
-  // Debug
+  // O autocomplete debe ter valor para poder avanzar
+  const formularioIncompleto = !evento?.lugar?.trim() || !selectedPlace;
   useEffect(() => {
     console.log("🔍 Debug:", {
       selectedPlace,
@@ -56,12 +56,8 @@ const LugarPaso: React.FC = () => {
   }, [evento]);
 
   useEffect(() => {
-    const input = containerRef.current?.querySelector(
-      "input"
-    ) as HTMLInputElement | null;
-
+    const input = containerRef.current?.querySelector("input") as HTMLInputElement | null;
     if (!input) return;
-
     if (evento?.lugar) {
       input.value = evento.lugar;
     }
@@ -72,31 +68,23 @@ const LugarPaso: React.FC = () => {
   ================================== */
 
   const handleSubmit = () => {
-    const input = containerRef.current?.querySelector(
-      "input"
-    ) as HTMLInputElement | null;
-
-    const currentLugar = inputValue.trim() || input?.value.trim() || "";
-    const currentSelectedPlace = selectedPlace || evento?.ubicacion || "";
-
-    if (!currentSelectedPlace) {
+    // Usar directamente inputValue y selectedPlace
+    if (!selectedPlace) {
       alert("Por favor, selecciona o tipo de lugar");
       return;
     }
-
-    if (!currentLugar) {
-      alert(
-        "Por favor, selecciona o lugar onde vas a realizar o evento"
-      );
+    if (!inputValue.trim()) {
+      alert("Por favor, selecciona o lugar onde vas a realizar o evento");
       return;
     }
-
     setEvento({
       ...evento,
-      lugar: currentLugar,
-      ubicacion: currentSelectedPlace,
+      lugar: inputValue.trim(),
+      ubicacion: selectedPlace,
+      localidade: evento?.localidade || "",
+      coordenadas: evento?.coordenadas,
+      nota_lugar: notaLugar,
     });
-
     navigate("/crear-evento/entradas");
   };
 
@@ -124,15 +112,30 @@ const LugarPaso: React.FC = () => {
     autocomplete.on("select", (feature: any) => {
       console.log("🎯 Feature completa:", feature);
       console.log("🎯 Properties:", feature.properties);
-      
+      console.log("🔎 Todos os campos properties:", Object.keys(feature.properties));
+      console.log("🔎 Valores de properties:", feature.properties);
+
       const nomeLugar = feature.properties.name || feature.properties.formatted || "";
-      console.log("✅ Autocomplete select:", nomeLugar);
+      const localidade = feature.properties.municipality || feature.properties.city || feature.properties.town || feature.properties.village || feature.properties.county || feature.properties.state_district || "";
+
+      // Preferir geometry.coordinates, pero se non existe, usar properties.lat/lon
+      let coordenadas: number[] | undefined = undefined;
+      if (feature.geometry && Array.isArray(feature.geometry.coordinates) && feature.geometry.coordinates.length === 2) {
+        // GeoJSON: [lon, lat] → [lat, lon]
+        coordenadas = [Number(feature.geometry.coordinates[1]), Number(feature.geometry.coordinates[0])];
+      } else if (feature.properties.lat && feature.properties.lon) {
+        coordenadas = [parseFloat(feature.properties.lat), parseFloat(feature.properties.lon)];
+      }
+      console.log("✅ Coordenadas extraídas:", coordenadas);
 
       setInputValue(nomeLugar);
 
       setEvento((prev) => ({
         ...prev,
         lugar: nomeLugar,
+        localidade: localidade,
+        coordenadas: coordenadas,
+        nota_lugar: notaLugar,
       }));
     });
 
@@ -170,39 +173,38 @@ const LugarPaso: React.FC = () => {
             Lugar do evento
           </h3>
 
-          {/* AUTOCOMPLETE */}
+          {/* AUTOCOMPLETE + NOTA */}
           <div className="mb-4">
-            <label className="form-label">
-              {showManualInput ? "Introduce o lugar de forma manual" : "Buscar lugar"}
-            </label>
-
-            {!showManualInput ? (
+            <label className="form-label">Buscar lugar</label>
+            <div
+              ref={containerRef}
+              style={{ width: "100%", position: "relative", zIndex: 1000 }}
+            />
+            <div className="mt-2">
+              <button
+                className="badge-prezo badge-prezo--clickable"
+                onClick={() => setShowNotaLugar((v) => !v)}
+                type="button"
+              >
+                Información adicional sobre o lugar (opcional)
+              </button>
+            </div>
+            {showNotaLugar && (
               <>
-                <div
-                  ref={containerRef}
-                  style={{
-                    width: "100%",
-                    position: "relative",
-                    zIndex: 1000,
+                <Form.Control
+                  className="mt-3"
+                  type="text"
+                  placeholder="Max 50 caracteres"
+                  maxLength={50}
+                  value={notaLugar}
+                  onChange={e => {
+                    if (e.target.value.length <= 50) setNotaLugar(e.target.value);
                   }}
                 />
-                <div className="mt-2">
-                  <button
-                    className="badge-prezo badge-prezo--clickable"
-                    onClick={() => setShowManualInput(true)}
-                    type="button"
-                  >
-                    Non atopa o seu lugar?
-                  </button>
+                <div className="text-end text-muted" style={{ fontSize: "0.92rem" }}>
+                  {notaLugar.length}/50
                 </div>
               </>
-            ) : (
-              <Form.Control
-                type="text"
-                placeholder="Introduzca o lugar do evento"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-              />
             )}
           </div>
 

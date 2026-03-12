@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect } from "react";
+import MapaEvento from "../panelOrganizador/componentes/MapaEvento";
 import { useParams, useNavigate } from "react-router-dom";
 import { Container, Button, Spinner, Alert } from "react-bootstrap";
 import MainNavbar from "../componentes/NavBar";
@@ -25,10 +26,12 @@ interface evento {
   nome_evento: string;
   data_evento: string;
   localizacion: string;
+  nota_lugar?: string;
   entradas_venta: number;
   prezo_evento?: number;
   descripcion_evento?: string;
   tipo_evento?: string;
+  coordenadas?: [number, number];
 }
 
 const normalizarTexto = (texto: string) =>
@@ -236,16 +239,22 @@ export default function DescripcionEvento() {
                 <strong>{horaFormato}</strong>
               </p>
               <p className="mb-2">
-                <FaMapMarkerAlt className="me-1" />
-                <strong>{evento.localizacion}</strong>
-              </p>
-              <p className="mb-0">
                 <strong className="text-success fs-5">
                   {prezoEvento > 0
                     ? `Prezo: ${prezoFormatado} €`
                     : "Evento de Balde"}
                 </strong>
               </p>
+              <p className="mb-2">
+                <FaMapMarkerAlt className="me-1" />
+                <strong>{evento.localizacion}</strong>
+              </p>
+              {evento.nota_lugar && (
+                <p className="mb-2 text-muted" style={{ fontSize: "0.95rem" }}>
+                  {evento.nota_lugar}
+                </p>
+              )}
+              <MapaEvento coordenadas={evento.coordenadas} direccion={evento.localizacion} />
             </div>
 
             {evento.descripcion_evento && (

@@ -86,7 +86,7 @@ function LoginModalCrearEvento({ show, onClose, redirectTo = "/crear-evento/tipo
         </Modal.Header>
         <Modal.Body>
             <Form.Group className="mb-3">
-            <FaEnvelope style={{ marginRight: "6px" }} />
+            <FaEnvelope style={{ marginRight: "6px", color: "#ff0093" }} />
             <Form.Label>Correo electrónico</Form.Label>
             <Form.Control 
                 type="text" 
@@ -115,7 +115,7 @@ function LoginModalCrearEvento({ show, onClose, redirectTo = "/crear-evento/tipo
             )}
 
             <Form.Group>
-                <FaLock style={{ marginRight: "6px" }} />
+                <FaLock style={{ marginRight: "6px", color: "#ff0093" }} />
                 <Form.Label>Contraseña</Form.Label>
                 <InputGroup>
                     <Form.Control

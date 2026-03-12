@@ -41,7 +41,7 @@ export default function TituloEvento() {
           <Form>
             <Form.Control
               as="textarea"
-              placeholder="Ex: Un concerto ao aire libre con artistas locais..."
+              placeholder="Describe o teu evento..."
               value={evento.descripcionEvento || ""}
               onChange={(e) =>
                 setEvento({ ...evento, descripcionEvento: e.target.value })

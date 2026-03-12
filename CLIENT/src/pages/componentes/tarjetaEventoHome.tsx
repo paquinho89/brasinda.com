@@ -23,6 +23,7 @@ interface EventoHomeProps {
     tipo_evento: string;
     data_evento: string;
     localizacion: string;
+    localidade: string;
     entradas_venta: number;
     prezo_evento?: number;
   };
@@ -119,7 +120,22 @@ export default function TarjetaEventoHome({ evento }: EventoHomeProps) {
 
         <p className="card-text mb-2">
             <FaMapMarkerAlt style={{ marginRight: "6px" }} />
-           {evento.localizacion}
+            {(() => {
+              if (!evento.localizacion) return "";
+              // Eliminar só 'GA' e 'España' e posibles comas/espazos antes/despois, pero nunca eliminar a localidade
+              let loc = evento.localizacion
+                .replace(/,?\s*GA\b(?![a-zA-Z])/gi, "")
+                .replace(/,?\s*España\b(?![a-zA-Z])/gi, "")
+                .replace(/\s+,/g, ",")
+                .replace(/,+/g, ",")
+                .replace(/^,|,$/g, "")
+                .trim();
+              return loc;
+            })()}
+            {evento.localidade &&
+              !["ga", "españa"].includes(evento.localidade.trim().toLowerCase())
+              ? ` | ${evento.localidade}`
+              : ""}
         </p>
 
         <p className="card-text mb-2">

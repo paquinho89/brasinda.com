@@ -87,7 +87,7 @@ const CondicionesLegales: React.FC = () => {
                 onClick={handleSubmit}
                 disabled={!aceptacionCondiciones}
               >
-                Seguinte →
+                Continuar
               </Button>
             </div>
           </Form>

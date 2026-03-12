@@ -12,6 +12,9 @@ export interface Evento {
   fecha: string;
   lugar: string;
   ubicacion: string;
+  localidade?: string;
+  nota_lugar?: string;
+  coordenadas?: number[];
   esAuditorio?: boolean;
   entradas: number;
   precio: string;
@@ -35,6 +38,9 @@ export function CreateEventLayout() {
     fecha: "",
     lugar: "",
     ubicacion: "",
+    localidade: "",
+    nota_lugar: "",
+    coordenadas: [],
     entradas: 0,
     precio: "", 
     iban: "",

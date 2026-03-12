@@ -13,7 +13,7 @@ class Evento(models.Model):
     TIPO_ENTRADA_CHOICES = [
         (TIPO_ENTRADA_PAGINA, 'a través da páxina'),
         (TIPO_ENTRADA_MANUAL, 'a través do organizador'),
-        (TIPO_ENTRADA_GRATIS, 'De balde'),
+        (TIPO_ENTRADA_GRATIS, 'de balde'),
     ]
     
     organizador = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -23,6 +23,9 @@ class Evento(models.Model):
     imaxe_evento = models.ImageField(upload_to='eventos/', blank=True, null=True)
     data_evento = models.DateTimeField()
     localizacion = models.CharField(max_length=200, blank=True, null=True)
+    localidade = models.CharField(max_length=100, blank=True, null=True)
+    nota_lugar = models.CharField(max_length=100, blank=True, null=True)
+    coordenadas = models.JSONField(blank=True, null=True, help_text="[lat, lon] ou {lat, lon}")
     tipo_localizacion = models.CharField(max_length=200, blank=True, null=True)
     entradas_venta = models.PositiveIntegerField(default=0)
     entradas_reservadas= models.PositiveIntegerField(default=0)
