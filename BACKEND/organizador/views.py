@@ -8,6 +8,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
 from django.core.mail import send_mail
+import os
 from .models import Organizador
 from django.db.models import Q
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -21,12 +22,18 @@ def crear_organizador (request):
         uid = urlsafe_base64_encode(force_bytes(organizador.pk))
         token = default_token_generator.make_token(organizador)
         verification_link = (f"{settings.FRONTEND_URL}/verificacion/{uid}/{token}")
-        send_mail (
+        # Ler plantilla HTML e substituír o enlace
+        template_path = os.path.join(os.path.dirname(__file__), 'formato_email', 'verificacion_cuenta.html')
+        with open(template_path, encoding='utf-8') as f:
+            html_template = f.read()
+        html_message = html_template.replace('{{ verification_link }}', verification_link)
+        send_mail(
             subject = "Eventos.com - Verificación Cuenta",
-            message = f"Acceda al siguiente lin para verficar su email \n{verification_link}",
+            message = f"Acceda ao seguinte enlace para verificar o seu email: {verification_link}",
             from_email = settings.DEFAULT_FROM_EMAIL,
             recipient_list = ["paquinho89@hotmail.com"], #[organizador.email],
             fail_silently=False,
+            html_message=html_message
         )
         return Response({"message": "Conta creada. Revisa o teu email."}, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

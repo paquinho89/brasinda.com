@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="gl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verificación de conta - Eventos.com</title>
+    <style>
+      body {
+        background: #f7f7fa;
+        font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+        color: #222;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 420px;
+        margin: 40px auto;
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        padding: 32px 28px 28px 28px;
+        text-align: center;
+      }
+      .logo {
+        width: 60px;
+        margin-bottom: 18px;
+      }
+      h1 {
+        color: #ff0093;
+        font-size: 1.6rem;
+        margin-bottom: 10px;
+        font-weight: 700;
+      }
+      .envelope {
+        font-size: 2.5rem;
+        color: #ff0093;
+        margin-bottom: 10px;
+      }
+      p {
+        font-size: 1.08rem;
+        margin-bottom: 24px;
+        color: #444;
+      }
+      .button {
+        display: inline-block;
+        background: #ff0093;
+        color: #fff !important;
+        padding: 12px 32px;
+        border-radius: 8px;
+        font-size: 1.08rem;
+        font-weight: 600;
+        text-decoration: none;
+        margin-top: 10px;
+        box-shadow: 0 2px 8px rgba(255,0,147,0.08);
+        transition: background 0.2s;
+      }
+      .button:hover {
+        background: #d6007a;
+      }
+      .footer {
+        margin-top: 32px;
+        font-size: 0.95rem;
+        color: #aaa;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <img src="https://eventos.com/logo.png" alt="Eventos.com" class="logo" />
+      <div class="envelope">✉️</div>
+      <h1>Verifica a túa conta</h1>
+      <p>
+        Grazas por rexistrarte en <b>Eventos.com</b>!<br />
+        Para activar a túa conta, só tes que premer no seguinte botón:
+      </p>
+      <a href="{{ verification_link }}" class="button">Verificar conta</a>
+      <p style="margin-top: 24px; color: #888; font-size: 0.98rem;">
+        Se non te rexistraches ti, podes ignorar este correo.
+      </p>
+      <div class="footer">
+        &copy; 2026 Eventos.com
+      </div>
+    </div>
+  </body>
+</html>

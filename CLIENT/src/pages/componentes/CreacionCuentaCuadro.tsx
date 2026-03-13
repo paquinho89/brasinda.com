@@ -124,7 +124,7 @@ function CreateAccountModal({ show, onClose }: {show: boolean; onClose: () => vo
         </Modal.Header>
         <Modal.Body>
           <Form.Group className="mb-3">
-            <FaEnvelope style={{ marginRight: "6px" }} />
+            <FaEnvelope style={{ marginRight: "6px", color: "#ff0093" }} />
             <Form.Label>Correo Electrónico</Form.Label>
             <Form.Control 
               type="text" 
@@ -153,7 +153,7 @@ function CreateAccountModal({ show, onClose }: {show: boolean; onClose: () => vo
 
 
           <Form.Group className="mb-3">
-            <FaUser style={{ marginRight: "6px" }} />
+            <FaUser style={{ marginRight: "6px", color: "#ff0093" }} />
             <Form.Label>Nome ou Empresa organizadora</Form.Label>
             <Form.Control 
               type="text" 
@@ -177,7 +177,7 @@ function CreateAccountModal({ show, onClose }: {show: boolean; onClose: () => vo
           )}
 
           <Form.Group className="mb-3">
-            <FaLock style={{ marginRight: "6px" }} />
+            <FaLock style={{ marginRight: "6px", color: "#ff0093" }} />
             <Form.Label>Contraseña</Form.Label>
             <InputGroup>
               <Form.Control
@@ -207,7 +207,7 @@ function CreateAccountModal({ show, onClose }: {show: boolean; onClose: () => vo
           {contraseñaError && <div className = "alert alert-danger">{contraseñaError}</div>}
 
           <Form.Group className="mb-3">
-            <FaCamera style={{ marginRight: "6px" }} />
+            <FaCamera style={{ marginRight: "6px", color: "#ff0093" }} />
             <Form.Label>Logo ou Foto</Form.Label>
             <Form.Control
               type="file"
@@ -219,7 +219,7 @@ function CreateAccountModal({ show, onClose }: {show: boolean; onClose: () => vo
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <FaPhone style={{ marginRight: "6px" }} />
+            <FaPhone style={{ marginRight: "6px", color: "#ff0093" }} />
             <Form.Label>Número de teléfono</Form.Label>
             <Form.Control 
               type="text" 

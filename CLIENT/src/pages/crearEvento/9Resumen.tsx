@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { getDefaultImageFile } from "./3Imagen";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import { Button, Container, Card, Alert } from "react-bootstrap";
 import type { OutletContext } from "../crearEvento/0ElementoPadre";
@@ -23,7 +24,15 @@ const Resumen: React.FC = () => {
     formData.append("tipo_evento", evento.tipo);
     formData.append("nome_evento", evento.tituloEvento);
     formData.append("descripcion_evento", evento.descripcionEvento);
-    if (evento.imagen) formData.append("imaxe_evento", evento.imagen);
+    if (evento.imagen) {
+      formData.append("imaxe_evento", evento.imagen);
+    } else {
+      // Engadir a imaxe por defecto como File
+      const defaultImgFile = await getDefaultImageFile(evento.tipo);
+      if (defaultImgFile) {
+        formData.append("imaxe_evento", defaultImgFile);
+      }
+    }
     formData.append("data_evento", evento.fecha);
     formData.append("localizacion", evento.lugar);
     formData.append("tipo_localizacion", evento.ubicacion);
