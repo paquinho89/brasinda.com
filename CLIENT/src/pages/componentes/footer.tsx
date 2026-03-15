@@ -27,7 +27,7 @@ function Footer() {
               brasinda.com
             </h5>
             <p style={{ color: "#666", fontSize: "0.95rem" }}>
-              A túa plataforma de confianza para descubrir e xestionar eventos únicos.
+              Eventos únicos para xente única.
             </p>
             <div style={{ display: "flex", gap: "1rem", marginTop: "1.5rem" }}>
               <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" 
@@ -197,7 +197,7 @@ function Footer() {
               fontSize: "0.9rem",
               margin: 0
             }}>
-              © {currentYear} brasinda. Todos os dereitos reservados.
+              © {currentYear} brasinda.com. Todos os dereitos reservados.
             </p>
           </Col>
         </Row>

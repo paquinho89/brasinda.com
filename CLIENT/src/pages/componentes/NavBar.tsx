@@ -1,4 +1,5 @@
 import { Navbar, Nav, Button, ListGroup, Card } from "react-bootstrap";
+import logo2 from "../../estilos/branding/logo.png";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../estilos/NavBar.css";
@@ -39,15 +40,20 @@ function MainNavbar() {
   };
 
   return (
-    <Navbar expand="lg" className="main-navbar py-3">
-      <div className="nav-container d-flex align-items-center justify-content-between">
+    <Navbar expand="lg" className="main-navbar py-3" style={{paddingLeft: "15px", marginLeft: 0}}>
+      <div className="nav-container d-flex align-items-center justify-content-start" style={{ paddingLeft: 0, marginLeft: 0 }}>
         {/* Logo / Home */}
         <Navbar.Brand
           onClick={() => navigate("/")}
-          className="site-name"
+          className="site-name d-flex align-items-center"
           style={{ cursor: "pointer" }}
         >
-          brasinda.com
+          <img
+            src={logo2}
+            alt="Logo brasinda"
+            style={{ height: "54px", width: "54px", marginRight: "-3px", marginLeft: "-2px", verticalAlign: "middle", transform: "translateY(-7px)" }}
+          />
+          <span style={{ fontWeight: 800, fontSize: "1.5rem", color: "#ff0093", marginBottom: "1rem", display: "inline-block", transform: "translateY(10px)" }}>rasinda.com</span>
         </Navbar.Brand>
         <Nav className={`ms-auto d-flex align-items-center position-relative ${organizadorUI ? "organizador-nav-group" : ""}`}>
           {organizadorUI && (
