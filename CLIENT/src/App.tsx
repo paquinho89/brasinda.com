@@ -11,8 +11,7 @@ import ResumoEvento from './pages/panelOrganizador/resumoEvento';
 import CobroEvento from './pages/panelOrganizador/cobroEvento';
 import ListadoEntradas from './pages/panelOrganizador/componentes/listadoEntradas';
 import SettingsOrganizador from './pages/panelOrganizador/settingsOrganizador';
-import VerificacionEmailPage from './pages/componentes/2ConfirmacionEmail';
-import IntroducirNuevaContraseña from './pages/componentes/IntroducirNuevaContraseña';
+import VerificacionEmailPage from './pages/componentes/1VerificacionEmailCreacionCuenta';
 import { CreateEventLayout } from './pages/crearEvento/0ElementoPadre';
 import TipoEvento from './pages/crearEvento/1TipoEvento';
 import TituloEvento from './pages/crearEvento/2TituloEventoDescripcion';
@@ -33,6 +32,17 @@ import AuditorioVerinLateralEsquerda from './pages/planoAuditorios/Planos/audito
 import AuditorioVerinLateralDereita from './pages/planoAuditorios/Planos/auditorioVerin/zonaLateralDereita';
 import AuditorioVerinAnfiteatro from './pages/planoAuditorios/Planos/auditorioVerin/anfiteatro';
 import AuditorioVigoAnfiteatro from './pages/planoAuditorios/Planos/auditorioVigo/anfiteatro';
+
+import { useLocation } from 'react-router-dom';
+import IntroducirNuevaContraseña from './pages/componentes/IntroducirNuevaContraseña';
+
+// Wrapper to pass entryPoint prop from query param
+function IntroducirNuevaContraseñaWrapper() {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const entryPoint = params.get("entryPoint") === "panel" ? "panel" : "publish";
+  return <IntroducirNuevaContraseña entryPoint={entryPoint} />;
+}
 
 
 function App() {
@@ -61,11 +71,12 @@ function App() {
         <Route path="panel-organizador" element={<PanelOrganizador />} />
         <Route path="panel-organizador/evento/:id" element={<EventoDetalle />} />
         <Route path="panel-organizador/evento/:id/resumo" element={<ResumoEvento />} />
-          <Route path="panel-organizador/evento/:id/entradas" element={<ListadoEntradas />} />
+        <Route path="panel-organizador/evento/:id/entradas" element={<ListadoEntradas />} />
         <Route path="panel-organizador/cobro/:id" element={<CobroEvento />} />
         <Route path="panel-organizador/settings" element={<SettingsOrganizador />} />
         <Route path="verificacion/:uid/:token" element={<VerificacionEmailPage />} />
-        <Route path="reset-password/:uid/:token" element={<IntroducirNuevaContraseña />} />
+        <Route path="reset-password/:uid/:token" element={<IntroducirNuevaContraseñaWrapper />} />
+  
         <Route path="crear-evento" element={<CreateEventLayout />}>
           <Route path="tipo" element={<TipoEvento />} />
           <Route path="titulo" element={<TituloEvento />} />
@@ -82,4 +93,4 @@ function App() {
   );
 }
 
-export default App
+export default App;

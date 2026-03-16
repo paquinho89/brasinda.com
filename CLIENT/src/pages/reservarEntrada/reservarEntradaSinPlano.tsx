@@ -112,8 +112,12 @@ export default function ReservarEntradaSinPlano() {
 			return false;
 		}
 
-		// If subscription is checked, email is required
-		if (suscribirseEventos && !emailSuscripcion.trim().length) {
+		const isValidEmail = (email: string) => {
+			// Simple email regex
+			return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+		};
+
+		if (!emailSuscripcion.trim().length || !isValidEmail(emailSuscripcion)) {
 			return false;
 		}
 
@@ -242,6 +246,20 @@ export default function ReservarEntradaSinPlano() {
 						</div>
 
 						{!nomearTodas && (
+							<>
+							<div className="mb-3" style={{ maxWidth: "400px" }}>
+								<label htmlFor="email-xeral" className="form-label">
+									Email:
+								</label>
+								<input
+									id="email-xeral"
+									type="email"
+									value={emailSuscripcion}
+									onChange={(e) => setEmailSuscripcion(e.target.value)}
+									className="form-control"
+									placeholder="Introduce o teu email"
+								/>
+							</div>
 							<div className="mb-3" style={{ maxWidth: "400px" }}>
 								<label htmlFor="nome-xeral" className="form-label">
 									Nome:
@@ -255,6 +273,7 @@ export default function ReservarEntradaSinPlano() {
 									placeholder="Nome da reserva"
 								/>
 							</div>
+							</>
 						)}
 
 						{cantidadeReservar > 1 && (
@@ -325,19 +344,7 @@ export default function ReservarEntradaSinPlano() {
 							</label>
 						</div>
 
-						{suscribirseEventos && (
-							<div className="mb-3" style={{ maxWidth: "400px", marginTop: "8px" }}>
-								<input
-									id="email-suscripcion"
-									type="email"
-									value={emailSuscripcion}
-									onChange={(e) => setEmailSuscripcion(e.target.value)}
-									className="form-control"
-									placeholder="Introduce o teu email"
-									required={suscribirseEventos}
-								/>
-							</div>
-						)}
+
 
 						<div className="d-flex justify-content-start">
 							<button

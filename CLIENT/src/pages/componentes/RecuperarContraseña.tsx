@@ -1,11 +1,22 @@
+import React, { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
-import { useState } from "react";
 import axios from "axios";
 import EnvioEmailRecuperacionContraseña from "./EnvioEmailRecuperacionContraseña"
-import { FaEnvelope } from "react-icons/fa";
+import { FaEnvelope, FaLock } from "react-icons/fa";
 
-function RecuperarContraseñaModal({ show, onClose }: {show: boolean; onClose: () => void;}) {
-  const [email, setEmail] = useState("");
+interface RecuperarContraseñaModalProps {
+  show: boolean;
+  onClose: () => void;
+  initialEmail?: string;
+  entryPoint?: "publish" | "panel";
+}
+
+function RecuperarContraseñaModal({ show, onClose, initialEmail = "", entryPoint }: RecuperarContraseñaModalProps) {
+  const [email, setEmail] = useState(initialEmail);
+    // Se cambia o email inicial, actualiza o input cando se abre o modal
+    React.useEffect(() => {
+      if (show) setEmail(initialEmail);
+    }, [show, initialEmail]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,6 +34,7 @@ function RecuperarContraseñaModal({ show, onClose }: {show: boolean; onClose: (
     try {
       await axios.post("http://localhost:8000/organizador/recuperar-contrasena/", {
         email: email.toLowerCase(),
+        entryPoint: entryPoint || "publish"
       });
       onClose();
       setEnvioEmailRecuperacionContraseña(true);
@@ -41,11 +53,14 @@ function RecuperarContraseñaModal({ show, onClose }: {show: boolean; onClose: (
     <>
         <Modal show={show} onHide={onClose} centered>
         <Modal.Header closeButton>
-            <Modal.Title>Recuperar tu contraseña</Modal.Title>
+          <Modal.Title>
+            <FaLock style={{ color: '#ff0093', fontSize: 22, marginRight: 8, marginBottom: 3 }} />
+            Recuperar tu contraseña
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
             <Form.Group className="mb-3">
-            <FaEnvelope style={{ marginRight: "6px" }} />
+            <FaEnvelope style={{ marginRight: "6px", color: "#ff0093" }} />
             <Form.Label>Correo Electrónico</Form.Label>
             <Form.Control 
                 type="text" 
@@ -57,23 +72,27 @@ function RecuperarContraseñaModal({ show, onClose }: {show: boolean; onClose: (
             {error && <div className="alert alert-danger">{error}</div>}
             {success && <div className="alert alert-success">{success}</div>}
         </Modal.Body>
-        <Modal.Footer>
+        <Modal.Footer className="d-flex justify-content-between">
+          <div>
             <Button variant="secondary" onClick={onClose} className="boton-avance">
-            Cerrar
+              Cerrar
             </Button>
+          </div>
+          <div>
             <Button 
-                className="reserva-entrada-btn"
-                variant="primary" 
-                onClick={handleRecuperarContraseña}
-                disabled={loading}
+              className="reserva-entrada-btn"
+              variant="primary" 
+              onClick={handleRecuperarContraseña}
+              disabled={loading}
             >
-            {loading ? "Enviando..." : "Recuperar Contraseña"}
+              {loading ? "Enviando..." : "Recuperar Contraseña"}
             </Button>
+          </div>
         </Modal.Footer>
         </Modal>
         <EnvioEmailRecuperacionContraseña
-            show={showEnvioEmailRecuperacionContraseña}
-            onClose={()=> setEnvioEmailRecuperacionContraseña(false)}
+          show={showEnvioEmailRecuperacionContraseña}
+          onClose={()=> setEnvioEmailRecuperacionContraseña(false)}
         />
     </>
   );

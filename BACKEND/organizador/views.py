@@ -21,17 +21,17 @@ def crear_organizador (request):
         organizador = serializer.save(is_active = False)
         uid = urlsafe_base64_encode(force_bytes(organizador.pk))
         token = default_token_generator.make_token(organizador)
-        verification_link = (f"{settings.FRONTEND_URL}/verificacion/{uid}/{token}")
+        verification_link = (f"{settings.FRONTEND_URL}/crear-evento/tipo?uid={uid}&token={token}")
         # Ler plantilla HTML e substituír o enlace
         template_path = os.path.join(os.path.dirname(__file__), 'formato_email', 'verificacion_cuenta.html')
         with open(template_path, encoding='utf-8') as f:
             html_template = f.read()
         html_message = html_template.replace('{{ verification_link }}', verification_link)
         send_mail(
-            subject = "Eventos.com - Verificación Cuenta",
+            subject = "brasinda.com - Verificación Cuenta",
             message = f"Acceda ao seguinte enlace para verificar o seu email: {verification_link}",
             from_email = settings.DEFAULT_FROM_EMAIL,
-            recipient_list = ["paquinho89@hotmail.com"], #[organizador.email],
+            recipient_list = ["paquinho89@gmail.com"], #[organizador.email],
             fail_silently=False,
             html_message=html_message
         )
@@ -49,8 +49,24 @@ def verificar_email(request, uidb64, token):
     if default_token_generator.check_token(organizador, token):
         organizador.is_active = True
         organizador.save()
-        return Response({"success": "Conta verificada correctamente"})
-    
+        # Xerar tokens JWT
+        refresh = RefreshToken.for_user(organizador)
+        # URL da foto (ou default)
+        if organizador.foto_organizador:
+            foto_url = request.build_absolute_uri(organizador.foto_organizador.url)
+        else:
+            foto_url = None
+        return Response({
+            "success": "Conta verificada correctamente",
+            "access_token": str(refresh.access_token),
+            "refresh_token": str(refresh),
+            "organizador": {
+                "id": organizador.id,
+                "email": organizador.email,
+                "nome_organizador": organizador.nome_organizador,
+                "foto_url": foto_url
+            }
+        })
     return Response({"error": "Token inválido ou caducado"}, status=400)
 
 #Entrar na conta do organizador
@@ -123,15 +139,21 @@ def recuperar_contrasena(request):
     # Xenerar token seguro
     uid = urlsafe_base64_encode(force_bytes(organizador.pk))
     token = default_token_generator.make_token(organizador)
-    reset_link = f"{settings.FRONTEND_URL}/reset-password/{uid}/{token}"
+    entry_point = request.data.get("entryPoint", "publish")
+    reset_link = f"{settings.FRONTEND_URL}/reset-password/{uid}/{token}?entryPoint={entry_point}"
 
-    # Enviar email
+    # Enviar email usando o template de recuperacion_contrasenha.html
+    template_path = os.path.join(os.path.dirname(__file__), 'formato_email', 'recuperacion_contrasenha.html')
+    with open(template_path, encoding='utf-8') as f:
+        html_template = f.read()
+    html_message = html_template.replace('{{ reset_link }}', reset_link)
     send_mail(
-        subject="Eventos.com - Recuperar Contraseña",
+        subject="brasinda.com - Recuperar Contraseña",
         message=f"Preme neste enlace para cambiar a túa contraseña:\n{reset_link}",
         from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=["paquinho89@hotmail.com"], #[organizador.email],
+        recipient_list=["paquinho89@gmail.com"], #[organizador.email],
         fail_silently=False,
+        html_message=html_message
     )
 
     return Response({"message": "Revisa o teu email, enviámosche un link para cambiar a túa contraseña."})

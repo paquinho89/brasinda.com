@@ -11,6 +11,7 @@ class ReservaButacaAdmin(admin.ModelAdmin):
 		"id",
 		"evento",
 		"tipo_reserva",
+		"email",
 		"nome_titular",
 		"lugar_entrada",
 		"prezo_entrada",

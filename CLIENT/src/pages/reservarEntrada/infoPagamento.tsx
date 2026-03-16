@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { FaArrowLeft, FaUser, FaEnvelope, FaTicketAlt, FaListOl, FaEuroSign } from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import "../../estilos/infoPagamento.css";
@@ -130,8 +131,8 @@ const InfoPagamento: React.FC = () => {
     setError("");
     setLoading(true);
 
-    if (!nome || !email || !tarxeta || !cvc || !fechaCaducidad) {
-      setError("Todos os campos son obrigatorios");
+    if (!nome || !email) {
+      setError("Nome e email son obrigatorios, pero a información de pago non");
       setLoading(false);
       return;
     }
@@ -168,6 +169,7 @@ const InfoPagamento: React.FC = () => {
             entradas: entradasSeleccionadas,
             email: email,
             duracion_reserva: 10,
+            confirmada: true,
           }),
         }
       );
@@ -224,19 +226,20 @@ const InfoPagamento: React.FC = () => {
     <div className="info-pagamento-page verde">
       {/* HEADER */}
       <div className="info-pagamento-header">
-        <div className="header-content">
-          <div>
-            <h2>{evento?.nome_evento || "Información de Pago"}</h2>
-            <p className="evento-fecha">{evento && formatDate(evento.data_evento)}</p>
-          </div>
+        <div className="header-content" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
           <button
             type="button"
-            className="volver-verde-btn"
+            className="volver-btn"
             onClick={() => navigate(-1)}
             aria-label="Volver"
+            style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 6 }}
           >
-            ← Volver
+            <FaArrowLeft style={{ marginRight: 4 }} /> Volver
           </button>
+          <div style={{ textAlign: 'center' }}>
+            <h2 style={{ marginBottom: 0 }}>{evento?.nome_evento || "Información de Pago"}</h2>
+            <p className="evento-fecha" style={{ marginTop: 4 }}>{evento && formatDate(evento.data_evento)}</p>
+          </div>
         </div>
         <div className={`timer-container ${timeRemaining < 180 ? "warning" : ""}`}>
           <span className="timer-label">Tempo restante:</span>
@@ -247,9 +250,28 @@ const InfoPagamento: React.FC = () => {
       {/* CONTENT */}
       <div className="info-pagamento-container">
         <form onSubmit={handleSubmit} className="info-pagamento-formulario">
+
+          {/* EMAIL */}
+          <div className="form-group">
+            <label htmlFor="email">
+              <FaEnvelope style={{ marginRight: "8px", color: "#ff0093" }} />
+              <strong>Email</strong></label>
+            <input
+              id="email"
+              type="email"
+              placeholder="tu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
+            />
+          </div>
+          
           {/* NOME */}
           <div className="form-group">
-            <label htmlFor="nome">Nome *</label>
+            <label htmlFor="nome">
+              <FaUser style={{ marginRight: "6px", color: "#ff0093" }} />
+              <strong>Nome</strong>
+            </label>
             <input
               id="nome"
               type="text"
@@ -260,23 +282,13 @@ const InfoPagamento: React.FC = () => {
             />
           </div>
 
-          {/* EMAIL */}
-          <div className="form-group">
-            <label htmlFor="email">Email *</label>
-            <input
-              id="email"
-              type="email"
-              placeholder="tu@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-            />
-          </div>
-
           {/* ENTRADAS SELECCIONADAS */}
           {entradasSeleccionadas.length > 0 && (
             <div className="form-group">
-              <label>Entradas Seleccionadas</label>
+              <label>
+                <FaTicketAlt style={{ marginRight: "6px", color: "#ff0093" }} />
+                <strong>Entradas Seleccionadas</strong>
+              </label>
               <div className="entradas-listado">
                 <table>
                   <thead>
@@ -367,26 +379,26 @@ const InfoPagamento: React.FC = () => {
           </div>
 
           {/* CHECKBOX SUSCRIPCIÓN */}
-          <div className="form-group checkbox-group">
-            <label className="checkbox-label-legal">
-              <input
-                type="checkbox"
-                className="checkbox-input-legal"
-                checked={suscribirseEventos}
-                onChange={(e) => setSuscribirseEventos(e.target.checked)}
-                disabled={loading}
-              />
-              <span className="checkbox-text-legal">
-                Quero estar informado dos eventos que acontecen na miña zona
-              </span>
-            </label>
-          </div>
+          <div className="form-check mb-3 mt-4">
+							<input
+								id="suscribirse-eventos"
+								type="checkbox"
+								className="form-check-input checkbox-verde"
+								checked={suscribirseEventos}
+								onChange={(e) => setSuscribirseEventos(e.target.checked)}
+								disabled={loading}
+								style={{ accentColor: "#ff0093" }}
+							/>
+							<label htmlFor="suscribirse-eventos" className="form-check-label">
+								<strong>Quero estar informado dos eventos que acontecen na miña zona</strong>
+							</label>
+						</div>
 
           {/* ERROR MESSAGE */}
           {error && <div className="error-message">{error}</div>}
 
           {/* BUTTON */}
-          <button type="submit" className="reserva-entrada-verde-btn" style={{ width: '100%' }} disabled={loading}>
+          <button type="submit" className="reserva-entrada-btn" style={{ width: '100%' }} disabled={loading}>
             {loading 
               ? "Procesando..." 
               : evento?.prezo_evento 

@@ -1,4 +1,6 @@
 import { Modal, Button } from "react-bootstrap";
+import { FaLock } from "react-icons/fa";
+import { FaGoogle, FaYahoo, FaMicrosoft } from "react-icons/fa";
 
 function EnvioEmailRecuperacionContraseña({
   show,
@@ -9,24 +11,28 @@ function EnvioEmailRecuperacionContraseña({
 }) {
   return (
     <Modal show={show} onHide={onClose} centered>
+
       <Modal.Header closeButton>
-        <Modal.Title>Recupera tu contraseña</Modal.Title>
+        <Modal.Title>
+          <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <FaLock style={{ color: "#ff0093", fontSize: 24 }} />
+            Recupera o teu contrasinal
+          </span>
+        </Modal.Title>
       </Modal.Header>
 
       <Modal.Body className="text-center">
         <p>
-          Hemos enviado un correo para recuperar tu contraseña.
+          Enviamos un correo para recuperar o teu contrasinal.
           <br />
-          Por favor, revisa tu bandeja de entrada o el correo basura y resetea tu contraseña.
+          Revisa a túa bandexa de entrada ou o teu spam.
         </p>
-
-        <p className="fw-bold mt-4">Accede rápidamente a tu correo:</p>
 
         <div
           style={{
             display: "flex",
             justifyContent: "center",
-            gap: "20px",
+            gap: "24px",
             marginTop: "15px",
           }}
         >
@@ -35,44 +41,36 @@ function EnvioEmailRecuperacionContraseña({
             href="https://mail.google.com"
             target="_blank"
             rel="noopener noreferrer"
+            title="Gmail"
+            style={{ color: "#111", fontSize: 28, transition: "color 0.2s" }}
           >
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Gmail_Icon.png"
-              alt="Gmail"
-              width={40}
-            />
+            <FaGoogle />
           </a>
-
           {/* Yahoo */}
           <a
             href="https://mail.yahoo.com"
             target="_blank"
             rel="noopener noreferrer"
+            title="Yahoo Mail"
+            style={{ color: "#111", fontSize: 28, transition: "color 0.2s" }}
           >
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/2/24/Yahoo_Mail_icon_2021.svg"
-              alt="Yahoo"
-              width={40}
-            />
+            <FaYahoo />
           </a>
-
           {/* Outlook */}
           <a
             href="https://outlook.live.com"
             target="_blank"
             rel="noopener noreferrer"
+            title="Outlook"
+            style={{ color: "#111", fontSize: 28, transition: "color 0.2s" }}
           >
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Microsoft_Outlook_2013-2019_logo.svg"
-              alt="Outlook"
-              width={40}
-            />
+            <FaMicrosoft />
           </a>
         </div>
       </Modal.Body>
 
       <Modal.Footer>
-        <Button variant="primary" onClick={onClose}>
+        <Button className="reserva-entrada-btn" onClick={onClose}>
           Entendido
         </Button>
       </Modal.Footer>

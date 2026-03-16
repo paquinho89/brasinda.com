@@ -1,9 +1,15 @@
 import { Button, Form, InputGroup } from "react-bootstrap";
-import { useState } from "react";
+import { FaLock } from "react-icons/fa";
+import { useState, useContext } from "react";
+import { NavBarMessageContext } from "./NavBar";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-function IntroducirNuevaContraseña() {
+interface IntroducirNuevaContraseñaProps {
+  entryPoint?: "publish" | "panel";
+}
+
+function IntroducirNuevaContraseña({ entryPoint }: IntroducirNuevaContraseñaProps) {
   const { uid, token } = useParams<{ uid: string; token: string }>();
   const navigate = useNavigate();
 
@@ -18,13 +24,13 @@ function IntroducirNuevaContraseña() {
     return ""; // ✅ si todo está bien
     };
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  // const [success, setSuccess] = useState("");
+  const { setMessage } = useContext(NavBarMessageContext);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
     const errorValidacion = validarContraseña(contraseña);
 
     if (errorValidacion) {
@@ -43,13 +49,16 @@ function IntroducirNuevaContraseña() {
         "organizador",
         JSON.stringify(response.data.organizador)
         );
-      setSuccess("Contraseña cambiada correctamente. Ya puedes iniciar sesión.");
       setContraseña("");
-
-      // Redirigir al login después de 2 segundos
+      setMessage("Contrasinal cambiado correctamente. Xa podes crear o teu evento.");
+      if (entryPoint === "panel") {
+        navigate("/panel-organizador");
+      } else {
+        navigate("/crear-evento/tipo");
+      }
       setTimeout(() => {
-        navigate("/crear-evento");
-      }, 2000);
+        setMessage("");
+      }, 6000);
     } catch (err: any) {
       const msg = err.response?.data?.error || "Ocurrió un error. Intenta nuevamente.";
       setError(msg);
@@ -62,15 +71,15 @@ function IntroducirNuevaContraseña() {
     <div style={{ maxWidth: "400px", margin: "50px auto" }}>
       <h2 className="mb-4 text-center">Nueva contraseña</h2>
 
-      {error && <div className="alert alert-danger">{error}</div>}
-      {success && <div className="alert alert-success">{success}</div>}
-
       <Form.Group className="mb-3">
-        <Form.Label>Contraseña</Form.Label>
+        <Form.Label>
+          <FaLock style={{ color: '#ff0093', marginRight: 7, marginBottom: 2 }} />
+          Contrasinal:
+        </Form.Label>
         <InputGroup>
         <Form.Control
             type={showContraseña ? "text" : "password"}   //aquí enmascara o texto
-            placeholder="Introduce tu contraseña"
+            placeholder="Introduce o teu contrasinal"
             value={contraseña}
             onChange={(e) => {
             const value = e.target.value;
@@ -80,7 +89,7 @@ function IntroducirNuevaContraseña() {
                 const error = validarContraseña(value);
                 setError(error);
             } else {
-                setError("La contraseña es obligatoria");
+                setError("O contrasinal é obrigatorio");
             }
             }}
         />
@@ -91,9 +100,10 @@ function IntroducirNuevaContraseña() {
             {showContraseña ? "🙈" : "👁️"}
         </Button>
         </InputGroup>
-        {error && <div className = "alert alert-danger">{error}</div>}
+        {error && <div className = "alert alert-danger mt-3">{error}</div>}
+        {/* Mensaxe de éxito móstrase agora na NavBar */}
         <Button 
-            className="btn btn-primary w-100" 
+            className="reserva-entrada-btn mt-4 w-100" 
             onClick={handleSubmit}
             disabled={loading}
         >

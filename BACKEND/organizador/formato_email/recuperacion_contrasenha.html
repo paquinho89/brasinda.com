@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Verificación de conta - Eventos.com</title>
+    <title>Recuperación de contrasinal - brasinda.com</title>
     <style>
       body {
         background: #f7f7fa;
@@ -67,19 +67,21 @@
   <body>
     <div class="container">
       <img src="branding/logo.png" alt="brasinda.com" class="logo" />
-      <h1>Verifica a túa conta</h1>
+      <h1>Recuperar o teu contrasinal</h1>
       <p>
-        Grazas por rexistrarte en <b>brasinda.com</b><br />
-        Para activar a túa conta, prema no seguinte botón:
+        Prema no seguinte botón:
       </p>
-      <a href="{{ verification_link }}" class="button" id="verificarBtn">Verificar conta</a>
+      <a href="{{ reset_link }}" class="button" id="resetBtn" aria-label="Recuperar contrasinal">
+        Recuperar contrasinal
+      </a>
       <p style="margin-top: 24px; color: #888; font-size: 0.98rem;">
-        Se non te rexistraches, podes ignorar este correo.
+        Se tes problemas co botón, copia e pega esta ligazón no teu navegador:<br />
+        <span style="word-break: break-all; color: #888; font-size: 0.97rem;">{{ reset_link }}</span>
       </p>
       <div class="footer">
         &copy; 2026 brasinda.com
         <br />
-        <a href="file:///C:/Users/talle/Desktop/eventos.com/BACKEND/organizador/formato_email/verificacion_cuenta.html" target="_blank" style="color:#ff0093;text-decoration:underline;font-size:0.95rem;">Ver este correo en local</a>
+        <a href="file:///C:/Users/talle/Desktop/eventos.com/BACKEND/organizador/formato_email/recuperacion_contrasenha.html" target="_blank" style="color:#ff0093;text-decoration:underline;font-size:0.95rem;">Ver este correo en local</a>
         <br />
         <span style="font-size:0.85rem;color:#888;">Se non funciona, abre o ficheiro directamente no navegador.</span>
       </div>

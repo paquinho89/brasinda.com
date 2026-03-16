@@ -10,7 +10,7 @@ interface OrganizadorType {
 interface AuthContextType {
   organizador: OrganizadorType | null;
   token: string | null;              // gardamos token
-  login: (data: OrganizadorType, token: string) => void;
+  login: (data: OrganizadorType, token: string, refreshToken?: string) => void;
   logout: () => void;
 }
 
@@ -45,7 +45,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setToken(localStorage.getItem("access_token"));
   }, []);
 
-  const login = (data: OrganizadorType, token: string) => {
+  // Now accepts optional refreshToken
+  const login = (data: OrganizadorType, token: string, refreshToken?: string) => {
     const normalizedData: OrganizadorType = {
       nome_organizador: (data as any).nome_organizador || (data as any).nome || (data as any).username || "Organizador",
       foto_url: (data as any).foto_url || (data as any).foto_organizador || null,
@@ -55,6 +56,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     localStorage.setItem("organizador", JSON.stringify(normalizedData));
     localStorage.setItem("access_token", token);
+    if (refreshToken) {
+      localStorage.setItem("refresh_token", refreshToken);
+    }
     setOrganizador(normalizedData);
     setToken(token);
   };

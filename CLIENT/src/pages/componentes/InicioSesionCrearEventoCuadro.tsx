@@ -4,7 +4,7 @@ import { useState } from "react";
 import CreateAccountModal from "./CreacionCuentaCuadro";
 import axios from "axios";
 import RecuperarContraseñaModal from "./RecuperarContraseña";
-import { FaEnvelope, FaLock } from "react-icons/fa";
+import { FaEnvelope, FaLock, FaSignInAlt, FaArrowRight } from "react-icons/fa";
 import "../../estilos/TarjetaEventoHome.css";
 import "../../estilos/Botones.css";
 import { useAuth } from "../AuthContext";
@@ -21,6 +21,7 @@ function LoginModalCrearEvento({ show, onClose, redirectTo = "/crear-evento/tipo
     const [showCreateAccount, setShowCreateAccount] = useState(false);
     const handleOpenCreateAccount = () => setShowCreateAccount(true);
     const handleCloseCreateAccount = () => setShowCreateAccount(false);
+
 
     const [showRecuperarContraseña, setShowRecuperarContraseña] = useState(false);
     const handleOpenRecuperarContraseña = () => setShowRecuperarContraseña(true);
@@ -80,7 +81,9 @@ function LoginModalCrearEvento({ show, onClose, redirectTo = "/crear-evento/tipo
     <>
         <Modal show={show} onHide={onClose} centered>
         <Modal.Header closeButton>
-            <Modal.Title>
+            <Modal.Title className="d-flex align-items-center">
+                {/* Iconos rosas antes do texto */}
+                <FaSignInAlt style={{ color: '#ff0093', fontSize: '1.5rem', marginRight: '8px' }} />
                 {redirectTo === "/panel-organizador" ? "Iniciar Sesión" : "Inicio de sesión requerido"}
             </Modal.Title>
         </Modal.Header>
@@ -173,6 +176,8 @@ function LoginModalCrearEvento({ show, onClose, redirectTo = "/crear-evento/tipo
                 <RecuperarContraseñaModal
                     show={showRecuperarContraseña}
                     onClose={handleCloseRecuperarContraseña}
+                    initialEmail={email}
+                    entryPoint={redirectTo === "/panel-organizador" ? "panel" : "publish"}
                 />
             </>
   );

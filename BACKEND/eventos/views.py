@@ -132,9 +132,17 @@ def reservar_entradas(request, evento_id):
     email = request.data.get("email", "")
     nome_titular = (request.data.get("nome_titular") or "").strip() or None
     duracion_reserva = request.data.get("duracion_reserva", 10)  # minutos, default 10
+    confirmada = request.data.get("confirmada", False)
 
     if not isinstance(entradas, list) or not zona:
         return Response({"error": "Formato invalido"}, status=400)
+
+
+    # Limpar reservas temporais caducadas antes de comprobar dispoñibilidade
+    ReservaButaca.objects.filter(
+        estado=ReservaButaca.ESTADO_TEMPORAL,
+        fecha_expiracion__lt=timezone.now()
+    ).delete()
 
     seats = []
     for item in entradas:
@@ -181,13 +189,16 @@ def reservar_entradas(request, evento_id):
 
         # Determinar organizador: si está autenticado, usar request.user, sino None
         organizador = request.user if request.user.is_authenticated else None
-        
+
         # Determinar tipo de reserva
         tipo_reserva = ReservaButaca.TIPO_RESERVA_VENTA if organizador is None else ReservaButaca.TIPO_RESERVA_INVITACION
-        
-        # Determinar estado: CONFIRMADO para invitaciones del organizador, TEMPORAL para ventas públicas (que tienen tiempo límite)
-        estado = ReservaButaca.ESTADO_CONFIRMADO if organizador is not None else ReservaButaca.ESTADO_TEMPORAL
-        
+
+        # Se se pide confirmada, forzar estado CONFIRMADO
+        if confirmada:
+            estado = ReservaButaca.ESTADO_CONFIRMADO
+        else:
+            estado = ReservaButaca.ESTADO_CONFIRMADO if organizador is not None else ReservaButaca.ESTADO_TEMPORAL
+
         for row, seat in seats:
             ReservaButaca.objects.create(
                 evento=evento,
@@ -251,6 +262,12 @@ def reservas_vendidas(request, evento_id):
     """
     evento = get_object_or_404(Evento, id=evento_id)
     zona = request.query_params.get("zona")
+
+    # Limpar reservas temporais caducadas antes de comprobar dispoñibilidade
+    ReservaButaca.objects.filter(
+        estado=ReservaButaca.ESTADO_TEMPORAL,
+        fecha_expiracion__lt=timezone.now()
+    ).delete()
 
     qs = ReservaButaca.objects.filter(
         evento=evento,

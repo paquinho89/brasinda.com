@@ -7,7 +7,7 @@
 }
 
 .info-pagamento-page.verde {
-  --color-principal: #60dd49;
+  --color-principal: #e75480;
 }
 
 .info-pagamento-header {
@@ -65,8 +65,8 @@
 }
 
 .timer-container {
-  background: #f0f8f4;
-  border: 2px solid #60dd49;
+  background: #fff0f6;
+  border: 2px solid #e75480;
   border-radius: 12px;
   padding: 12px 20px;
   display: flex;
@@ -92,7 +92,7 @@
 .timer-value {
   font-size: 24px;
   font-weight: 700;
-  color: #60dd49;
+  color: #e75480;
   font-family: 'Courier New', monospace;
 }
 
@@ -163,8 +163,8 @@
 
 .form-group input:focus {
   outline: none;
-  border-color: #60dd49;
-  box-shadow: 0 0 0 3px rgba(96, 221, 73, 0.1);
+  border-color: #e75480;
+  box-shadow: 0 0 0 3px rgba(231, 84, 128, 0.1);
 }
 
 .form-group input:disabled {
@@ -221,8 +221,8 @@
 }
 
 .entradas-listado table tbody tr.total-row {
-  background: #f0f8f4;
-  border-top: 2px solid #60dd49;
+  background: #fff0fa;
+  border-top: 2px solid #ff0093;
 }
 
 .entradas-listado table tbody tr.total-row td {
@@ -251,7 +251,7 @@
 .pagar-button-full {
   width: 100%;
   padding: 14px;
-  background: #60dd49;
+  background: #e75480;
   color: white;
   border: none;
   border-radius: 6px;
@@ -263,8 +263,8 @@
 }
 
 .pagar-button-full:hover:not(:disabled) {
-  background: #50c73a;
-  box-shadow: 0 4px 12px rgba(96, 221, 73, 0.3);
+  background: #d13a6f;
+  box-shadow: 0 4px 12px rgba(231, 84, 128, 0.2);
 }
 
 .pagar-button-full:disabled {
@@ -303,7 +303,7 @@
   margin: 0;
   flex: 0 0 14px;
   cursor: pointer;
-  accent-color: #60dd49;
+  accent-color: #e75480;
 }
 
 .checkbox-text-legal {
