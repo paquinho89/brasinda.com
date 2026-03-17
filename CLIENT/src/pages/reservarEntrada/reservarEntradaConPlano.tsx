@@ -29,6 +29,9 @@ export default function ReservarEntrada() {
   const [openZonaCentralSignal, setOpenZonaCentralSignal] = useState(0);
   const butacasRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
+  // Inputs para email e nome
+  const [email, setEmail] = useState("");
+  const [nome, setNome] = useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -152,6 +155,31 @@ export default function ReservarEntrada() {
               </div>
             )}
 
+            {/* Inputs para email e nome encima do prezo */}
+            <div className="mt-3 mb-2">
+              <div className="form-group mb-2">
+                <label htmlFor="email"><strong>Email</strong></label>
+                <input
+                  id="email"
+                  type="email"
+                  className="form-control"
+                  placeholder="tu@email.com"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                />
+              </div>
+              <div className="form-group mb-2">
+                <label htmlFor="nome"><strong>Nome</strong></label>
+                <input
+                  id="nome"
+                  type="text"
+                  className="form-control"
+                  placeholder="Nome e apelidos"
+                  value={nome}
+                  onChange={e => setNome(e.target.value)}
+                />
+              </div>
+            </div>
             {evento.prezo_evento != null && (
               <>
                 <p className="mt-3 mb-2">

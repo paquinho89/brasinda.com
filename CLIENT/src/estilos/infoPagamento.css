@@ -64,8 +64,7 @@
   background: #f5f5f5;
 }
 
-.timer-container {
-  background: #fff0f6;
+  background: #ff0093;
   border: 2px solid #e75480;
   border-radius: 12px;
   padding: 12px 20px;
@@ -92,7 +91,7 @@
 .timer-value {
   font-size: 24px;
   font-weight: 700;
-  color: #e75480;
+  color: #000;
   font-family: 'Courier New', monospace;
 }
 

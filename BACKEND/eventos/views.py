@@ -1,3 +1,30 @@
+from django.utils import timezone
+
+# Endpoint para eventos activos dun usuario por email
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from .models import Evento, ReservaButaca
+from .utils_pdf import xerar_pdf_entrada
+from .email_entradas import enviar_entrada_email
+from .serializers import EventoSerializer
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def eventos_activos_por_email(request):
+    email = request.GET.get('email', '').strip()
+    if not email:
+        return Response([], status=200)
+    # Reservas confirmadas con ese email e evento non pasado nin cancelado
+    reservas = ReservaButaca.objects.filter(
+        email=email,
+        estado=ReservaButaca.ESTADO_CONFIRMADO,
+        evento__evento_cancelado=False,
+        evento__data_evento__gte=timezone.now()
+    ).select_related('evento')
+    eventos = {r.evento for r in reservas}
+    data = EventoSerializer(eventos, many=True, context={'request': request}).data
+    return Response(data)
 # eventos/views.py
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -180,27 +207,43 @@ def reservar_entradas(request, evento_id):
     
     fecha_expiracion = timezone.now() + timedelta(minutes=duracion_minutos)
 
+
+    pdf_buffers = []
     with transaction.atomic():
+        reservas_creadas = []
         for row, seat in seats:
-            if ReservaButaca.objects.filter(
-                evento=evento, zona=zona, fila=row, butaca=seat
-            ).exists():
-                return Response({"error": "Algunha butaca xa esta reservada"}, status=409)
+            reservas_existentes = ReservaButaca.objects.filter(
+                evento=evento,
+                zona=zona,
+                fila=row,
+                butaca=seat
+            )
+            bloqueada = False
+            for reserva in reservas_existentes:
+                if reserva.estado == ReservaButaca.ESTADO_CONFIRMADO:
+                    print(f"[DEBUG] Butaca bloqueada por reserva CONFIRMADA: id={reserva.id}, fila={reserva.fila}, butaca={reserva.butaca}, email={reserva.email}")
+                    bloqueada = True
+                elif reserva.estado == ReservaButaca.ESTADO_TEMPORAL and not reserva.esta_expirada():
+                    print(f"[DEBUG] Butaca bloqueada por reserva TEMPORAL NON EXPIRADA: id={reserva.id}, fila={reserva.fila}, butaca={reserva.butaca}, email={reserva.email}, expira={reserva.fecha_expiracion}")
+                    bloqueada = True
+            if bloqueada:
+                print(f"[DEBUG] Bloqueo de fila={row}, butaca={seat} para evento={evento.id}, zona={zona}")
+                return Response({"error": "A butaca xa esta reservada"}, status=409)
 
-        # Determinar organizador: si está autenticado, usar request.user, sino None
-        organizador = request.user if request.user.is_authenticated else None
-
-        # Determinar tipo de reserva
+        # Evitar asignar AnonymousUser como organizador
+        from django.contrib.auth.models import AnonymousUser
+        if not hasattr(request, 'user') or not request.user.is_authenticated or isinstance(request.user, AnonymousUser):
+            organizador = None
+        else:
+            organizador = request.user
         tipo_reserva = ReservaButaca.TIPO_RESERVA_VENTA if organizador is None else ReservaButaca.TIPO_RESERVA_INVITACION
-
-        # Se se pide confirmada, forzar estado CONFIRMADO
         if confirmada:
             estado = ReservaButaca.ESTADO_CONFIRMADO
         else:
             estado = ReservaButaca.ESTADO_CONFIRMADO if organizador is not None else ReservaButaca.ESTADO_TEMPORAL
 
         for row, seat in seats:
-            ReservaButaca.objects.create(
+            reserva = ReservaButaca.objects.create(
                 evento=evento,
                 zona=zona,
                 fila=row,
@@ -214,16 +257,29 @@ def reservar_entradas(request, evento_id):
                 fecha_expiracion=fecha_expiracion if estado == ReservaButaca.ESTADO_TEMPORAL else None,
                 estado=estado
             )
+            reservas_creadas.append(reserva)
 
         _actualizar_contadores_evento(evento)
 
-    # Recalcular entradas disponibles después de crear reservas
+        # Se a reserva está confirmada, xerar PDF con QR e enviar por email para cada entrada
+        pdfs = []
+        if estado == ReservaButaca.ESTADO_CONFIRMADO:
+            for reserva in reservas_creadas:
+                buffer = xerar_pdf_entrada(reserva, evento)
+                pdfs.append(buffer.getvalue())
+                try:
+                    enviar_entrada_email(reserva.email, buffer, evento, reserva)
+                except Exception as e:
+                    print(f"Erro enviando email de entrada: {e}")
+
     entradas_ocupadas_total = evento.entradas_reservadas + evento.entradas_vendidas
 
+    # Nota: devolvemos os PDFs como base64 ou bytes se se quere enviar por email, non na resposta directa
     return Response({
         "success": True,
         "entradas_dispoñibles": evento.entradas_venta - entradas_ocupadas_total,
         "reservas": [{"row": r[0], "seat": r[1]} for r in seats],
+        "pdfs": len(pdfs)  # Só para debug, non se devolven os ficheiros aquí
     })
 
 
@@ -292,6 +348,9 @@ def mis_reservas(request, evento_id):
     evento = get_object_or_404(Evento, id=evento_id)
     zona = request.query_params.get("zona")
 
+    from django.contrib.auth.models import AnonymousUser
+    if not hasattr(request, 'user') or isinstance(request.user, AnonymousUser) or not request.user.is_authenticated:
+        return Response({"mis_reservas": []})
     if evento.organizador_id == request.user.id:
         # No panel rosa o organizador só debe ver invitacións editables,
         # nunca entradas vendidas.
@@ -531,3 +590,21 @@ def eliminar_invitacion(request, evento_id, invitacion_id):
                 "nome_titular": invitacion.nome_titular
             })
         return Response({"error": "Falta o campo nome_titular"}, status=400)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def eventos_activos_por_email(request):
+    email = request.GET.get('email', '').strip()
+    if not email:
+        return Response([], status=200)
+    # Reservas confirmadas con ese email e evento non pasado nin cancelado
+    reservas = ReservaButaca.objects.filter(
+        email=email,
+        estado=ReservaButaca.ESTADO_CONFIRMADO,
+        evento__evento_cancelado=False,
+        evento__data_evento__gte=timezone.now()
+    ).select_related('evento')
+    eventos = {r.evento for r in reservas}
+    data = EventoSerializer(eventos, many=True, context={'request': request}).data
+    return Response(data)
