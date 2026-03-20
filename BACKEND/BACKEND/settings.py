@@ -78,7 +78,7 @@ ROOT_URLCONF = 'BACKEND.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR],  # Engadido para buscar templates en BACKEND/
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -172,8 +172,10 @@ EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
-EMAIL_HOST_USER = os.getenv('EMAIL_USER_NAME')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD')
+EMAIL_HOST_USER = os.getenv('EMAIL_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_SMTP_PASSWORD')
+
+
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 

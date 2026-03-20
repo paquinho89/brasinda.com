@@ -264,33 +264,36 @@ function CreateAccountModal({ show, onClose }: {show: boolean; onClose: () => vo
 
         </Modal.Body>
         <Modal.Footer>
-          <Button 
-            className="boton-avance"
-            onClick={() => {
-              setErrorEmail("");
-              setErrorEmailBackend("");
-              setContraseñaError("");
-              setErrorTelefono("");
-              setErroNomeOrganizador("");
-              setErrorMayorEdad(false);
-              onClose();
-            }}
-          >
-            Cerrar
-          </Button>
-          <Button 
-            className="reserva-entrada-btn" 
-            disabled={loading}
-            onClick={async()=>{
-            setLoading(true);
-            const ok = await enviarDatosBackend(); 
-            setLoading(false);
-
-            if (!ok) return;
-            onClose();
-            handleOpenVerificacionEmail();}}>
-            {loading ? "Creando..." : "Crear Cuenta"}
-          </Button>
+          <div style={{ display: "flex", width: "100%", justifyContent: "space-between" }}>
+            <Button 
+              className="boton-avance"
+              onClick={() => {
+                setErrorEmail("");
+                setErrorEmailBackend("");
+                setContraseñaError("");
+                setErrorTelefono("");
+                setErroNomeOrganizador("");
+                setErrorMayorEdad(false);
+                onClose();
+              }}
+            >
+              Cerrar
+            </Button>
+            <Button 
+              className="reserva-entrada-btn" 
+              disabled={loading}
+              onClick={async()=>{
+                setLoading(true);
+                const ok = await enviarDatosBackend(); 
+                setLoading(false);
+                if (!ok) return;
+                onClose();
+                handleOpenVerificacionEmail();
+              }}
+            >
+              {loading ? "Creando..." : "Crear Cuenta"}
+            </Button>
+          </div>
         </Modal.Footer>
       </Modal>
       <EmailVerificationModal show= {showVerificacionEmail} onClose={handleCloseVerificacionEmail}/>

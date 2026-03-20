@@ -8,7 +8,7 @@ def enviar_entrada_email(email, pdf_buffer, evento, reserva):
     subject = f"Entrada para {evento.nome_evento}"
     # Renderizar o HTML do email
     html_body = render_to_string(
-        os.path.join('organizador', 'formato_email', 'envio_entradas_pago_web.html'),
+        'eventos/plantilla_email/envio_entradas_pago_web.html',
         {
             'nome_evento': evento.nome_evento,
             'data_evento': evento.data_evento.strftime('%d/%m/%Y %H:%M'),

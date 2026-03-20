@@ -4,7 +4,7 @@ import { Button } from "react-bootstrap";
 import AuditorioSelectorVerin from "../planoAuditorios/auditorioBotones/auditorioVerin";
 import AuditorioSelectorOurense from "../planoAuditorios/auditorioBotones/auditorioOurense";
 import MainNavbar from "../componentes/NavBar";
-import { FaCalendarAlt, FaTicketAlt, FaArrowLeft, FaEnvelope, FaUser } from "react-icons/fa";
+import { FaCalendarAlt, FaTicketAlt, FaArrowLeft, FaEnvelope, FaUser, FaExclamationTriangle } from "react-icons/fa";
 
 
 import SummaryBox from "./SummaryBox";
@@ -40,6 +40,19 @@ export default function ReservarEntrada() {
   const [entradasSeleccionadas, setEntradasSeleccionadas] = useState<any[]>([]);
   // Ref for SummaryBox
   const summaryBoxRef = useRef<any>(null);
+
+  // Limpar só as seleccións de butacas do localStorage ao desmontar a páxina
+  useEffect(() => {
+    return () => {
+      if (!id) return;
+      // Buscar todas as zonas posibles (se hai máis, engadir aquí)
+      const zonas = ["central", "lateral", "frontal", "trasera", "verin", "ourense"];
+      zonas.forEach(zona => {
+        const key = `auditorio_verin_selected_${zona}_${id}`;
+        localStorage.removeItem(key);
+      });
+    };
+  }, [id]);
 
   // Callback para recibir as entradas seleccionadas en tempo real
   const handleEntradasSeleccionadas = (todasEntradas: any[]) => {
@@ -232,12 +245,15 @@ export default function ReservarEntrada() {
 
             {evento.procedimiento_cobro_manual && (
               <div className="mt-3 p-3 border-left-4" style={{
-                backgroundColor: "#e8f5e9",
-                borderLeftColor: "#2e7d32",
+                backgroundColor: "#ffe6f3", // fondo rosa claro
+                borderLeftColor: "#ff0093", // rosa principal
                 borderLeftWidth: "4px",
                 borderRadius: "4px"
               }}>
-                <strong style={{ color: "#1b5e20", fontSize: "1.1em" }}>Procedemento para o pago:</strong>
+                <strong style={{ color: "#111", fontWeight: 700, fontSize: "1.1em", display: "flex", alignItems: "center", gap: 8 }}>
+                  <FaExclamationTriangle style={{ color: "#ff0093", marginRight: 6 }} />
+                  Procedemento para o pago:
+                </strong>
                 <p className="mt-2 mb-0" style={{ color: "#333" }}>
                   {evento.procedimiento_cobro_manual}
                 </p>

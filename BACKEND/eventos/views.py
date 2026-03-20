@@ -4,6 +4,7 @@ from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
 from .models import Evento, ReservaButaca
 from .utils_pdf import xerar_pdf_entrada
 from .email_entradas import enviar_entrada_email
@@ -12,6 +13,7 @@ from .serializers import EventoSerializer
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def eventos_activos_por_email(request):
+    # Novo endpoint para enviar entradas por email
     email = request.GET.get('email', '').strip()
     if not email:
         return Response([], status=200)
@@ -25,6 +27,34 @@ def eventos_activos_por_email(request):
     eventos = {r.evento for r in reservas}
     data = EventoSerializer(eventos, many=True, context={'request': request}).data
     return Response(data)
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def enviar_entradas(request, evento_id):
+    """
+    Endpoint para enviar entradas por email a petición do frontend.
+    Recibe: zona, entradas (array de {row, seat}), email
+    """
+    evento = get_object_or_404(Evento, id=evento_id)
+    zona = request.data.get("zona")
+    entradas = request.data.get("entradas", [])
+    email = request.data.get("email")
+    if not email or not entradas:
+        return Response({"error": "Faltan datos obrigatorios (email, entradas)"}, status=400)
+    pdfs = []
+    for entrada in entradas:
+        row = entrada.get("row")
+        seat = entrada.get("seat")
+        reserva = ReservaButaca.objects.filter(evento=evento, zona=zona, fila=row, butaca=seat, email=email).first()
+        if not reserva:
+            continue
+        buffer = xerar_pdf_entrada(reserva, evento)
+        pdfs.append(buffer.getvalue())
+        try:
+            enviar_entrada_email(email, buffer, evento, reserva)
+        except Exception as e:
+            print(f"Erro enviando email de entrada: {e}")
+    return Response({"success": True, "enviados": len(pdfs)})
 # eventos/views.py
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -449,6 +479,7 @@ def invitacions_sen_plano(request, evento_id):
     nomes = request.data.get("nomes", [])
     nome_xeral = (request.data.get("nome_xeral") or "").strip()
     email_suscripcion = (request.data.get("email_suscripcion") or "").strip()
+    email = (request.data.get("email") or "").strip()
 
     try:
         cantidade = int(cantidade)
@@ -507,7 +538,7 @@ def invitacions_sen_plano(request, evento_id):
                     lugar_entrada=evento.localizacion,
                     prezo_entrada=evento.prezo_evento,
                     estado=ReservaButaca.ESTADO_CONFIRMADO,
-                    email=email_suscripcion if email_suscripcion else None,
+                    email=email if email else (email_suscripcion if email_suscripcion else None),
                 )
             )
 

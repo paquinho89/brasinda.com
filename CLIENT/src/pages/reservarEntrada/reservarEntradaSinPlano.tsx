@@ -152,6 +152,7 @@ export default function ReservarEntradaSinPlano() {
 				},
 				body: JSON.stringify({
 					cantidade: cantidadeReservar,
+					email: emailSuscripcion,
 					nomes: nomesParaGardar,
 					nome_xeral: nomeXeral,
 					...(suscribirseEventos && { email_suscripcion: emailSuscripcion }),

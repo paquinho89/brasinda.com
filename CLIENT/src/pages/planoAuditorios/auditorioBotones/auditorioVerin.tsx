@@ -58,6 +58,23 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
   openZonaCentralSignal,
   onEntradasSeleccionadas,
 }) => {
+  // Limpar seleccións ao desmontar (abandonar páxina)
+  useEffect(() => {
+    return () => {
+      if (!eventoId) return;
+      const zonas: Zona[] = ["anfiteatro", "esquerda", "central", "dereita"];
+      zonas.forEach(zona => {
+        const key = `auditorio_verin_selected_${zona}_${eventoId}`;
+        localStorage.removeItem(key);
+      });
+      setEntradasSeleccionadasPorZona({
+        anfiteatro: [],
+        esquerda: [],
+        central: [],
+        dereita: [],
+      });
+    };
+  }, [eventoId]);
   const navigate = useNavigate();
   const [areaActiva, setAreaActiva] = useState<Record<Zona, boolean>>(AREA_ACTIVA_DEFAULT);
   const [areaActivaHydrated, setAreaActivaHydrated] = useState(false);
