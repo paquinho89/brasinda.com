@@ -73,10 +73,16 @@
       <p>
         Aquí tes as túas entradas. Lembra que sempre as podes descargar en brasinda.com, "Volver imprimir a entrada"
       </p>
+      {% if qr_img_src %}
+        <div style="margin: 20px 0;">
+          <img src="{{ qr_img_src }}" alt="QR entrada" style="width: 140px; height: 140px; border-radius: 8px; border: 1px solid #eee;" />
+          <div style="font-size:0.95rem;color:#888;">Escanea este código QR na entrada do evento</div>
+        </div>
+      {% endif %}
       <div class="footer">
         &copy; 2026 brasinda.com
         <br />
-        <a href="file:///C:/Users/talle/Desktop/eventos.com/BACKEND/organizador/formato_email/recuperacion_contrasenha.html" target="_blank" style="color:#ff0093;text-decoration:underline;font-size:0.95rem;">Ver este correo en local</a>
+        <a href="file:///C:/Users/talle/Desktop/eventos.com/BACKEND/eventos/plantilla_email/envio_entradas_pago_web.html" target="_blank" style="color:#ff0093;text-decoration:underline;font-size:0.95rem;">Ver este correo en local</a>
         <br />
         <span style="font-size:0.85rem;color:#888;">Se non funciona, abre o ficheiro directamente no navegador.</span>
       </div>

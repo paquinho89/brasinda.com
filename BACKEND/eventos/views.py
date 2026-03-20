@@ -301,25 +301,25 @@ def reservar_entradas(request, evento_id):
 
         _actualizar_contadores_evento(evento)
 
-        # Se a reserva está confirmada, xerar PDF con QR e enviar por email para cada entrada
-        pdfs = []
+        # Se a reserva está confirmada, xerar PDFs e enviar UN solo email con todos os PDFs
         if estado == ReservaButaca.ESTADO_CONFIRMADO:
+            pdf_buffers = []
             for reserva in reservas_creadas:
                 buffer = xerar_pdf_entrada(reserva, evento)
-                pdfs.append(buffer.getvalue())
-                try:
-                    enviar_entrada_email(reserva.email, buffer, evento, reserva)
-                except Exception as e:
-                    print(f"Erro enviando email de entrada: {e}")
+                pdf_buffers.append((buffer, reserva))
+            try:
+                from .email_entradas import enviar_entrada_email_multi
+                enviar_entrada_email_multi(email, pdf_buffers, evento, reservas_creadas)
+            except Exception as e:
+                print(f"Erro enviando email de entrada: {e}")
 
     entradas_ocupadas_total = evento.entradas_reservadas + evento.entradas_vendidas
 
-    # Nota: devolvemos os PDFs como base64 ou bytes se se quere enviar por email, non na resposta directa
+    # Nota: devolvemos os datos das reservas, non os PDFs
     return Response({
         "success": True,
         "entradas_dispoñibles": evento.entradas_venta - entradas_ocupadas_total,
-        "reservas": [{"row": r["row"], "seat": r["seat"], "nome_titular": r.get("nome_titular") } for r in seats],
-        "pdfs": len(pdfs)  # Só para debug, non se devolven os ficheiros aquí
+        "reservas": [{"row": r["row"], "seat": r["seat"], "nome_titular": r.get("nome_titular") } for r in seats]
     })
 
 
