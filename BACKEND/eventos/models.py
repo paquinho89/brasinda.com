@@ -6,6 +6,18 @@ from datetime import timedelta
 User = get_user_model()
 # Create your models here.
 class Evento(models.Model):
+    total_dinheiro_recadado = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True,
+        help_text="Total de diñeiro recadado polas vendas deste evento"
+    )
+    total_gastos_xestion = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True,
+        help_text="Total absoluto de gastos de xestión deste evento"
+    )
+    total_a_pagar_ao_organizador = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True,
+        help_text="Total a transferir ao organizador tras descontar gastos de xestión"
+    )
     TIPO_ENTRADA_PAGINA = 'pagina'
     TIPO_ENTRADA_MANUAL = 'manual'
     TIPO_ENTRADA_GRATIS = 'gratis'
@@ -37,7 +49,18 @@ class Evento(models.Model):
     condiciones_confirmacion = models.BooleanField(default=False)
     evento_cancelado = models.BooleanField(default=False)
     xustificacion_cancelacion = models.TextField(blank=True, null=True)
+
+    gastos_xestion = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True,
+        help_text="Porcentaxe de gastos de xestión aplicado ao evento (ex: 5.00 para 5%)"
+    )
     data_creacion = models.DateTimeField(auto_now_add=True)
+
+    def save(self):
+        self.total_dinheiro_recadado = self.prezo_evento * self.entradas_vendidas if self.prezo_evento and self.entradas_vendidas else 0
+        self.total_gastos_xestion = (self.total_dinheiro_recadado * self.gastos_xestion / 100) if self.gastos_xestion else 0
+        self.total_a_pagar_ao_organizador = self.total_dinheiro_recadado - self.total_gastos_xestion
+        return super().save()
 
     def __str__(self):
         return self.nome_evento

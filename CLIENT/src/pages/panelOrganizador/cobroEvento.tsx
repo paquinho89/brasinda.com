@@ -14,6 +14,7 @@ interface Evento {
   entradas_reservadas?: number;
   prezo_evento?: number;
   numero_iban?: string | null;
+  gastos_xestion?: number; // <-- engadido
 }
 
 export default function CobroEvento() {
@@ -76,9 +77,10 @@ export default function CobroEvento() {
   const pctReservadas = aforoTotal > 0 ? (reservadas / aforoTotal) * 100 : 0;
   const pctSenVender = aforoTotal > 0 ? (senVender / aforoTotal) * 100 : 0;
 
-  const comisionPct = 0.05;
+  // Usar comisión do backend (gastos_xestion)
+  const comisionPct = (evento.gastos_xestion ?? 5) / 100;
   const comisionPorEntrada = (evento.prezo_evento || 0) * comisionPct;
-  const comisionTotal = vendidas * comisionPorEntrada;
+  const comisionTotal = (evento.entradas_vendidas || 0) * comisionPorEntrada;
   const importeTotal = importeRecaudadoBruto - comisionTotal;
 
   return (
@@ -214,7 +216,7 @@ export default function CobroEvento() {
                     Recaudado bruto: {importeRecaudadoBruto.toFixed(2)} €
                   </small>
                   <small className="text-muted d-block">
-                    Comisión (5%): {comisionTotal.toFixed(2)} €
+                    Comisión ({(comisionPct * 100).toFixed(2)}%): {comisionTotal.toFixed(2)} €
                   </small>
                 </div>
               </div>

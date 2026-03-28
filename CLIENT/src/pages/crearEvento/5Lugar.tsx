@@ -180,9 +180,10 @@ const LugarPaso: React.FC = () => {
               ref={containerRef}
               style={{ width: "100%", position: "relative", zIndex: 1000 }}
             />
-            <div className="mt-2">
+            <div className="mt-2 d-flex justify-content-center">
               <button
-                className="badge-prezo badge-prezo--clickable"
+                className="boton-avance"
+                style={{ width: "auto", minWidth: 0, padding: "8px 18px", marginBottom: 0 }}
                 onClick={() => setShowNotaLugar((v) => !v)}
                 type="button"
               >

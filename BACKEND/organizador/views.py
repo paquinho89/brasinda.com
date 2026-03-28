@@ -44,11 +44,22 @@ def google_auth(request):
         organizador = Organizador.objects.filter(email=email).first()
         created = False
         if not organizador:
-            # Crear novo organizador activo
+            # Seleccionar imaxe por defecto se non se proporciona
+            import os, random
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            default_dir = os.path.join(base_dir, 'media', 'fotos_organizador', 'fotos_por_defecto')
+            default_img = None
+            try:
+                files = [f for f in os.listdir(default_dir) if os.path.isfile(os.path.join(default_dir, f))]
+                if files:
+                    default_img = os.path.join('fotos_organizador', 'fotos_por_defecto', random.choice(files))
+            except Exception:
+                pass
             organizador = Organizador.objects.create(
                 email=email,
                 nome_organizador=name,
-                is_active=True
+                is_active=True,
+                foto_organizador=default_img
             )
             created = True
 

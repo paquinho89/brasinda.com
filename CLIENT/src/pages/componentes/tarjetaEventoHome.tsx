@@ -64,6 +64,32 @@ export default function TarjetaEventoHome({ evento }: EventoHomeProps) {
 
   const dataFormato = formatDataCompleta(evento.data_evento);
 
+  // Engade esta función utilitaria para comprobar se a data é hoxe ou mañá
+  type DateType = string | Date;
+
+  function getDiaOuHora(dateString: DateType) {
+    const now = new Date();
+    const eventoDate = new Date(dateString);
+    const isToday =
+      now.getFullYear() === eventoDate.getFullYear() &&
+      now.getMonth() === eventoDate.getMonth() &&
+      now.getDate() === eventoDate.getDate();
+    const isTomorrow = (() => {
+      const tomorrow = new Date(now);
+      tomorrow.setDate(now.getDate() + 1);
+      return (
+        tomorrow.getFullYear() === eventoDate.getFullYear() &&
+        tomorrow.getMonth() === eventoDate.getMonth() &&
+        tomorrow.getDate() === eventoDate.getDate()
+      );
+    })();
+    const hora = eventoDate.toLocaleTimeString('gl-ES', { hour: '2-digit', minute: '2-digit' });
+    if (isToday) return `Hoxe ás ${hora}`;
+    if (isTomorrow) return `Mañá ás ${hora}`;
+    // Se non é hoxe nin mañá, devolve a data completa
+    return eventoDate.toLocaleDateString('gl-ES', { day: 'numeric', month: 'long', year: 'numeric' }) + ' ás ' + hora;
+  }
+
   const getTipoIcon = (tipo: string) => {
     switch (tipo) {
       case "Concerto":
@@ -115,7 +141,9 @@ export default function TarjetaEventoHome({ evento }: EventoHomeProps) {
 
         <p className="card-text mb-2">
           <FaEuroSign style={{ marginRight: "6px" }} />
-          {Number(evento.prezo_evento ?? 0) > 0 ? `${evento.prezo_evento} €` : "Evento de Balde"}
+          {Number(evento.prezo_evento ?? 0) > 0
+            ? `${Number(evento.prezo_evento) % 1 === 0 ? Number(evento.prezo_evento) : Number(evento.prezo_evento).toFixed(2)} €`
+            : "Evento de Balde"}
         </p>
 
         <p className="card-text mb-2">
@@ -140,7 +168,7 @@ export default function TarjetaEventoHome({ evento }: EventoHomeProps) {
 
         <p className="card-text mb-2">
           <FaCalendarAlt className="me-1" />
-          {dataFormato}
+          {getDiaOuHora(evento.data_evento)}
         </p>
 
         {/* Botón de reserva */}

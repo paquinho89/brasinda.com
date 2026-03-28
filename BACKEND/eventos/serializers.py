@@ -4,12 +4,18 @@ from .models import Evento, ReservaButaca
 class EventoSerializer(serializers.ModelSerializer):
     entradas_vendidas = serializers.SerializerMethodField()
     entradas_reservadas = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Evento
         fields = '__all__'
         read_only_fields = ['organizador', 'entradas_vendidas', 'entradas_reservadas']
-    
+
+    def create(self, validated_data):
+        # Se non se especifica gastos_xestion, poñer 5 por defecto
+        if 'gastos_xestion' not in validated_data or validated_data['gastos_xestion'] is None:
+            validated_data['gastos_xestion'] = 5
+        return super().create(validated_data)
+
     def get_entradas_vendidas(self, obj):
         """Calcula as entradas vendidas dinamicamente desde ReservaButaca"""
         return ReservaButaca.objects.filter(
@@ -17,7 +23,7 @@ class EventoSerializer(serializers.ModelSerializer):
             tipo_reserva=ReservaButaca.TIPO_RESERVA_VENTA,
             estado=ReservaButaca.ESTADO_CONFIRMADO
         ).count()
-    
+
     def get_entradas_reservadas(self, obj):
         """Calcula as entradas reservadas (invitacións) dinamicamente desde ReservaButaca"""
         return ReservaButaca.objects.filter(

@@ -20,7 +20,15 @@ export default function Fecha() {
 
   registerLocale("gl", gl);
   const [fecha, setFecha] = useState(evento.fecha ? new Date(String(evento.fecha).split("T")[0]) : null);
-  const [hora, setHora] = useState("");
+  // Extraer hora de evento.fecha se existe
+  let horaInicial = "";
+  if (evento.fecha && evento.fecha.includes("T")) {
+    const partes = evento.fecha.split("T");
+    if (partes[1]) {
+      horaInicial = partes[1].slice(0,5); // formato HH:MM
+    }
+  }
+  const [hora, setHora] = useState(horaInicial);
   const fechaValida = fecha instanceof Date && !isNaN(fecha.getTime());
   const horaValida = /^\d{2}:\d{2}$/.test(hora);
   const formularioIncompleto = !fechaValida || !horaValida;

@@ -5,7 +5,7 @@ from .models import Evento, ReservaButaca, SuscripcionNewsletter
 
 @admin.register(Evento)
 class EventoAdmin(admin.ModelAdmin):
-	list_display = ("id", "nome_evento", "data_evento", "localizacion", "organizador")
+    list_display = ("id", "nome_evento", "data_evento", "localizacion", "organizador", "gastos_xestion")
 
 
 @admin.register(ReservaButaca)
