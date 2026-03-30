@@ -4,3 +4,8 @@ djangorestframework-simplejwt
 django-cors-headers
 python-dotenv
 pillow
+gunicorn
+whitenoise
+dj-database-url
+psycopg2-binary
+google-auth
