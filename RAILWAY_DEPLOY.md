@@ -3,11 +3,13 @@
 ## 1) Backend (servizo Python)
 
 1. Crea un servizo novo en Railway apuntando a este repositorio.
-2. No servizo backend, usa como comandos:
+2. Importante: este proxecto usa `django==4.0.3`, así que debe executar con Python 3.11 (non 3.13).
+   - Xa se inclúe `nixpacks.toml` para fixar Python 3.11 en Railway.
+3. No servizo backend, usa como comandos:
    - Build Command: `pip install -r requirements.txt`
    - Start Command: Railway pode ler automaticamente `Procfile` do repo.
-3. Engade un plugin de PostgreSQL no proxecto de Railway (isto crea `DATABASE_URL`).
-4. Configura as variables de entorno do backend usando como base `.env.railway.example`.
+4. Engade un plugin de PostgreSQL no proxecto de Railway (isto crea `DATABASE_URL`).
+5. Configura as variables de entorno do backend usando como base `.env.railway.example`.
 
 Variables mínimas recomendadas:
 
