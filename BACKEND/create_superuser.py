@@ -23,6 +23,9 @@ if email and password:
     user.is_superuser = True
     user.is_active = True
     user.save()
+    # Verify
+    user.refresh_from_db()
+    print(f'email={user.email}, is_staff={user.is_staff}, is_superuser={user.is_superuser}, is_active={user.is_active}, can_login={user.check_password(password)}')
     if created:
         print(f'Superuser {email} created.')
     else:
