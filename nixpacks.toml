@@ -1,6 +1,8 @@
 [phases.setup]
 nixPkgs = ["python311", "gcc", "postgresql"]
 
+providers = ["python"]
+
 [phases.install]
 cmds = ["pip install -r BACKEND/requirements.txt"]
 
