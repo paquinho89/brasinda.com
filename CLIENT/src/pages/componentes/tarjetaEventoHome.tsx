@@ -62,7 +62,7 @@ export default function TarjetaEventoHome({ evento }: EventoHomeProps) {
     return `${dataCapitalizada} ás ${hora}`;
   };
 
-  const dataFormato = formatDataCompleta(evento.data_evento);
+  formatDataCompleta(evento.data_evento);
 
   // Engade esta función utilitaria para comprobar se a data é hoxe ou mañá
   type DateType = string | Date;

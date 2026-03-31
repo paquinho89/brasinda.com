@@ -7,9 +7,7 @@ import { FaArrowLeft, FaExclamationTriangle } from "react-icons/fa";
 const PrezoContaBancaria: React.FC = () => {
   const { evento, setEvento } = useOutletContext<OutletContext>();
   const [prezo, setPrezo] = useState<string>("");
-  const [iban, setIban] = useState<string>("");
   const [errorPrezo, setErrorPrezo] = useState<string>("");
-  const [errorIban, setErrorIban] = useState<string>("");
   const navigate = useNavigate();
 
   const [tipoEntrada, setTipoEntrada] = useState<"gratis" | "pago" | null>(null);
@@ -31,21 +29,7 @@ const PrezoContaBancaria: React.FC = () => {
   } else {
     setPrezo("");
   }
-  if (evento.iban) setIban(evento.iban);
 }, [evento]);
-
-  // 🔹 Formatear IBAN automaticamente
-  const formatIBAN = (value: string) => {
-    const cleaned = value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-    const grouped = cleaned.match(/.{1,4}/g);
-    return grouped ? grouped.join(" ") : "";
-  };
-
-  const handleIbanChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatIBAN(e.target.value);
-    setIban(formatted);
-    setEvento({ ...evento, iban: formatted });
-  };
 
   const handleSubmit = () => {
     let hasError = false;

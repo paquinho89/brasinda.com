@@ -14,6 +14,7 @@ interface Evento {
   nome_evento: string;
   data_evento: string;
   localizacion: string;
+  localidade?: string;
   entradas_venta: number;
 }
 
@@ -69,7 +70,7 @@ export default function PanelOrganizador() {
         }
 
         if (!resp.ok) {
-          const text = await resp.text().catch(() => null);
+          await resp.text().catch(() => null);
           throw new Error(`Erro ao cargar eventos: ${resp.status}`);
         }
         

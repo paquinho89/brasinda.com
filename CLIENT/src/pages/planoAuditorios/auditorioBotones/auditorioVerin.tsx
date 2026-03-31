@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Modal } from "react-bootstrap";
 import "../../../estilos/BotonesAuditorios.css";
 import "../../../estilos/infoPagamento.css";
@@ -75,7 +74,6 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
       });
     };
   }, [eventoId]);
-  const navigate = useNavigate();
   const [areaActiva, setAreaActiva] = useState<Record<Zona, boolean>>(AREA_ACTIVA_DEFAULT);
   const [areaActivaHydrated, setAreaActivaHydrated] = useState(false);
   const [zonaSeleccionada, setZonaSeleccionada] = useState<Zona | null>(null);

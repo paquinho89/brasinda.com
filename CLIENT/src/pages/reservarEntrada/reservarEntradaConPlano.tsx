@@ -5,7 +5,7 @@ import AuditorioSelectorVerin from "../planoAuditorios/auditorioBotones/auditori
 import AuditorioSelectorOurense from "../planoAuditorios/auditorioBotones/auditorioOurense";
 import MainNavbar from "../componentes/NavBar";
 import Footer from "../componentes/footer";
-import { FaCalendarAlt, FaTicketAlt, FaArrowLeft, FaEnvelope, FaUser, FaExclamationTriangle } from "react-icons/fa";
+import { FaCalendarAlt, FaArrowLeft, FaEnvelope, FaUser, FaExclamationTriangle } from "react-icons/fa";
 
 
 import SummaryBox from "./SummaryBox";
@@ -107,7 +107,6 @@ export default function ReservarEntrada() {
   };
   
   const dataFormato = formatDataCompleta(evento.data_evento);
-  const prezoEvento = Number(evento.prezo_evento ?? 0);
 
   const normalizar = (t: string) =>
     t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useImperativeHandle, forwardRef } from "react";
+import { useState, useEffect, useImperativeHandle, forwardRef } from "react";
 import { FaTicketAlt, FaTrash } from "react-icons/fa";
 import "../../estilos/infoPagamento.css";
 
@@ -31,7 +31,6 @@ const SummaryBox = forwardRef<any, SummaryBoxProps>(({ entradasSeleccionadas, pr
   // Local state for editing per seat
   const [editIdx, setEditIdx] = useState<number | null>(null);
   const [editAll, setEditAll] = useState<boolean>(false);
-  const [editValue, setEditValue] = useState<string>("");
   // Local state for per-seat names (keyed by seatId string)
   const [seatNames, setSeatNames] = useState<{ [seatId: string]: string }>({});
 
@@ -62,20 +61,12 @@ const SummaryBox = forwardRef<any, SummaryBoxProps>(({ entradasSeleccionadas, pr
     });
   }, [entradasSeleccionadas, editAll, editIdx]);
 
-  const handleEdit = (idx: number) => {
-    setEditIdx(idx);
-    const seat = entradasSeleccionadas[idx];
-    const seatId = getSeatId(seat);
-    setEditValue(seatNames[seatId] || "");
-  };
-
   const handleSave = (idx: number) => {
     const seat = entradasSeleccionadas[idx];
     const seatId = getSeatId(seat);
     if (typeof onNomeChange === 'function') {
-      onNomeChange(idx, editValue);
+      onNomeChange(idx, seatNames[seatId] || '');
     }
-    setSeatNames(prev => ({ ...prev, [seatId]: editValue }));
     setEditIdx(null);
   };
 

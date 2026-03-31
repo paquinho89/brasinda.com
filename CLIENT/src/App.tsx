@@ -12,7 +12,7 @@ import ResumoEvento from './pages/panelOrganizador/resumoEvento';
 import CobroEvento from './pages/panelOrganizador/cobroEvento';
 import ListadoEntradas from './pages/panelOrganizador/componentes/listadoEntradas';
 import SettingsOrganizador from './pages/panelOrganizador/settingsOrganizador';
-import VerificacionEmailPage from './pages/componentes/1VerificacionEmailCreacionCuenta';
+import VerificacionEmailPage from './pages/componentes/VerificacionEmailPage';
 import { CreateEventLayout } from './pages/crearEvento/0ElementoPadre';
 import TipoEvento from './pages/crearEvento/1TipoEvento';
 import TituloEvento from './pages/crearEvento/2TituloEventoDescripcion';

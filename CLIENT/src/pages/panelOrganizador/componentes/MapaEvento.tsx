@@ -1,5 +1,6 @@
 import { MapContainer, TileLayer, Marker, Popup, useMapEvent } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+// @ts-ignore
 import L from "leaflet";
 
 interface MapaEventoProps {
@@ -18,14 +19,14 @@ const markerIcon = new L.Icon({
   iconAnchor: [12, 41],
 });
 
-import { useRef } from "react";
+
 
 export default function MapaEvento({ coordenadas, direccion, editable = false, onChangeCoordenadas }: MapaEventoProps) {
   const position: [number, number] =
     coordenadas && coordenadas.length === 2 ? coordenadas : defaultPosition;
 
   function ClickHandler() {
-    useMapEvent('click', (e) => {
+    useMapEvent('click', (e: any) => {
       if (editable && onChangeCoordenadas) {
         const { lat, lng } = e.latlng;
         onChangeCoordenadas([lat, lng]);
@@ -37,6 +38,7 @@ export default function MapaEvento({ coordenadas, direccion, editable = false, o
   return (
     <div style={{ width: "100%", height: "300px", marginTop: 16 }}>
       <MapContainer
+        // @ts-ignore
         center={position}
         zoom={13}
         style={{ width: "100%", height: "100%" }}
@@ -49,7 +51,9 @@ export default function MapaEvento({ coordenadas, direccion, editable = false, o
         />
         {editable && <ClickHandler />}
         {coordenadas && coordenadas.length === 2 && (
-          <Marker position={coordenadas} icon={markerIcon as L.Icon}>
+          <Marker position={coordenadas}
+            // @ts-ignore
+            icon={markerIcon as L.Icon}>
             <Popup>{direccion || "Evento"}</Popup>
           </Marker>
         )}

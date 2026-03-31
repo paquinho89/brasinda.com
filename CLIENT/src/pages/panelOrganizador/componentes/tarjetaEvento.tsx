@@ -9,7 +9,7 @@ interface EventoProps {
     nome_evento: string;
     data_evento: string;
     localizacion: string;
-    localidade: string;
+    localidade?: string;
     entradas_venta: number;
     prezo_evento?: number | null;
     tipo_gestion_entrada?: "pagina" | "manual" | "gratis" | null;

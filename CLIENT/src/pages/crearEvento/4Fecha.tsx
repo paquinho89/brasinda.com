@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa";
 import DatePicker, { registerLocale } from "react-datepicker";
-import gl from "date-fns/locale/gl";
+import { gl } from "date-fns/locale/gl";
 import "react-datepicker/dist/react-datepicker.css";
 import "../../estilos/datepicker-custom.css";
 
@@ -71,7 +71,7 @@ export default function Fecha() {
               <div>
                 <DatePicker
                   selected={fecha}
-                  onChange={date => setFecha(date)}
+                  onChange={(date: Date | null) => setFecha(date)}
                   minDate={new Date(fechaMinima)}
                   dateFormat="dd/MM/yyyy"
                   locale="gl"
@@ -79,11 +79,11 @@ export default function Fecha() {
                   className="form-control"
                   showPopperArrow={false}
                   todayButton="Hoxe"
-                  dayClassName={date => {
+                  dayClassName={(date: Date) => {
                     const day = date.getDay();
                     if (day === 0) return "react-datepicker__day--sunday";
                     if (day === 6) return "react-datepicker__day--saturday";
-                    return undefined;
+                    return "";
                   }}
                 />
               </div>

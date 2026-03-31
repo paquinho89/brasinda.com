@@ -16,7 +16,6 @@ const API_BASE_URL = "http://localhost:8000";
 
 export default function ReservaSinPlano({
   eventoId,
-  entradasReservadas,
   onEntradasUpdate,
   botaoEstilo = "reserva-entrada-btn",
   botaoTexto = "Gardar Invitacións",

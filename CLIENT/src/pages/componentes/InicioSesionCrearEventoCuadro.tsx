@@ -6,7 +6,7 @@ import { useState } from "react";
 import CreateAccountModal from "./CreacionCuentaCuadro";
 import axios from "axios";
 import RecuperarContraseñaModal from "./RecuperarContraseña";
-import { FaEnvelope, FaLock, FaSignInAlt, FaArrowRight, FaGoogle } from "react-icons/fa";
+import { FaEnvelope, FaLock, FaSignInAlt } from "react-icons/fa";
 import "../../estilos/TarjetaEventoHome.css";
 import "../../estilos/Botones.css";
 import { useAuth } from "../AuthContext";
