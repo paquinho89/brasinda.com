@@ -3,4 +3,4 @@ builder = "nixpacks"
 nixpacksConfigPath = "nixpacks.toml"
 
 [deploy]
-startCommand = "cd BACKEND && python manage.py migrate && python manage.py collectstatic --noinput && gunicorn BACKEND.wsgi --bind 0.0.0.0:$PORT"
+startCommand = "python BACKEND/manage.py migrate && python BACKEND/manage.py collectstatic --noinput && gunicorn BACKEND.wsgi --bind 0.0.0.0:$PORT"

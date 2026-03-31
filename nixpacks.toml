@@ -4,4 +4,4 @@ nixPkgs = ["python311", "gcc", "postgresql"]
 providers = ["python"]
 
 [start]
-cmd = "cd BACKEND && python manage.py migrate && python manage.py collectstatic --noinput && gunicorn BACKEND.wsgi --bind 0.0.0.0:$PORT"
+cmd = "python BACKEND/manage.py migrate && python BACKEND/manage.py collectstatic --noinput && gunicorn BACKEND.wsgi --bind 0.0.0.0:$PORT"
