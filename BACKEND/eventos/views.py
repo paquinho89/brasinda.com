@@ -1,50 +1,30 @@
-# Endpoint para descargar PDF dunha invitación por id
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+import random
+import string
+from datetime import timedelta
+from io import BytesIO
+
+from django.conf import settings
+from django.db import transaction
 from django.http import HttpResponse
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
-from django.http import HttpResponse
-import random, string
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
-from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
-from io import BytesIO
-from .models import ReservaButaca
-from .utils_pdf import xerar_pdf_entrada
-from django.conf import settings
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
-from .models import Evento, ReservaButaca
-from .utils_pdf import xerar_pdf_entrada
-from .email_entradas import enviar_entrada_email
-from django.utils import timezone
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
-from .models import Evento, ReservaButaca
-from .utils_pdf import xerar_pdf_entrada
-from .email_entradas import enviar_entrada_email
-from .serializers import EventoSerializer
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.decorators import api_view, permission_classes
-from django.db import transaction
-from django.utils import timezone
-from datetime import timedelta
+
+from django.contrib.auth.models import AnonymousUser
+from PyPDF2 import PdfMerger, PdfReader
+
+from .email_entradas import enviar_entrada_email, enviar_entrada_email_multi, enviar_entradas_recuperadas_email
 from .models import Evento, ReservaButaca, SuscripcionNewsletter
 from .serializers import EventoSerializer
+from .utils_pdf import xerar_pdf_entrada
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def descargar_pdf_invitacion(request, reserva_id):
-    from django.shortcuts import get_object_or_404
-    from .models import ReservaButaca
-    from .utils_pdf import xerar_pdf_entrada
     reserva = get_object_or_404(ReservaButaca, id=reserva_id)
     evento = reserva.evento
     # Decidir tipo_pdf segundo tipo_reserva
@@ -97,7 +77,6 @@ def pdf_entradas_multipaxina(request):
         return HttpResponse("Ningún id de reserva válido", status=400)
 
     # Usar xerar_pdf_entrada para cada reserva e unir os PDFs
-    from PyPDF2 import PdfMerger, PdfReader
     pdf_buffers = []
     for reserva_id in reserva_ids:
         try:
@@ -372,7 +351,6 @@ def reservar_entradas(request, evento_id):
     pdf_buffers = []
     with transaction.atomic():
         reservas_creadas = []
-        from django.contrib.auth.models import AnonymousUser
         if not hasattr(request, 'user') or not request.user.is_authenticated or isinstance(request.user, AnonymousUser):
             organizador = None
         else:
@@ -446,7 +424,6 @@ def reservar_entradas(request, evento_id):
                 buffer = xerar_pdf_entrada(reserva, evento)
                 pdf_buffers.append((buffer, reserva))
             try:
-                from .email_entradas import enviar_entrada_email_multi
                 enviar_entrada_email_multi(email, pdf_buffers, evento, reservas_creadas)
             except Exception as e:
                 print(f"Erro enviando email de entrada: {e}")
@@ -535,7 +512,6 @@ def mis_reservas(request, evento_id):
     evento = get_object_or_404(Evento, id=evento_id)
     zona = request.query_params.get("zona")
 
-    from django.contrib.auth.models import AnonymousUser
     if not hasattr(request, 'user') or isinstance(request.user, AnonymousUser) or not request.user.is_authenticated:
         return Response({"mis_reservas": []})
     if evento.organizador_id == request.user.id:
@@ -660,8 +636,6 @@ def invitacions_sen_plano(request, evento_id):
             "error": f"Non podes reservar {cantidade} invitacións. Só hai {entradas_disponibles} entrada{'s' if entradas_disponibles != 1 else ''} dispoñible{'s' if entradas_disponibles != 1 else ''}."
         }, status=400)
 
-    from .utils_pdf import xerar_pdf_entrada
-    from .email_entradas import enviar_entrada_email_multi
     with transaction.atomic():
         novas = []
         # Determine reservation type based on authentication
@@ -691,7 +665,6 @@ def invitacions_sen_plano(request, evento_id):
             # Asignar codigo_validacion a cada reserva creada
             novas_objs = ReservaButaca.objects.filter(evento=evento, zona="sen-plano").order_by('-id')[:cantidade]
             novas_objs = list(novas_objs)[::-1]  # manter orde de creación
-            import string, random
             for reserva in novas_objs:
                 if not reserva.codigo_validacion:
                     letras = ''.join(random.choices(string.ascii_uppercase, k=3))
@@ -863,9 +836,6 @@ def enviar_entradas_recuperadas(request):
     
     # Agrupar reservas por evento e generar PDFs
     try:
-        from .utils_pdf import xerar_pdf_entrada
-        from .email_entradas import enviar_entradas_recuperadas_email
-        
         # Agrupar reservas por evento
         reservas_por_evento = {}
         for reserva in reservas:
