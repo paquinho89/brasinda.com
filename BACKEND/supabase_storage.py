@@ -1,8 +1,11 @@
 import os
 import uuid
+import logging
 from django.core.files.storage import Storage
 from django.utils.deconstruct import deconstructible
 from supabase import create_client
+
+logger = logging.getLogger(__name__)
 
 
 @deconstructible
@@ -15,6 +18,9 @@ class SupabaseStorage(Storage):
         self.supabase_url = os.getenv("SUPABASE_URL")
         self.supabase_key = os.getenv("SUPABASE_SERVICE_KEY")
         self.bucket_name = os.getenv("SUPABASE_STORAGE_BUCKET", "media")
+        logger.info(f"SupabaseStorage init: URL={self.supabase_url}, bucket={self.bucket_name}, key_set={bool(self.supabase_key)}")
+        if not self.supabase_url or not self.supabase_key:
+            raise ValueError(f"Supabase config missing: URL={bool(self.supabase_url)}, KEY={bool(self.supabase_key)}")
         self.client = create_client(self.supabase_url, self.supabase_key)
 
     def _get_storage(self):
@@ -38,6 +44,7 @@ class SupabaseStorage(Storage):
             file=file_bytes,
             file_options={"content-type": content_type},
         )
+        logger.info(f"SupabaseStorage: uploaded {unique_name}")
         return unique_name
 
     def url(self, name):
