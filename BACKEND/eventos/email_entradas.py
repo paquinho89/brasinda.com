@@ -1,11 +1,15 @@
-def enviar_entrada_email_multi(email, pdf_buffers, evento, reservas):
-    import qrcode
-    import base64
-    from io import BytesIO
-    from django.core.mail import EmailMultiAlternatives
-    from django.conf import settings
-    from django.template.loader import render_to_string
+import resend
+import qrcode
+import base64
+import os
+from io import BytesIO
+from django.conf import settings
+from django.template.loader import render_to_string
 
+resend.api_key = settings.RESEND_API_KEY
+
+
+def enviar_entrada_email_multi(email, pdf_buffers, evento, reservas):
     subject = f"brasinda.com {evento.nome_evento}"
     data = evento.data_evento
     data_galego = data.strftime('%A, %d de %B de %Y').capitalize()
@@ -39,41 +43,31 @@ def enviar_entrada_email_multi(email, pdf_buffers, evento, reservas):
             'total_entradas': len(reservas_info),
         }
     )
-    message = EmailMultiAlternatives(
-        subject=subject,
-        body="Ola! Adxuntamos as túas entradas para o evento.",
-        from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', None),
-        to=[email],
-    )
+    attachments = []
     for buffer, reserva in pdf_buffers:
         nome_pdf = f"entrada_{evento.id}_{reserva.id}.pdf"
-        message.attach(nome_pdf, buffer.getvalue(), 'application/pdf')
-    message.attach_alternative(html_body, "text/html")
+        attachments.append({"filename": nome_pdf, "content": list(buffer.getvalue())})
     try:
-        message.send()
+        resend.Emails.send({
+            "from": settings.DEFAULT_FROM_EMAIL,
+            "to": [email],
+            "subject": subject,
+            "html": html_body,
+            "attachments": attachments,
+        })
         print(f"[EMAIL ENVIADO MULTI] para {email} evento {evento.nome_evento}")
     except Exception as e:
         print(f"[ERRO ENVIANDO EMAIL MULTI] para {email}: {e}")
 
-from django.core.mail import EmailMultiAlternatives
-from django.conf import settings
-from django.template.loader import render_to_string
-import os
-
 def enviar_entrada_email(email, pdf_buffer, evento, reserva):
     subject = f"brasinda.com {evento.nome_evento}"
-    # Renderizar o HTML do email
     # Formato galego longo, capitalizado, igual que na web
     data = evento.data_evento
     data_galego = data.strftime('%A, %d de %B de %Y')
     hora_galego = data.strftime('%H:%M')
-    # Capitalizar primeira letra
     data_galego = data_galego.capitalize()
     data_completa = f"{data_galego} ás {hora_galego}"
     # Xeración do QR como base64
-    import qrcode
-    import base64
-    from io import BytesIO
     qr_data = f"evento:{evento.id};reserva:{reserva.id};email:{reserva.email}"
     qr_img = qrcode.make(qr_data)
     qr_buffer = BytesIO()
@@ -99,17 +93,15 @@ def enviar_entrada_email(email, pdf_buffer, evento, reserva):
             'total_entradas': 1,
         }
     )
-    message = EmailMultiAlternatives(
-        subject=subject,
-        body="Ola! Adxuntamos a túa entrada para o evento.",
-        from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', None),
-        to=[email],
-    )
     nome_pdf = f"entrada_{evento.id}_{reserva.id}.pdf"
-    message.attach(nome_pdf, pdf_buffer.getvalue(), 'application/pdf')
-    message.attach_alternative(html_body, "text/html")
     try:
-        message.send()
+        resend.Emails.send({
+            "from": settings.DEFAULT_FROM_EMAIL,
+            "to": [email],
+            "subject": subject,
+            "html": html_body,
+            "attachments": [{"filename": nome_pdf, "content": list(pdf_buffer.getvalue())}],
+        })
         print(f"[EMAIL ENVIADO] para {email} evento {evento.nome_evento}")
     except Exception as e:
         print(f"[ERRO ENVIANDO EMAIL] para {email}: {e}")
@@ -131,13 +123,6 @@ def enviar_entradas_recuperadas_email(email, reservas_por_evento_data, pdf_buffe
             }
         pdf_buffers_all: Lista de todas los buffers de PDFs
     """
-    import qrcode
-    import base64
-    from io import BytesIO
-    from django.core.mail import EmailMultiAlternatives
-    from django.conf import settings
-    from django.template.loader import render_to_string
-    
     # Preparar datos para la plantilla
     eventos_data = []
     total_entradas = 0
@@ -189,23 +174,19 @@ def enviar_entradas_recuperadas_email(email, reservas_por_evento_data, pdf_buffe
     
     # Crear mensaje de email
     subject = "Tus entradas recuperadas - brasinda.com"
-    message = EmailMultiAlternatives(
-        subject=subject,
-        body="Hola! Aquí están tus entradas recuperadas. Los archivos PDF están adjuntos.",
-        from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', None),
-        to=[email],
-    )
-    
-    # Adjuntar todos los PDFs
+    attachments = []
     for idx, (buffer, evento_id, reserva_id) in enumerate(pdf_buffers_all):
         nome_pdf = f"entrada_{evento_id}_{reserva_id}.pdf"
-        message.attach(nome_pdf, buffer.getvalue(), 'application/pdf')
-    
-    # Adjuntar HTML alternativo
-    message.attach_alternative(html_body, "text/html")
+        attachments.append({"filename": nome_pdf, "content": list(buffer.getvalue())})
     
     try:
-        message.send()
+        resend.Emails.send({
+            "from": settings.DEFAULT_FROM_EMAIL,
+            "to": [email],
+            "subject": subject,
+            "html": html_body,
+            "attachments": attachments,
+        })
         print(f"[EMAIL ENVIADO RECUPERACIÓN] para {email} con {total_entradas} entradas")
     except Exception as e:
         print(f"[ERRO ENVIANDO EMAIL RECUPERACIÓN] para {email}: {e}")

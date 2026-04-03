@@ -14,3 +14,4 @@ reportlab
 qrcode
 PyPDF2
 supabase
+resend

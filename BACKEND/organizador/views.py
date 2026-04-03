@@ -7,7 +7,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
-from django.core.mail import send_mail
+import resend
 import os
 from .models import Organizador
 from django.db.models import Q
@@ -105,14 +105,13 @@ def crear_organizador (request):
         with open(template_path, encoding='utf-8') as f:
             html_template = f.read()
         html_message = html_template.replace('{{ verification_link }}', verification_link)
-        send_mail(
-            subject = "brasinda.com - Verificación Cuenta",
-            message = f"Acceda ao seguinte enlace para verificar o seu email: {verification_link}",
-            from_email = settings.DEFAULT_FROM_EMAIL,
-            recipient_list = ["paquinho89@gmail.com"], #[organizador.email],
-            fail_silently=False,
-            html_message=html_message
-        )
+        resend.api_key = settings.RESEND_API_KEY
+        resend.Emails.send({
+            "from": settings.DEFAULT_FROM_EMAIL,
+            "to": [organizador.email],
+            "subject": "brasinda.com - Verificación Cuenta",
+            "html": html_message,
+        })
         return Response({"message": "Conta creada. Revisa o teu email."}, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -225,14 +224,13 @@ def recuperar_contrasena(request):
     with open(template_path, encoding='utf-8') as f:
         html_template = f.read()
     html_message = html_template.replace('{{ reset_link }}', reset_link)
-    send_mail(
-        subject="brasinda.com - Recuperar Contraseña",
-        message=f"Preme neste enlace para cambiar a túa contraseña:\n{reset_link}",
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=["paquinho89@gmail.com"], #[organizador.email],
-        fail_silently=False,
-        html_message=html_message
-    )
+    resend.api_key = settings.RESEND_API_KEY
+    resend.Emails.send({
+        "from": settings.DEFAULT_FROM_EMAIL,
+        "to": [organizador.email],
+        "subject": "brasinda.com - Recuperar Contraseña",
+        "html": html_message,
+    })
 
     return Response({"message": "Revisa o teu email, enviámosche un link para cambiar a túa contraseña."})
 
