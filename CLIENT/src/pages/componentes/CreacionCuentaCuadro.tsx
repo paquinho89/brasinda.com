@@ -340,8 +340,8 @@ function CreateAccountModal({ show, onClose }: {show: boolean; onClose: () => vo
             </Button>
           </div>
         </Modal.Footer>
-        <EmailVerificationModal show= {showVerificacionEmail} onClose={handleCloseVerificacionEmail}/>
       </Modal>
+      <EmailVerificationModal show= {showVerificacionEmail} onClose={handleCloseVerificacionEmail}/>
     </>
   );
 }

@@ -191,5 +191,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #Resend configuration
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
-DEFAULT_FROM_EMAIL = "onboarding@resend.dev"
+DEFAULT_FROM_EMAIL = "info@brasinda.com"
 
