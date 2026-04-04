@@ -91,7 +91,7 @@ ROOT_URLCONF = 'BACKEND.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR],  # Engadido para buscar templates en BACKEND/
+        'DIRS': [BASE_DIR, BASE_DIR / 'BACKEND'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
