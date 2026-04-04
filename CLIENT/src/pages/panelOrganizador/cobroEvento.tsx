@@ -28,7 +28,7 @@ export default function CobroEvento() {
     const fetchEvento = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        const resp = await fetch(`http://localhost:8000/crear-eventos/${id}/`, {
+        const resp = await fetch(`${API_BASE_URL}/crear-eventos/${id}/`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         if (!resp.ok) throw new Error("Evento non atopado");

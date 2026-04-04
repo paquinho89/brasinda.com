@@ -3,6 +3,7 @@ import { useNavigate, useOutletContext, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
+import API_BASE_URL from "../../utils/api";
 import { useContext } from "react";
 import { NavBarMessageContext } from "../componentes/NavBar";
 
@@ -38,7 +39,7 @@ export default function TipoEvento() {
     if (uid && token && !verificado && !verificando) {
       setVerificando(true);
       axios
-        .get(`http://localhost:8000/organizador/verificar/${uid}/${token}/`)
+        .get(`${API_BASE_URL}/organizador/verificar/${uid}/${token}/`)
         .then((res) => {
           if (res.data && res.data.access_token && res.data.organizador) {
             // Store refresh token if present

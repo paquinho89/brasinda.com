@@ -3,6 +3,7 @@ import { Container } from "react-bootstrap";
 import TarjetaEvento from "./componentes/tarjetaEvento";
 import MainNavbar from "../componentes/NavBar";
 import "../../estilos/Botones.css";
+import API_BASE_URL from "../../utils/api";
 import "../../estilos/PanelEventos.css"
 import { FaCalendarCheck, FaHistory } from "react-icons/fa";
 import CrearEventoBoton from "../componentes/CrearEventoBoton";
@@ -33,7 +34,7 @@ export default function PanelOrganizador() {
 
         const attemptFetch = async () => {
           const token = localStorage.getItem("access_token");
-          const resp = await fetch("http://localhost:8000/crear-eventos/", {
+          const resp = await fetch(`${API_BASE_URL}/crear-eventos/`, {
             headers: token ? { Authorization: `Bearer ${token}` } : {},
           });
           return resp;
@@ -46,7 +47,7 @@ export default function PanelOrganizador() {
             const refresh = localStorage.getItem('refresh_token');
             if (!refresh) throw new Error('No refresh token');
             
-            const r = await fetch('http://localhost:8000/api/token/refresh/', {
+            const r = await fetch(`${API_BASE_URL}/api/token/refresh/`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ refresh }),

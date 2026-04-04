@@ -1,5 +1,6 @@
-import { Modal, Button, Image, Alert, Spinner } from "react-bootstrap";
+﻿import { Modal, Button, Image, Alert, Spinner } from "react-bootstrap";
 import { useState, useEffect } from "react";
+import API_BASE_URL from "../../utils/api";
 // Formato de data igual que en tarjetaEventoHome.tsx
 const formatDataCompleta = (dateString: string) => {
   const date = new Date(dateString);
@@ -65,7 +66,7 @@ const RecuperarEntradaListadoEventos = ({ show, onClose, eventos, email, loading
     setMensajeEnvio(null);
 
     try {
-      const response = await fetch('http://localhost:8000/crear-eventos/entradas-recuperadas/enviar/', {
+      const response = await fetch(`${API_BASE_URL}/crear-eventos/entradas-recuperadas/enviar/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

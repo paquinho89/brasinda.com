@@ -1,8 +1,9 @@
-import { Container, Button, Form, FormControl } from "react-bootstrap";
+﻿import { Container, Button, Form, FormControl } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import MainNavbar from "./componentes/NavBar";
 import CrearEventoBoton from "./componentes/CrearEventoBoton";
 import ToggleHamburguer from "./componentes/Toggle";
+import API_BASE_URL from "../utils/api";
 import TarjetaEventoHome from "./componentes/tarjetaEventoHome";
 import Footer from "./componentes/footer";
 import "../estilos/Botones.css";
@@ -41,7 +42,7 @@ function Home() {
         setLoading(true);
         setError(null);
 
-        const resp = await fetch("http://localhost:8000/crear-eventos/publicos/");
+        const resp = await fetch(`${API_BASE_URL}/crear-eventos/publicos/`);
         if (!resp.ok) throw new Error(`Error al cargar eventos: ${resp.status}`);
 
         // Engadimos fallback para localidade se non existe

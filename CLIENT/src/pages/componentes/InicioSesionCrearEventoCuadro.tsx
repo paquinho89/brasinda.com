@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from '@react-oauth/google';
 import type { CredentialResponse } from '@react-oauth/google';
 import { useState } from "react";
+import API_BASE_URL from "../../utils/api";
 import CreateAccountModal from "./CreacionCuentaCuadro";
 import axios from "axios";
 import RecuperarContraseñaModal from "./RecuperarContraseña";
@@ -51,7 +52,7 @@ function LoginModalCrearEvento({ show, onClose, redirectTo = "/crear-evento/tipo
         setErrorPasswordLogin("");
         setErrorLogin("");
         try {
-            const response = await axios.post("http://localhost:8000/organizador/login/", {
+            const response = await axios.post(`${API_BASE_URL}/organizador/login/`, {
                 email: email.toLowerCase(),
                 password:contraseña,
             });
@@ -91,7 +92,7 @@ function LoginModalCrearEvento({ show, onClose, redirectTo = "/crear-evento/tipo
             alert("Non se recibiu token de Google");
             return;
         }
-        const response = await fetch("http://localhost:8000/organizador/auth/google/", {
+        const response = await fetch(`${API_BASE_URL}/organizador/auth/google/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

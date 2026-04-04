@@ -2,6 +2,7 @@ import { Modal, Button, Form } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import RecuperarEntradaListadoEventos from "./RecuperarEntradaListadoEventos";
 import { FaEnvelope, FaTicketAlt } from "react-icons/fa";
+import API_BASE_URL from "../../utils/api";
 
 
 function RecuperarEntradaModal({ show, onClose }: { show: boolean; onClose: () => void }) {
@@ -20,7 +21,7 @@ function RecuperarEntradaModal({ show, onClose }: { show: boolean; onClose: () =
       setErrorEventos("");
       try {
         // Cambia esta URL polo teu endpoint real
-        const response = await fetch(`http://localhost:8000/crear-eventos/eventos-activos/?email=${encodeURIComponent(email)}`);
+        const response = await fetch(`${API_BASE_URL}/crear-eventos/eventos-activos/?email=${encodeURIComponent(email)}`);
         const text = await response.text();
         let data;
         try {

@@ -3,6 +3,7 @@ import { getDefaultImageFile } from "./3Imagen";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import { Button, Container, Card, Alert } from "react-bootstrap";
 import type { OutletContext } from "../crearEvento/0ElementoPadre";
+import API_BASE_URL from "../../utils/api";
 import { FaArrowLeft, FaExclamationTriangle } from "react-icons/fa";
 
 const Resumen: React.FC = () => {
@@ -52,7 +53,7 @@ const Resumen: React.FC = () => {
 
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch("http://localhost:8000/crear-eventos/", {
+      const response = await fetch(`${API_BASE_URL}/crear-eventos/`, {
         method: "POST",
         body: formData,
         headers: {

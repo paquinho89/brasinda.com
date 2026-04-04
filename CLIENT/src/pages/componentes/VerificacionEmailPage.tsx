@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
+import API_BASE_URL from "../../utils/api";
 
 export default function VerificacionEmailPage() {
   const { uid, token } = useParams<{ uid: string; token: string }>();
@@ -13,7 +14,7 @@ export default function VerificacionEmailPage() {
     if (!uid || !token) return;
     const verificar = async () => {
       try {
-        const resp = await fetch(`http://localhost:8000/organizador/verificar/${uid}/${token}/`);
+        const resp = await fetch(`${API_BASE_URL}/organizador/verificar/${uid}/${token}/`);
         const data = await resp.json();
         if (resp.ok && data.access_token) {
           setEstado("ok");

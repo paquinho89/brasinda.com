@@ -3,6 +3,7 @@ import { FaLock } from "react-icons/fa";
 import { useState, useContext } from "react";
 import { NavBarMessageContext } from "./NavBar";
 import { useParams, useNavigate } from "react-router-dom";
+import API_BASE_URL from "../../utils/api";
 import axios from "axios";
 
 interface IntroducirNuevaContraseñaProps {
@@ -42,7 +43,7 @@ function IntroducirNuevaContraseña({ entryPoint }: IntroducirNuevaContraseñaPr
 
     try {
       const response = await axios.post(
-        `http://localhost:8000/organizador/reset-password/${uid}/${token}/`,
+        `${API_BASE_URL}/organizador/reset-password/${uid}/${token}/`,
         { password : contraseña }
       );
       localStorage.setItem(
