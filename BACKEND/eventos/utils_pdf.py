@@ -15,7 +15,7 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
     import os
 
     # Logo á esquerda no alto
-    logo_path = os.path.join(settings.BASE_DIR, "organizador", "formato_email", "branding", "logo.png")
+    logo_path = os.path.join(settings.BASE_DIR, "BACKEND", "organizador", "formato_email", "branding", "logo.png")
     if os.path.exists(logo_path):
         p.drawInlineImage(logo_path, 40, height - 75, width=100, height=60)
 
@@ -42,7 +42,7 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
     y -= 32
 
     # Ruta dos iconos
-    icon_dir = os.path.join(settings.BASE_DIR, "eventos", "plantilla_email", "icons")
+    icon_dir = os.path.join(settings.BASE_DIR, "BACKEND", "eventos", "plantilla_email", "icons")
     def icon_path(name):
         return os.path.join(icon_dir, name)
 
