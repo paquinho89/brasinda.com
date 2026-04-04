@@ -1,3 +1,4 @@
+﻿import API_BASE_URL from "../../utils/api";
 import { Modal, Button, Form } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import RecuperarEntradaListadoEventos from "./RecuperarEntradaListadoEventos";
@@ -20,13 +21,13 @@ function RecuperarEntradaModal({ show, onClose }: { show: boolean; onClose: () =
       setErrorEventos("");
       try {
         // Cambia esta URL polo teu endpoint real
-        const response = await fetch(`http://localhost:8000/crear-eventos/eventos-activos/?email=${encodeURIComponent(email)}`);
+        const response = await fetch(`${API_BASE_URL}/crear-eventos/eventos-activos/?email=${encodeURIComponent(email)}`);
         const text = await response.text();
         let data;
         try {
           data = JSON.parse(text);
         } catch (jsonErr) {
-          throw new Error("A resposta do servidor non é JSON válido. Resposta: " + text);
+          throw new Error(`A resposta do servidor non é JSON válido. Resposta: " + text);
         }
         if (!response.ok) throw new Error(data?.error || "Erro ao buscar eventos activos");
         setEventos(data);

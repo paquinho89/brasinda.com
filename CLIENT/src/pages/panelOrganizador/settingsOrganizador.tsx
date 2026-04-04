@@ -1,3 +1,4 @@
+﻿import API_BASE_URL from "../../utils/api";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
@@ -54,7 +55,7 @@ export default function SettingsOrganizador() {
   const fetchOrganizadorData = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:8000/organizador/perfil/", {
+      const response = await fetch(`${API_BASE_URL}/organizador/perfil/`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -98,7 +99,7 @@ export default function SettingsOrganizador() {
         payload.new_password = newPassword;
       }
 
-      const response = await fetch("http://localhost:8000/organizador/perfil/", {
+      const response = await fetch(`${API_BASE_URL}/organizador/perfil/`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -132,7 +133,7 @@ export default function SettingsOrganizador() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/organizador/perfil/", {
+      const response = await fetch(`${API_BASE_URL}/organizador/perfil/`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

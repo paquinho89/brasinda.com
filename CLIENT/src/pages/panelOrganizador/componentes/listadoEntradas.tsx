@@ -1,9 +1,9 @@
-// Engadir función para descargar PDF dunha invitación
+﻿// Engadir función para descargar PDF dunha invitación
 import API_BASE_URL from "../../../utils/api";
 function handleDownloadInvitacionPdf(invitacionId: number) {
   window.open(`${API_BASE_URL}/eventos/descargar-pdf-invitacion/${invitacionId}`, '_blank');
 }
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from `react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "react-bootstrap";
 import { Modal } from "react-bootstrap";
@@ -77,7 +77,7 @@ export default function ListadoEntradas() {
     }
     setSendingEmail(true);
     try {
-      const response = await fetch("http://localhost:8000/crear-eventos/enviar_invitacion_individual/", {
+      const response = await fetch(`${API_BASE_URL}/crear-eventos/enviar_invitacion_individual/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -148,7 +148,7 @@ export default function ListadoEntradas() {
       const token = localStorage.getItem("access_token");
       
       // Obter datos do evento para o nome
-      const respEvento = await fetch(`http://localhost:8000/crear-eventos/${id}/`, {
+      const respEvento = await fetch(`${API_BASE_URL}/crear-eventos/${id}/`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (respEvento.ok) {
@@ -158,12 +158,12 @@ export default function ListadoEntradas() {
 
       // Obter todas as invitacións do organizador
       const respInvitacions = await fetch(
-        `http://localhost:8000/crear-eventos/${id}/listado-invitacions/`,
+        `${API_BASE_URL}/crear-eventos/${id}/listado-invitacions/`,
         { headers: token ? { Authorization: `Bearer ${token}` } : {} }
       );
 
       if (!respInvitacions.ok) {
-        throw new Error("Erro ao cargar invitacións");
+        throw new Error(`Erro ao cargar invitacións");
       }
 
       const dataInvitacions = await respInvitacions.json();
@@ -186,9 +186,9 @@ export default function ListadoEntradas() {
     try {
       const token = localStorage.getItem("access_token");
       const resp = await fetch(
-        `http://localhost:8000/crear-eventos/${id}/invitacions/${invitacionId}/`,
+        `${API_BASE_URL}/crear-eventos/${id}/invitacions/${invitacionId}/`,
         {
-          method: "DELETE",
+          method: `DELETE",
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         }
       );
@@ -217,9 +217,9 @@ export default function ListadoEntradas() {
     try {
       const token = localStorage.getItem("access_token");
       const resp = await fetch(
-        `http://localhost:8000/crear-eventos/${id}/invitacions/${editingId}/`,
+        `${API_BASE_URL}/crear-eventos/${id}/invitacions/${editingId}/`,
         {
-          method: "PATCH",
+          method: `PATCH",
           headers: {
             "Content-Type": "application/json",
             ...(token ? { Authorization: `Bearer ${token}` } : {}),

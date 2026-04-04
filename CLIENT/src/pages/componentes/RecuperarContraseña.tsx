@@ -1,3 +1,4 @@
+﻿import API_BASE_URL from "../../utils/api";
 import React, { useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import axios from "axios";
@@ -32,7 +33,7 @@ function RecuperarContraseñaModal({ show, onClose, initialEmail = "", entryPoin
     }
     setLoading(true);
     try {
-      await axios.post("http://localhost:8000/organizador/recuperar-contrasena/", {
+      await axios.post(`${API_BASE_URL}/organizador/recuperar-contrasena/`, {
         email: email.toLowerCase(),
         entryPoint: entryPoint || "publish"
       });

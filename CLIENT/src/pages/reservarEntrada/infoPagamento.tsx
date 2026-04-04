@@ -1,3 +1,4 @@
+﻿import API_BASE_URL from "../../utils/api";
 import React, { useState, useEffect } from "react";
 import { FaArrowLeft } from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
@@ -51,14 +52,14 @@ const InfoPagamento: React.FC = () => {
     const fetchEvento = async () => {
       try {
         console.log("Fetching evento:", eventoId);
-        const response = await fetch(`http://localhost:8000/crear-eventos/publico/${eventoId}/`);
+        const response = await fetch(`${API_BASE_URL}/crear-eventos/publico/${eventoId}/`);
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
-        console.log("Evento loaded:", data);
+        console.log(`Evento loaded:", data);
         
         // Converter prezo_evento a número se existe e é válido
         if (data.prezo_evento !== null && data.prezo_evento !== undefined && data.prezo_evento !== '') {
@@ -151,9 +152,9 @@ const InfoPagamento: React.FC = () => {
     try {
       // 1. Confirmar a reserva (pasar a vendida)
       const response = await fetch(
-        `http://localhost:8000/crear-eventos/${eventoId}/reservar/`,
+        `${API_BASE_URL}/crear-eventos/${eventoId}/reservar/`,
         {
-          method: "POST",
+          method: `POST",
           headers: {
             "Content-Type": "application/json",
             // No Authorization header for public ticket purchase
@@ -174,8 +175,8 @@ const InfoPagamento: React.FC = () => {
       if (response.ok) {
         // 2. Enviar as entradas ao correo paquinho89@gmail.com (ou ao email do usuario)
         try {
-          await fetch(`http://localhost:8000/crear-eventos/${eventoId}/enviar-entradas/`, {
-            method: "POST",
+          await fetch(`${API_BASE_URL}/crear-eventos/${eventoId}/enviar-entradas/`, {
+            method: `POST",
             headers: {
               "Content-Type": "application/json",
               // No Authorization header for public ticket purchase

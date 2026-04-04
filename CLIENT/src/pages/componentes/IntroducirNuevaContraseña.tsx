@@ -1,3 +1,4 @@
+﻿import API_BASE_URL from "../../utils/api";
 import { Button, Form, InputGroup } from "react-bootstrap";
 import { FaLock } from "react-icons/fa";
 import { useState, useContext } from "react";
@@ -42,11 +43,11 @@ function IntroducirNuevaContraseña({ entryPoint }: IntroducirNuevaContraseñaPr
 
     try {
       const response = await axios.post(
-        `http://localhost:8000/organizador/reset-password/${uid}/${token}/`,
+        `${API_BASE_URL}/organizador/reset-password/${uid}/${token}/`,
         { password : contraseña }
       );
       localStorage.setItem(
-        "organizador",
+        `organizador",
         JSON.stringify(response.data.organizador)
         );
       setContraseña("");

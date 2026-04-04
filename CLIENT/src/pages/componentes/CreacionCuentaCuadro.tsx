@@ -1,3 +1,4 @@
+﻿import API_BASE_URL from "../../utils/api";
 import { Modal, Button, Form, InputGroup } from "react-bootstrap";
 import { useState } from "react";
 import EmailVerificationModal from "./1VerificacionEmailCreacionCuenta"
@@ -97,7 +98,7 @@ function CreateAccountModal({ show, onClose }: {show: boolean; onClose: () => vo
     formData.append("foto_organizador", fotoOrganizador);
   }
 
-  const response = await fetch("http://localhost:8000/organizador/crear-organizador/", {
+  const response = await fetch(`${API_BASE_URL}/organizador/crear-organizador/`, {
     method: "POST",
     body: formData,
   });
@@ -127,7 +128,7 @@ function CreateAccountModal({ show, onClose }: {show: boolean; onClose: () => vo
 
   const handleGoogleRegister = async (credentialResponse: CredentialResponse) => {
     const token = credentialResponse.credential;
-    const response = await fetch("http://localhost:8000/organizador/auth/google/", {
+    const response = await fetch(`${API_BASE_URL}/organizador/auth/google/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

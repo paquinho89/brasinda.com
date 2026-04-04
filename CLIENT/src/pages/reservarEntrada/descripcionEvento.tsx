@@ -82,7 +82,7 @@ export default function DescripcionEvento() {
         setLoading(true);
         setError(null);
 
-        const resp = await fetch(`http://localhost:8000/crear-eventos/publicos/`);
+        const resp = await fetch(`${API_BASE_URL}/crear-eventos/publicos/`);
         
         if (!resp.ok) {
           throw new Error(`Error al cargar evento: ${resp.status}`);
@@ -91,7 +91,7 @@ export default function DescripcionEvento() {
         const data = await resp.json();
         
         const eventoEncontrado = Array.isArray(data) 
-          ? data.find((ev: evento) => ev.id === parseInt(id || "0"))
+          ? data.find((ev: evento) => ev.id === parseInt(id || `0"))
           : null;
 
         if (!eventoEncontrado) {

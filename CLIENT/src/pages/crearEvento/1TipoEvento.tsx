@@ -1,3 +1,4 @@
+﻿import API_BASE_URL from "../../utils/api";
 import { Container, Card, Row, Col } from "react-bootstrap";
 import { useNavigate, useOutletContext, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -38,7 +39,7 @@ export default function TipoEvento() {
     if (uid && token && !verificado && !verificando) {
       setVerificando(true);
       axios
-        .get(`http://localhost:8000/organizador/verificar/${uid}/${token}/`)
+        .get(`${API_BASE_URL}/organizador/verificar/${uid}/${token}/`)
         .then((res) => {
           if (res.data && res.data.access_token && res.data.organizador) {
             // Store refresh token if present
@@ -48,7 +49,7 @@ export default function TipoEvento() {
               res.data.refresh_token ? res.data.refresh_token : undefined
             );
             setVerificado(true);
-            setMessage("Conta verificada correctamente. Xa podes publicar o teu primeiro evento!");
+            setMessage(`Conta verificada correctamente. Xa podes publicar o teu primeiro evento!");
             setTimeout(() => {
               setVerificando(false);
               setMessage("");

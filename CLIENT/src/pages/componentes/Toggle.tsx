@@ -3,10 +3,11 @@ import { Button, Card, ListGroup } from "react-bootstrap";
 import CreateAccountModal from "./CreacionCuentaCuadro";
 import LoginModal from "./InicioSesionCrearEventoCuadro";
 import RecuperarEntradaModal from "./RecuperarEntradaCuadro"
-import IdiomaModal from "./idiomaModal";
 import "../../estilos/Botones.css";
 import { FaSignInAlt, FaUserPlus, FaTicketAlt, FaGlobe } from "react-icons/fa";
 import { useTranslations } from "../../i18n/useTranslations";
+import { useLanguage } from "../LanguageContext";
+import type { Language } from "../LanguageContext";
 
 
 function ToggleHamburguer() {
@@ -14,8 +15,8 @@ function ToggleHamburguer() {
   const [showCreateAccount, setShowCreateAccount] = useState(false);
   const [showLogIn, setShowLogIn] = useState(false);
   const [showRecuperacionEntradas, setShowRecuperacionEntradas] = useState(false);
-  const [showIdioma, setShowIdioma] = useState(false);
-  const { language, t } = useTranslations();
+  const { t } = useTranslations();
+  const { language, setLanguage } = useLanguage();
   const handleOpenCreateAccount = () => setShowCreateAccount(true);
   const handleCloseCreateAccount = () => setShowCreateAccount(false);
   const handleOpenLogIn = () => setShowLogIn(true);
@@ -37,40 +38,44 @@ function ToggleHamburguer() {
         <>
             <Card className="toggle-card">
             <ListGroup variant="flush">
-                <ListGroup.Item action onClick={handleOpenLogIn}>
+                <ListGroup.Item action onClick={() => { handleOpenLogIn(); setOpen(false); }}>
                   <FaSignInAlt style={{ marginRight: "8px", color: "#ff0093" }} />
                   {t("toggle.organizerLogin")}
                 </ListGroup.Item>
-                <ListGroup.Item action onClick={handleOpenCreateAccount}>
+                <ListGroup.Item action onClick={() => { handleOpenCreateAccount(); setOpen(false); }}>
                   <FaUserPlus style={{ marginRight: "8px", color: "#ff0093" }} />
                   {t("toggle.organizerCreate")}
                 </ListGroup.Item>
-                <ListGroup.Item action onClick={handleOpenRecuperacionEntradas} className="seccion-secundaria">
+                <ListGroup.Item action onClick={() => { handleOpenRecuperacionEntradas(); setOpen(false); }} className="seccion-secundaria">
                   <FaTicketAlt style={{ marginRight: "8px", color: "#ff0093" }} />
                   {t("toggle.reprintTicket")}
                 </ListGroup.Item>
-                <ListGroup.Item
-                  action
-                  onClick={() => {
-                    setShowIdioma(true);
-                    setOpen(false);
-                  }}
-                  className="seccion-secundaria"
-                >
-                  <FaGlobe style={{ marginRight: "8px", color: "#ff0093" }} />
+                <ListGroup.Item className="seccion-secundaria" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <FaGlobe style={{ marginRight: "4px", color: "#ff0093" }} />
                   {t("toggle.changeLanguage")}:
-                  <span style={{ marginLeft: 10, fontWeight: 600, color: "#ff0093", fontSize: "1.05em" }}>
-                    {t(`language.${language}`)}
-                  </span>
+                  {(["gl", "es", "en"] as Language[]).map((code) => (
+                    <span
+                      key={code}
+                      onClick={() => setLanguage(code)}
+                      style={{
+                        cursor: "pointer",
+                        fontWeight: language === code ? 700 : 400,
+                        color: language === code ? "#ff0093" : "#888",
+                        textDecoration: language === code ? "underline" : "none",
+                        fontSize: "1.05em",
+                      }}
+                    >
+                      {code.toUpperCase()}
+                    </span>
+                  ))}
                 </ListGroup.Item>
             </ListGroup>
             </Card>
-            <LoginModal show={showLogIn} onClose={handleCloseLogIn} redirectTo="/panel-organizador"/>
-            <CreateAccountModal show={showCreateAccount} onClose={handleCloseCreateAccount}/>
-            <RecuperarEntradaModal show={showRecuperacionEntradas} onClose={handleCloseRecuperacionEntradas}/>
         </>
       )}
-      <IdiomaModal show={showIdioma} onClose={() => setShowIdioma(false)}/>
+      <LoginModal show={showLogIn} onClose={handleCloseLogIn} redirectTo="/panel-organizador"/>
+      <CreateAccountModal show={showCreateAccount} onClose={handleCloseCreateAccount}/>
+      <RecuperarEntradaModal show={showRecuperacionEntradas} onClose={handleCloseRecuperacionEntradas}/>
     </div>
   );
 }

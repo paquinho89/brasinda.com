@@ -124,7 +124,7 @@ DATABASES = {
         ssl_require=True
     ) if os.getenv("DATABASE_URL") else {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / 'BACKEND' / 'db.sqlite3',
     }
 }
 
