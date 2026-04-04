@@ -1,4 +1,4 @@
-﻿import API_BASE_URL from "../../utils/api";
+import API_BASE_URL from "../../utils/api";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "react-bootstrap";
@@ -33,7 +33,7 @@ export default function ResumoEvento() {
 				const resp = await fetch(`${API_BASE_URL}/crear-eventos/${id}/`, {
 					headers: token ? { Authorization: `Bearer ${token}` } : {},
 				});
-				if (!resp.ok) throw new Error(`Evento non atopado");
+				if (!resp.ok) throw new Error("Evento non atopado");
 				const data = await resp.json();
 				setEvento(data);
 			} catch (e: any) {
@@ -104,7 +104,7 @@ export default function ResumoEvento() {
 		try {
 			const token = localStorage.getItem("access_token");
 			const resp = await fetch(`${API_BASE_URL}/crear-eventos/${id}/eliminar-definitivo/`, {
-				method: `DELETE",
+				method: "DELETE",
 				headers: token ? { Authorization: `Bearer ${token}` } : {},
 			});
 

@@ -1,9 +1,9 @@
-﻿// Engadir función para descargar PDF dunha invitación
+// Engadir función para descargar PDF dunha invitación
 import API_BASE_URL from "../../../utils/api";
 function handleDownloadInvitacionPdf(invitacionId: number) {
   window.open(`${API_BASE_URL}/eventos/descargar-pdf-invitacion/${invitacionId}`, '_blank');
 }
-import { useEffect, useState, useRef } from `react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "react-bootstrap";
 import { Modal } from "react-bootstrap";
@@ -163,7 +163,7 @@ export default function ListadoEntradas() {
       );
 
       if (!respInvitacions.ok) {
-        throw new Error(`Erro ao cargar invitacións");
+        throw new Error("Erro ao cargar invitacións");
       }
 
       const dataInvitacions = await respInvitacions.json();
@@ -188,7 +188,7 @@ export default function ListadoEntradas() {
       const resp = await fetch(
         `${API_BASE_URL}/crear-eventos/${id}/invitacions/${invitacionId}/`,
         {
-          method: `DELETE",
+          method: "DELETE",
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         }
       );
@@ -219,7 +219,7 @@ export default function ListadoEntradas() {
       const resp = await fetch(
         `${API_BASE_URL}/crear-eventos/${id}/invitacions/${editingId}/`,
         {
-          method: `PATCH",
+          method: "PATCH",
           headers: {
             "Content-Type": "application/json",
             ...(token ? { Authorization: `Bearer ${token}` } : {}),

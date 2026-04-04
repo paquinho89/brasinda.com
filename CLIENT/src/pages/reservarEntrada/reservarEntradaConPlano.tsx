@@ -1,4 +1,4 @@
-﻿import API_BASE_URL from "../../utils/api";
+import API_BASE_URL from "../../utils/api";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "react-bootstrap";
@@ -67,7 +67,7 @@ export default function ReservarEntrada() {
       setLoading(true);
       try {
         const resp = await fetch(`${API_BASE_URL}/crear-eventos/publico/${id}/`);
-        if (!resp.ok) throw new Error(`Evento non atopado");
+        if (!resp.ok) throw new Error("Evento non atopado");
         const data = await resp.json();
         setEvento(data);
       } catch (e: any) {
@@ -297,7 +297,7 @@ export default function ReservarEntrada() {
                     // 1. Gardar as entradas no backend en estado Temporal durante 10 min
                     try {
                       const resp = await fetch(`${API_BASE_URL}/crear-eventos/${evento.id}/reservar/`, {
-                        method: `POST",
+                        method: "POST",
                         headers: {
                           "Content-Type": "application/json",
                         },

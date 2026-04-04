@@ -1,4 +1,3 @@
-﻿import API_BASE_URL from "../../utils/api";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
@@ -14,10 +13,10 @@ export default function VerificacionEmailPage() {
     if (!uid || !token) return;
     const verificar = async () => {
       try {
-        const resp = await fetch(`${API_BASE_URL}/organizador/verificar/${uid}/${token}/`);
+        const resp = await fetch(`http://localhost:8000/organizador/verificar/${uid}/${token}/`);
         const data = await resp.json();
         if (resp.ok && data.access_token) {
-          setEstado(`ok");
+          setEstado("ok");
           setMensaxe("Conta verificada correctamente!");
           login(data.organizador, data.access_token, data.refresh_token);
           setTimeout(() => navigate("/panel-organizador"), 2000);

@@ -91,7 +91,7 @@ export default function DescripcionEvento() {
         const data = await resp.json();
         
         const eventoEncontrado = Array.isArray(data) 
-          ? data.find((ev: evento) => ev.id === parseInt(id || `0"))
+          ? data.find((ev: evento) => ev.id === parseInt(id || "0"))
           : null;
 
         if (!eventoEncontrado) {

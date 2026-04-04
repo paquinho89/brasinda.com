@@ -1,0 +1,7 @@
+Eventos count: 7
+  ID=54  Con plano incluir email
+  ID=55  seran da pousa sen plano
+  ID=56  Ortigueira
+  ID=57  Seran da Pousa
+  ID=58  proba 5%
+DONE

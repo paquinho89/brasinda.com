@@ -1,4 +1,3 @@
-﻿import API_BASE_URL from "./utils/api";
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -25,7 +24,7 @@ function ProvidersWrapper({ children }: { children: React.ReactNode }) {
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '');
-const localApiPrefixes = [API_BASE_URL, 'http://127.0.0.1:8000'];
+const localApiPrefixes = ['http://localhost:8000', 'http://127.0.0.1:8000'];
 
 const rewriteApiUrl = (url: string) => {
   if (!apiBaseUrl) {

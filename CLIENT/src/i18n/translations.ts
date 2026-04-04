@@ -11,8 +11,8 @@ export const translations: Record<Language, Record<string, string>> = {
     "toggle.organizerLogin": "Iniciar sesión organizador",
     "toggle.organizerCreate": "Crear conta organizador",
     "toggle.reprintTicket": "Volver imprimir a túa entrada",
-    "toggle.changeLanguage": "Idioma",
-    "language.modalTitle": "Idioma",
+    "toggle.changeLanguage": "Cambiar idioma",
+    "language.modalTitle": "Cambiar idioma",
     "language.gl": "Galego",
     "language.es": "Castellano",
     "language.en": "English"
@@ -27,8 +27,8 @@ export const translations: Record<Language, Record<string, string>> = {
     "toggle.organizerLogin": "Iniciar sesión organizador",
     "toggle.organizerCreate": "Crear cuenta organizador",
     "toggle.reprintTicket": "Volver a imprimir tu entrada",
-    "toggle.changeLanguage": "Idioma",
-    "language.modalTitle": "Idioma",
+    "toggle.changeLanguage": "Cambiar idioma",
+    "language.modalTitle": "Cambiar idioma",
     "language.gl": "Galego",
     "language.es": "Castellano",
     "language.en": "English"
@@ -43,8 +43,8 @@ export const translations: Record<Language, Record<string, string>> = {
     "toggle.organizerLogin": "Organizer sign in",
     "toggle.organizerCreate": "Create organizer account",
     "toggle.reprintTicket": "Reprint your ticket",
-    "toggle.changeLanguage": "Language",
-    "language.modalTitle": "Language",
+    "toggle.changeLanguage": "Change language",
+    "language.modalTitle": "Change language",
     "language.gl": "Galician",
     "language.es": "Spanish",
     "language.en": "English"

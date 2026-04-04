@@ -1,4 +1,3 @@
-﻿import API_BASE_URL from "../utils/api";
 import { Container, Button, Form, FormControl } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import MainNavbar from "./componentes/NavBar";
@@ -42,7 +41,7 @@ function Home() {
         setLoading(true);
         setError(null);
 
-        const resp = await fetch(`${API_BASE_URL}/crear-eventos/publicos/`);
+        const resp = await fetch("http://localhost:8000/crear-eventos/publicos/");
         if (!resp.ok) throw new Error(`Error al cargar eventos: ${resp.status}`);
 
         // Engadimos fallback para localidade se non existe

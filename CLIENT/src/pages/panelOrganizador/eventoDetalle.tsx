@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "react-bootstrap";
 import AuditorioSelectorVerin from "../planoAuditorios/auditorioBotones/auditorioVerin";
@@ -64,7 +64,7 @@ export default function EventoDetalle() {
       const resp = await fetch(`${API_BASE_URL}/crear-eventos/${id}/`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-      if (!resp.ok) throw new Error(`Evento non atopado");
+      if (!resp.ok) throw new Error("Evento non atopado");
       const data = await resp.json();
       setEvento(data);
     } catch (e: any) {
@@ -198,7 +198,7 @@ export default function EventoDetalle() {
       } else {
         const payload: any = {
           descripcion_evento: form.descripcion_evento,
-          nota_lugar: form.nota_lugar || `",
+          nota_lugar: form.nota_lugar || "",
         };
 
         resp = await fetch(`${API_BASE_URL}/crear-eventos/${id}/`, {
@@ -223,7 +223,7 @@ export default function EventoDetalle() {
 
   const deleteEvento = () => {
     setShowCancelModal(true);
-    setCancelReason(`");
+    setCancelReason("");
     setCancelConfirmText("");
   };
 
@@ -242,7 +242,7 @@ export default function EventoDetalle() {
     try {
       const token = localStorage.getItem("access_token");
       const resp = await fetch(`${API_BASE_URL}/crear-eventos/${id}/`, {
-        method: `DELETE",
+        method: "DELETE",
         headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),

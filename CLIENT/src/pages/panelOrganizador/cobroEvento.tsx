@@ -1,4 +1,3 @@
-﻿import API_BASE_URL from "../../utils/api";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "react-bootstrap";
@@ -29,10 +28,10 @@ export default function CobroEvento() {
     const fetchEvento = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        const resp = await fetch(`${API_BASE_URL}/crear-eventos/${id}/`, {
+        const resp = await fetch(`http://localhost:8000/crear-eventos/${id}/`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
-        if (!resp.ok) throw new Error(`Evento non atopado");
+        if (!resp.ok) throw new Error("Evento non atopado");
         const data = await resp.json();
         setEvento(data);
       } catch (e: any) {

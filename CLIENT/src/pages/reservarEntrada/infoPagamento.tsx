@@ -1,4 +1,4 @@
-﻿import API_BASE_URL from "../../utils/api";
+import API_BASE_URL from "../../utils/api";
 import React, { useState, useEffect } from "react";
 import { FaArrowLeft } from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
@@ -59,7 +59,7 @@ const InfoPagamento: React.FC = () => {
         }
         
         const data = await response.json();
-        console.log(`Evento loaded:", data);
+        console.log("Evento loaded:", data);
         
         // Converter prezo_evento a número se existe e é válido
         if (data.prezo_evento !== null && data.prezo_evento !== undefined && data.prezo_evento !== '') {
@@ -154,7 +154,7 @@ const InfoPagamento: React.FC = () => {
       const response = await fetch(
         `${API_BASE_URL}/crear-eventos/${eventoId}/reservar/`,
         {
-          method: `POST",
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
             // No Authorization header for public ticket purchase
@@ -176,7 +176,7 @@ const InfoPagamento: React.FC = () => {
         // 2. Enviar as entradas ao correo paquinho89@gmail.com (ou ao email do usuario)
         try {
           await fetch(`${API_BASE_URL}/crear-eventos/${eventoId}/enviar-entradas/`, {
-            method: `POST",
+            method: "POST",
             headers: {
               "Content-Type": "application/json",
               // No Authorization header for public ticket purchase

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 interface ReservaSinPlanoProps {
   eventoId: number;
@@ -43,7 +43,7 @@ export default function ReservaSinPlano({
         });
 
         if (!resp.ok) {
-          throw new Error(`Non se puideron cargar as invitacións");
+          throw new Error("Non se puideron cargar as invitacións");
         }
 
         await resp.json();
@@ -141,7 +141,7 @@ export default function ReservaSinPlano({
         : [];
 
       const resp = await fetch(`${API_BASE_URL}/crear-eventos/${eventoId}/invitacions-sen-plano/`, {
-        method: `PUT",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),

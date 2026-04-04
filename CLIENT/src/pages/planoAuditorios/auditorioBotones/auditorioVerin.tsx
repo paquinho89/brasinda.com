@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal } from "react-bootstrap";
 import "../../../estilos/BotonesAuditorios.css";
 import "../../../estilos/infoPagamento.css";
@@ -139,7 +139,7 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
         });
         await response.json();
       } catch (err) {
-        console.error(`Erro ao obter entradas dispoñibles:", err);
+        console.error("Erro ao obter entradas dispoñibles:", err);
       }
     };
     fetchEntradas();
@@ -159,7 +159,7 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
         );
         setEntradasReservadas(reservasFiltradas);
       } catch (err) {
-        console.error(`Erro ao obter reservas:", err);
+        console.error("Erro ao obter reservas:", err);
       }
     };
     const fetchMisReservas = async () => {
@@ -176,7 +176,7 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
         );
         setMisReservas(misReservasFiltradas);
       } catch (err) {
-        console.error(`Erro ao obter miñas reservas:", err);
+        console.error("Erro ao obter miñas reservas:", err);
       }
     };
     fetchReservas();
@@ -198,7 +198,7 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
         );
         setEntradasVendidas(vendidasFiltradas);
       } catch (err) {
-        console.error(`Erro ao obter entradas vendidas:", err);
+        console.error("Erro ao obter entradas vendidas:", err);
       }
     };
     
@@ -505,7 +505,7 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
     setIsSaving(true);
     try {
       const resp = await fetch(`${API_BASE_URL}/crear-eventos/${eventoId}/reservar/`, {
-        method: `POST",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),

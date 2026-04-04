@@ -1,4 +1,3 @@
-﻿import API_BASE_URL from "../../utils/api";
 import { useState, useEffect } from "react";
 import { Container } from "react-bootstrap";
 import TarjetaEvento from "./componentes/tarjetaEvento";
@@ -34,7 +33,7 @@ export default function PanelOrganizador() {
 
         const attemptFetch = async () => {
           const token = localStorage.getItem("access_token");
-          const resp = await fetch(`${API_BASE_URL}/crear-eventos/`, {
+          const resp = await fetch("http://localhost:8000/crear-eventos/", {
             headers: token ? { Authorization: `Bearer ${token}` } : {},
           });
           return resp;

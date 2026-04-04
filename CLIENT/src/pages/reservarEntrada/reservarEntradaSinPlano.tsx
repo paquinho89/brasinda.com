@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, Modal } from "react-bootstrap";
 import { FaCalendarAlt, FaTicketAlt, FaCreditCard, FaArrowLeft } from "react-icons/fa";
@@ -41,8 +41,8 @@ export default function ReservarEntradaSinPlano() {
 		const fetchEvento = async () => {
 			setLoading(true);
 			try {
-				const resp = await fetch(`${API_BASE_URL}/crear-eventos/publico/${id}/`);
-				if (!resp.ok) throw new Error(`Evento non atopado");
+				const resp = await fetch(`http://localhost:8000/crear-eventos/publico/${id}/`);
+				if (!resp.ok) throw new Error("Evento non atopado");
 				const data = await resp.json();
 				setEvento(data);
 			} catch (e: any) {
@@ -147,7 +147,7 @@ export default function ReservarEntradaSinPlano() {
 			const nomesParaGardar = nomearTodas ? nomesAsistentes.slice(0, cantidadeReservar) : [];
 
 			const resp = await fetch(`${API_BASE_URL}/crear-eventos/${evento.id}/invitacions-sen-plano/`, {
-				method: `PUT",
+				method: "PUT",
 				headers: {
 					"Content-Type": "application/json",
 				},

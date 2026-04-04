@@ -8,7 +8,7 @@ export const NavBarMessageContext = React.createContext<{
 }>({ message: "", setMessage: () => {} });
 import { useNavigate } from "react-router-dom";
 import "../../estilos/NavBar.css";
-import { FaSignInAlt, FaTools, FaTicketAlt } from "react-icons/fa";
+import { FaSignInAlt, FaTools, FaTicketAlt, FaHome } from "react-icons/fa";
 import { useAuth } from "../AuthContext";
 import { useLanguage } from "../LanguageContext";
 import { useTranslations } from "../../i18n/useTranslations";
@@ -61,7 +61,7 @@ function MainNavbar() {
             alt="Logo brasinda"
             style={{ height: "54px", width: "54px", marginRight: "-3px", marginLeft: "-2px", verticalAlign: "middle", transform: "translateY(-7px)" }}
           />
-          <span className="brand-text" style={{ fontWeight: 800, fontSize: "1.5rem", color: "#ff0093", marginBottom: "1rem", display: "inline-block", transform: "translateY(10px)" }}>rasinda.com</span>
+          <span style={{ fontWeight: 800, fontSize: "1.5rem", color: "#ff0093", marginBottom: "1rem", display: "inline-block", transform: "translateY(10px)" }}>rasinda.com</span>
         </Navbar.Brand>
 
         {/* Mensaxe centrada na NavBar */}
@@ -84,7 +84,35 @@ function MainNavbar() {
           </div>
         )}
 
-
+        {!message && (
+          <Button
+            className="reserva-entrada-btn"
+            onClick={() => navigate("/")}
+            aria-label={t("navbar.homeAria")}
+            title={t("navbar.homeTitle")}
+            style={{
+              position: "absolute",
+              left: "50%",
+              top: "50%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 1500,
+              minWidth: "56px",
+              width: "56px",
+              height: "56px",
+              padding: 0,
+              borderRadius: "50%",
+              border: "none",
+              background: "transparent",
+              boxShadow: "none",
+              color: "#ff0093",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <FaHome size={30} />
+          </Button>
+        )}
 
         <Nav className={`ms-auto d-flex align-items-center position-relative ${organizadorUI ? "organizador-nav-group" : ""}`}>
           {organizadorUI && (

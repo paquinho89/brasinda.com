@@ -1,4 +1,3 @@
-﻿import API_BASE_URL from "../../utils/api";
 import React, { useState } from "react";
 import { getDefaultImageFile } from "./3Imagen";
 import { useOutletContext, useNavigate } from "react-router-dom";
@@ -53,7 +52,7 @@ const Resumen: React.FC = () => {
 
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch(`${API_BASE_URL}/crear-eventos/`, {
+      const response = await fetch("http://localhost:8000/crear-eventos/", {
         method: "POST",
         body: formData,
         headers: {
