@@ -127,13 +127,6 @@ function CookieFloatingButton() {
               </button>
             </div>
 
-            <p style={{ marginTop: "0.8rem", marginBottom: "1rem", color: "#4b5563", lineHeight: 1.7 }}>
-              Utilizamos cookies propias e de terceiros para garantir o
-              funcionamento da páxina web, analizar a navegación e mellorar a
-              experiencia do usuario. Podes aceptar todas as cookies, rexeitar as
-              non necesarias ou configurar as túas preferencias.
-            </p>
-
             <div style={{ display: "grid", gap: "0.8rem" }}>
               <div style={{ border: "1px solid #e5e7eb", borderRadius: "12px", padding: "0.9rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>
@@ -206,14 +199,6 @@ function CookieFloatingButton() {
                 onClick={() => savePreferences(false, false)}
               >
                 Rexeitar
-              </button>
-
-              <button
-                type="button"
-                className="boton-avance"
-                onClick={() => savePreferences(analyticsEnabled, preferencesEnabled)}
-              >
-                Gardar configuración
               </button>
 
               <button

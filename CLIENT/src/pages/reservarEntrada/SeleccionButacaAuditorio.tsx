@@ -1,19 +1,43 @@
-import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Button } from "react-bootstrap";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { Button, Spinner } from "react-bootstrap";
 import AuditorioSelectorVerin from "../planoAuditorios/auditorioBotones/auditorioVerin";
 import AuditorioSelectorOurense from "../planoAuditorios/auditorioBotones/auditorioOurense";
+import API_BASE_URL from "../../utils/api";
 
-// Este componente asume que recibe o evento e as zonas do auditorio por props ou location.state
 const zonasAuditorio = ["Zona A", "Zona B", "Zona C"]; // Exemplo, adaptar ao teu modelo
 
 const SeleccionButacaAuditorio: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { evento } = location.state || {};
+  const { id } = useParams<{ id: string }>();
+  const [evento, setEvento] = useState<any>(location.state?.evento || null);
+  const [loading, setLoading] = useState(!location.state?.evento);
+  const [error, setError] = useState<string | null>(null);
   const [zonaActual, setZonaActual] = useState(0);
 
-  // Selecciona o compoñente de auditorio segundo o evento
+  useEffect(() => {
+    if (!evento && id) {
+      setLoading(true);
+      const token = localStorage.getItem("access_token");
+      fetch(`${API_BASE_URL}/crear-eventos/${id}/`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error(res.status === 401 ? "Acceso non autorizado. Inicia sesión." : "Non se atopou o evento");
+          return res.json();
+        })
+        .then((data) => {
+          setEvento(data);
+          setLoading(false);
+        })
+        .catch((err) => {
+          setError(err.message || "Erro ao cargar o evento");
+          setLoading(false);
+        });
+    }
+  }, [id, evento]);
+
   const AuditorioComponente = evento?.localizacion?.toLowerCase().includes("verin")
     ? AuditorioSelectorVerin
     : AuditorioSelectorOurense;
@@ -26,6 +50,16 @@ const SeleccionButacaAuditorio: React.FC = () => {
       return next;
     });
   };
+
+  if (loading) {
+    return (
+      <div className="seleccion-butaca-auditorio-fullscreen" style={{ minHeight: "100vh", background: "#f8f9fa", display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Cargando...</span>
+        </Spinner>
+      </div>
+    );
+  }
 
   return (
     <div className="seleccion-butaca-auditorio-fullscreen" style={{ minHeight: "100vh", background: "#f8f9fa" }}>
@@ -47,7 +81,7 @@ const SeleccionButacaAuditorio: React.FC = () => {
         </>
       ) : (
         <div style={{ textAlign: 'center', color: '#ff0093', marginTop: 40 }}>
-          Non se atopou o evento.
+          {error || "Non se atopou o evento."}
         </div>
       )}
     </div>
