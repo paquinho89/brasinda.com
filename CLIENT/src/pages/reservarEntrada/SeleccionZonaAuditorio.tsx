@@ -2,11 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Spinner } from "react-bootstrap";
 import MainNavbar from "../componentes/NavBar";
-import AuditorioSelectorVerin from "../planoAuditorios/auditorioBotones/auditorioVerin";
-import AuditorioSelectorOurense from "../planoAuditorios/auditorioBotones/auditorioOurense";
 import API_BASE_URL from "../../utils/api";
 
-const zonasAuditorio = ["anfiteatro", "central", "esquerda", "dereita"]; // Zonas reais do auditorio
+
 
 const SeleccionButacaAuditorio: React.FC = () => {
   const navigate = useNavigate();
