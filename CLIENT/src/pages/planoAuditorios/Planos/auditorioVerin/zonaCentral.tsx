@@ -203,6 +203,8 @@ const AuditorioVerinZonaCentral: React.FC<Props> = ({
         style={{
           marginTop: 25,
           height: 40,
+          width: 300,
+          maxWidth: "100%",
           backgroundColor: "#222",
           color: "white",
           display: "flex",
@@ -211,6 +213,8 @@ const AuditorioVerinZonaCentral: React.FC<Props> = ({
           borderRadius: 8,
           fontWeight: "bold",
           letterSpacing: 2,
+          marginLeft: "auto",
+          marginRight: "auto",
         }}
       >
         ESCENARIO

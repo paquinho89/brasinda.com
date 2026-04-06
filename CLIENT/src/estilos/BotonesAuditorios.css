@@ -396,7 +396,7 @@
 }
 
 .butaca-selected {
-  background-color: var(--color-principal);
+  background-color: #ff0093 !important;
 }
 
 .butaca-my-reserved {
