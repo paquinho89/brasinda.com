@@ -1,3 +1,34 @@
+@media (max-width: 600px) {
+  .auditorio-seatmap-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+    max-width: 100vw;
+  }
+  .auditorio-seat-row {
+    min-width: 340px;
+    max-width: 100vw;
+  }
+  .butaca {
+    width: 16px !important;
+    height: 16px !important;
+    margin: 2px !important;
+  }
+  .auditorio-row-number {
+    font-size: 12px !important;
+    width: 18px !important;
+    min-width: 18px !important;
+    margin-right: 4px !important;
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: #f8f9fa;
+    border-radius: 4px;
+    box-shadow: 1px 0 2px rgba(0,0,0,0.04);
+    text-align: right;
+  }
+}
 /* Responsive seat map for small screens */
 @media (max-width: 600px) {
   .auditorio-seatmap-wrapper {
