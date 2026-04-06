@@ -8,7 +8,7 @@ export const NavBarMessageContext = React.createContext<{
 }>({ message: "", setMessage: () => {} });
 import { useNavigate } from "react-router-dom";
 import "../../estilos/NavBar.css";
-import { FaSignInAlt, FaTools, FaTicketAlt } from "react-icons/fa";
+// import { FaSignInAlt, FaTools, FaTicketAlt } from "react-icons/fa";
 // import { useAuth } from "../AuthContext";
 // import { useLanguage } from "../LanguageContext";
 // import { useTranslations } from "../../i18n/useTranslations";
@@ -22,23 +22,7 @@ function MainNavbar() {
   // const [open, setOpen] = useState(false); // If open/setOpen are not used, remove this line.
 
   // let organizadorUI = organizador; // removed, as organizador is not defined
-  let organizadorUI = null;
-  try {
-    const raw = localStorage.getItem("organizador");
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed) {
-        organizadorUI = {
-          nome_organizador: parsed.nome_organizador || parsed.nome || parsed.username || "Organizador",
-          foto_url: parsed.foto_url || parsed.foto_organizador || null,
-          email: parsed.email,
-          id: parsed.id,
-        };
-      }
-    }
-  } catch {
-    organizadorUI = null;
-  }
+  // Removed unused variable organizadorUI and related logic
 
   // Remove handleLogout if not used in the JSX below
   // const handleLogout = () => {
