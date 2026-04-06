@@ -1,6 +1,6 @@
 import { Navbar } from "react-bootstrap";
 import logo2 from "../../estilos/branding/logo.png";
-import React, { useState, useContext } from "react";
+import React, { useContext } from "react";
 // Contexto para mensaxes globais na NavBar
 export const NavBarMessageContext = React.createContext<{
   message: string;
@@ -21,24 +21,23 @@ function MainNavbar() {
   // const { t } = useTranslations();
   // const [open, setOpen] = useState(false); // If open/setOpen are not used, remove this line.
 
-  let organizadorUI = organizador;
-  if (!organizadorUI) {
-    try {
-      const raw = localStorage.getItem("organizador");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed) {
-          organizadorUI = {
-            nome_organizador: parsed.nome_organizador || parsed.nome || parsed.username || t("navbar.organizerFallback"),
-            foto_url: parsed.foto_url || parsed.foto_organizador || null,
-            email: parsed.email,
-            id: parsed.id,
-          };
-        }
+  // let organizadorUI = organizador; // removed, as organizador is not defined
+  let organizadorUI = null;
+  try {
+    const raw = localStorage.getItem("organizador");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed) {
+        organizadorUI = {
+          nome_organizador: parsed.nome_organizador || parsed.nome || parsed.username || "Organizador",
+          foto_url: parsed.foto_url || parsed.foto_organizador || null,
+          email: parsed.email,
+          id: parsed.id,
+        };
       }
-    } catch {
-      organizadorUI = null;
     }
+  } catch {
+    organizadorUI = null;
   }
 
   // Remove handleLogout if not used in the JSX below
