@@ -98,11 +98,10 @@ const AuditorioVerinAnfiteatro: React.FC<Props> = ({
   };
 
   return (
-    <div style={{ padding: 20 }}>
+    <div className="auditorio-seatmap-wrapper" style={{ padding: 20 }}>
       {(() => {
         // Calcular números de fila só para as filas que teñen butacas
         const filasConButacas = AUDITORIO.filter(row => !row.every(seat => seat === null));
-        
         // Calcular map de rowIndex a numeroFila para consistencia
         const rowIndexToFila = new Map<number, number>();
         let filaCounter = filasConButacas.length;
@@ -112,16 +111,15 @@ const AuditorioVerinAnfiteatro: React.FC<Props> = ({
             filaCounter--;
           }
         });
-
         return (
           <>
             {AUDITORIO.map((row, rowIndex) => {
               const isEmptyRow = row.every(seat => seat === null);
               const displayNumber = isEmptyRow ? "" : rowIndexToFila.get(rowIndex);
-
               return (
                 <div
                   key={rowIndex}
+                  className="auditorio-seat-row"
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -131,6 +129,7 @@ const AuditorioVerinAnfiteatro: React.FC<Props> = ({
                 >
                   {/* Número de fila */}
                   <div
+                    className="auditorio-row-number"
                     style={{
                       width: 30,
                       textAlign: "right",
@@ -141,11 +140,9 @@ const AuditorioVerinAnfiteatro: React.FC<Props> = ({
                   >
                     {displayNumber}
                   </div>
-
                   {/* Butacas */}
                   <div style={{ display: "flex" }}>
                     {row.map((seat, colIndex) => {
-
                       if (seat === null) {
                         return (
                           <div
@@ -154,14 +151,11 @@ const AuditorioVerinAnfiteatro: React.FC<Props> = ({
                           />
                         );
                       }
-
                       const realRow = isEmptyRow ? -1 : displayNumber;
                       const realSeat = colIndex + 1;
-
                       const isReserved = activeReservedSeats.some(
                         (s) => s.row === realRow && s.seat === realSeat
                       );
-
                       const isMyReserved = activeMyReservedSeats.some(
                         (s) => s.row === realRow && s.seat === realSeat
                       );
@@ -171,11 +165,9 @@ const AuditorioVerinAnfiteatro: React.FC<Props> = ({
                       const isSelected = activeSelectedSeats.some(
                         (s) => s.row === realRow && s.seat === realSeat
                       );
-
                       let className = "butaca ";
                       let cursor = "pointer";
                       let title = "";
-                      
                       if (!areaActiva) {
                         className += "butaca-inactiva";
                         cursor = "not-allowed";
@@ -196,7 +188,6 @@ const AuditorioVerinAnfiteatro: React.FC<Props> = ({
                       } else {
                         className += "butaca-dispoñible";
                       }
-
                       return (
                         <div
                           key={colIndex}
