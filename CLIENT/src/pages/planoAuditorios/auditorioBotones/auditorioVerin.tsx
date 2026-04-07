@@ -514,6 +514,7 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
           entradas: entradasSeleccionadas.map((s) => ({ row: s.row, seat: s.seat })),
           zona: zonaSeleccionada,
           confirmada: true,
+          no_email: true, // <- Indica ao backend que NON debe enviar email
         }),
       });
       if (!resp.ok) {
@@ -609,9 +610,6 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
                   <FaChevronRight />
                 </button>
               </div>
-              {variant === "rosa" && (
-                <p className="modal-subtitle">*As entradas que reserves, non se porán a venda</p>
-              )}
             </div>
             <button className="close-x" onClick={cerrarModal}>✕</button>
           </div>
@@ -662,45 +660,6 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
                 </button>
               )}
             </div>
-
-            {/* LISTADO DE ENTRADAS (SELECCIONADAS + MIÑAS RESERVAS) */}
-            {(entradasSeleccionadas.length > 0 || (variant === "rosa" && misReservas.length > 0)) && (
-              <div style={{ marginTop: 20 }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "center", boxShadow: "0 4px 8px rgba(0,0,0,0.1)" }}>
-                  <thead>
-                    <tr style={{ backgroundColor: "#f0f0f0" }}>
-                      <th style={{ padding: "8px", fontWeight: 700 }}>Fila</th>
-                      <th style={{ padding: "8px", fontWeight: 700 }}>Butaca</th>
-                      <th style={{ padding: "8px", fontWeight: 700 }}></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {variant === "rosa" && misReservas.filter(s => !entradasVendidas.some(v => v.row === s.row && v.seat === s.seat)).map(s => (
-                      <tr key={`${s.row}-${s.seat}-reservada`} style={{ backgroundColor: "#fff" }}>
-                        <td style={{ padding: "8px", fontWeight: 700, color: "#444" }}>{s.row}</td>
-                        <td style={{ padding: "8px", fontWeight: 700, color: "#444" }}>{s.seat}</td>
-                        <td style={{ padding: "8px" }}>
-                          <button className="eliminar-btn" onClick={e => { e.stopPropagation(); eliminarMiReserva(s); }} style={{ background: "transparent", border: "none", cursor: "pointer", color: "black", fontSize: "16px" }}>
-                            <FaTrash />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                    {entradasSeleccionadas.map(s => (
-                      <tr key={`${s.row}-${s.seat}`} style={{ backgroundColor: "#fff" }}>
-                        <td style={{ padding: "8px", fontWeight: 700, color: "#444" }}>{s.row}</td>
-                        <td style={{ padding: "8px", fontWeight: 700, color: "#444" }}>{s.seat}</td>
-                        <td style={{ padding: "8px" }}>
-                          <button className="eliminar-btn" onClick={e => { e.stopPropagation(); eliminarEntrada(s); }} style={{ background: "transparent", border: "none", cursor: "pointer", color: "black", fontSize: "16px" }}>
-                            <FaTrash />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
           </div>
         </div>
       )}

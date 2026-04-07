@@ -417,8 +417,9 @@ def reservar_entradas(request, evento_id):
 
         _actualizar_contadores_evento(evento)
 
-        # Se a reserva está confirmada, xerar PDFs e enviar UN solo email con todos os PDFs
-        if estado == ReservaButaca.ESTADO_CONFIRMADO:
+        # Se a reserva está confirmada, xerar PDFs e enviar UN solo email con todos os PDFs, salvo se no_email==True
+        no_email = request.data.get("no_email", False)
+        if estado == ReservaButaca.ESTADO_CONFIRMADO and not no_email:
             pdf_buffers = []
             for reserva in reservas_creadas:
                 buffer = xerar_pdf_entrada(reserva, evento)
