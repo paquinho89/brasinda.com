@@ -6,7 +6,7 @@ import AuditorioVerinAnfiteatro, { AUDITORIO as AUDITORIO_VERIN_ANFITEATRO } fro
 import AuditorioVerinZonaCentral, { AUDITORIO as AUDITORIO_VERIN_CENTRAL } from "../Planos/auditorioVerin/zonaCentral";
 import AuditorioVerinLateralDereita, { AUDITORIO as AUDITORIO_VERIN_DEREITA } from "../Planos/auditorioVerin/zonaLateralDereita";
 import AuditorioVerinLateralEsquerda, { AUDITORIO as AUDITORIO_VERIN_ESQUERDA } from "../Planos/auditorioVerin/zonaLateralEsquerda";
-import { FaTrash, FaChevronLeft, FaChevronRight, FaExclamationTriangle } from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight, FaExclamationTriangle } from "react-icons/fa";
 import { useAuth } from "../../AuthContext";
 
 import API_BASE_URL from "../../../utils/api";
@@ -430,13 +430,7 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
     }
   };
 
-  const eliminarEntrada = (seat: SelectedSeat) => {
-    setEntradasSeleccionadas(
-      entradasSeleccionadas.filter(
-        (s) => !(s.row === seat.row && s.seat === seat.seat)
-      )
-    );
-  };
+  // (eliminado: función non usada)
 
   const handleAreaToggle = (checked: boolean) => {
     if (!zonaSeleccionada) return;

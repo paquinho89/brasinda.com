@@ -4,7 +4,7 @@ import { Spinner } from "react-bootstrap";
 import MainNavbar from "../componentes/NavBar";
 import API_BASE_URL from "../../utils/api";
 
-import SeleccionButacaAuditorio from "./SeleccionButacaAuditorio";
+// import SeleccionButacaAuditorio from "./SeleccionButacaAuditorio"; // (unused)
 
 const SeleccionZonaAuditorio: React.FC = () => {
   const navigate = useNavigate();
