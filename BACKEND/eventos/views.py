@@ -672,17 +672,19 @@ def invitacions_sen_plano(request, evento_id):
                     reserva.codigo_validacion = f"{reserva.id}-{letras}"
                     reserva.save(update_fields=["codigo_validacion"])
             # Só enviar email se NON é o organizador (usuario non autenticado)
+            # e só se o evento NON é de tipo_gestion_entrada 'pagina' ou 'a través da páxina'
             if not (request.user and request.user.is_authenticated):
-                pdf_buffers = []
-                for reserva in novas_objs:
-                    # Se é invitación, xerar PDF de invitación; se é entrada, xerar PDF estándar
-                    tipo_pdf = "invitacion" if reserva.tipo_reserva == ReservaButaca.TIPO_RESERVA_INVITACION else "entrada"
-                    buffer = xerar_pdf_entrada(reserva, evento, tipo_pdf=tipo_pdf)
-                    pdf_buffers.append((buffer, reserva))
-                try:
-                    enviar_entrada_email_multi("paquinho89@gmail.com", pdf_buffers, evento, novas_objs)
-                except Exception as e:
-                    print(f"[ERRO RESEND] invitacions sen plano: {e}")
+                if evento.tipo_gestion_entrada not in [Evento.TIPO_ENTRADA_PAGINA, 'a través da páxina']:
+                    pdf_buffers = []
+                    for reserva in novas_objs:
+                        # Se é invitación, xerar PDF de invitación; se é entrada, xerar PDF estándar
+                        tipo_pdf = "invitacion" if reserva.tipo_reserva == ReservaButaca.TIPO_RESERVA_INVITACION else "entrada"
+                        buffer = xerar_pdf_entrada(reserva, evento, tipo_pdf=tipo_pdf)
+                        pdf_buffers.append((buffer, reserva))
+                    try:
+                        enviar_entrada_email_multi("paquinho89@gmail.com", pdf_buffers, evento, novas_objs)
+                    except Exception as e:
+                        print(f"[ERRO RESEND] invitacions sen plano: {e}")
         _actualizar_contadores_evento(evento)
         # Gardar suscripción á newsletter se se proporcionou email
         if email_suscripcion:

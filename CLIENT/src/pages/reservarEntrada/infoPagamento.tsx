@@ -24,10 +24,15 @@ interface Evento {
 const InfoPagamento: React.FC = () => {
   const { eventoId, zona } = useParams<{ eventoId: string; zona: string }>();
   const navigate = useNavigate();
+  // Recoller o importeTotal e prezoEvento do state se veñen do paso anterior
+  const navigationState = window.history.state?.usr || {};
   // const { token } = useAuth();
 
   const [evento, setEvento] = useState<Evento | null>(null);
   const [entradasSeleccionadas, setEntradasSeleccionadas] = useState<SelectedSeat[]>([]);
+  // Importe total recibido do paso anterior (se existe)
+  const [importeTotalState, setImporteTotalState] = useState<number | null>(navigationState.importeTotal ?? null);
+  const [prezoEventoState, setPrezoEventoState] = useState<number | null>(navigationState.prezoEvento ?? null);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [tarxeta, setTarxeta] = useState("");
@@ -95,7 +100,7 @@ const InfoPagamento: React.FC = () => {
     return () => clearInterval(timer);
   }, [timeRemaining, navigate]);
 
-  // Get seats, email, nome from navigation state
+  // Get seats, email, nome, importeTotal from navigation state
   useEffect(() => {
     const state = window.history.state;
     if (state?.usr?.seats) {
@@ -106,6 +111,12 @@ const InfoPagamento: React.FC = () => {
     }
     if (state?.usr?.nome) {
       setNome(state.usr.nome);
+    }
+    if (state?.usr?.importeTotal !== undefined) {
+      setImporteTotalState(state.usr.importeTotal);
+    }
+    if (state?.usr?.prezoEvento !== undefined) {
+      setPrezoEventoState(state.usr.prezoEvento);
     }
   }, []);
 
@@ -247,6 +258,21 @@ const InfoPagamento: React.FC = () => {
     );
   }
 
+  // Usar o importeTotal do state se existe, senón calcular
+  let importeTotal: string | null = null;
+  let prezo = prezoEventoState ?? evento?.prezo_evento;
+  let total = importeTotalState;
+  if (total == null && typeof prezo === 'number' && !isNaN(prezo) && entradasSeleccionadas.length > 0) {
+    total = prezo * entradasSeleccionadas.length;
+  }
+  if (typeof total === 'number' && !isNaN(total)) {
+    if (Number.isInteger(total)) {
+      importeTotal = total.toLocaleString('gl-ES', { maximumFractionDigits: 0 });
+    } else {
+      importeTotal = total.toLocaleString('gl-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+  }
+
   return (
     <div className="info-pagamento-page verde">
       {/* HEADER */}
@@ -385,10 +411,10 @@ const InfoPagamento: React.FC = () => {
 
           {/* BUTTON */}
           <button type="submit" className="reserva-entrada-btn" style={{ width: '100%' }} disabled={loading}>
-            {loading 
-              ? "Procesando..." 
-              : evento?.prezo_evento 
-                ? `Pagar ${(evento.prezo_evento * entradasSeleccionadas.length).toFixed(2)}€`
+            {loading
+              ? "Procesando..."
+              : (importeTotal !== null && importeTotal !== undefined)
+                ? `Pagar ${importeTotal}€`
                 : "Pagar"}
           </button>
         </form>

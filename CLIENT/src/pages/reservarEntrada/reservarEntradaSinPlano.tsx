@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button, Modal } from "react-bootstrap";
 import { FaCalendarAlt, FaTicketAlt, FaCreditCard, FaArrowLeft } from "react-icons/fa";
 import MainNavbar from "../componentes/NavBar";
+import LoginModalCrearEvento from "../componentes/InicioSesionCrearEventoCuadro";
 
 import API_BASE_URL from "../../utils/api";
 
@@ -17,6 +18,7 @@ interface Evento {
 	entradas_reservadas?: number;
 	entradas_vendidas?: number;
 	prezo_evento?: number;
+	tipo_gestion_entrada?: string;
 	procedimiento_cobro_manual?: string | null;
 }
 
@@ -33,6 +35,8 @@ export default function ReservarEntradaSinPlano() {
 	const [showModal, setShowModal] = useState(false);
 	const [suscribirseEventos, setSuscribirseEventos] = useState(false);
 	const [emailSuscripcion, setEmailSuscripcion] = useState("");
+	const [showLoginModal, setShowLoginModal] = useState(false);
+	const [pendingReserva, setPendingReserva] = useState<null | (() => void)>(null);
 	const navigate = useNavigate();
 
 	useEffect(() => {
@@ -160,20 +164,47 @@ export default function ReservarEntradaSinPlano() {
 				}),
 			});
 
+			if (resp.status === 401) {
+				setShowLoginModal(true);
+				setPendingReserva(() => gardarReserva);
+				setGardando(false);
+				return;
+			}
+
 			const data = await resp.json().catch(() => null);
 			if (!resp.ok) {
 				throw new Error(data?.detail || data?.error || "Non se puideron gardar as entradas.");
 			}
-			// Try to get reservas (array of IDs) or ticketId
 			let reservasIds = [];
 			if (Array.isArray(data?.reservas)) {
 				reservasIds = data.reservas.map((r: any) => r.id).filter(Boolean);
 			}
 			const ticketId = data?.ticket_id || data?.id || data?.ticketId;
 
-			// Navigate to ReservaExitosa with ticket info
-			navigate('/reserva-exitosa', { state: { reservas: reservasIds, ticketId, email: emailSuscripcion } });
+			// Se o pago é online, navegar a info-pagamento e NON enviar email aquí
+			if (evento.tipo_gestion_entrada === "pagina" || evento.tipo_gestion_entrada === "a través da páxina") {
+				const prezoEvento = Number(evento.prezo_evento ?? 0);
+				const importeTotal = prezoEvento * cantidadeReservar;
+				navigate(`/info-pagamento/${evento.id}/senplano`, {
+					state: {
+						reservas: reservasIds,
+						ticketId,
+						email: emailSuscripcion,
+						eventoId: evento.id,
+						nomes: nomearTodas ? nomesAsistentes.slice(0, cantidadeReservar) : [],
+						nome_xeral: nomeXeral,
+						cantidade: cantidadeReservar,
+						suscribirseEventos,
+						importeTotal,
+						prezoEvento,
+					}
+				});
+				setGardando(false);
+				return;
+			}
 
+			// Se o pago é MANUAL, fluxo antigo: enviar email e navegar a ReservaExitosa
+			navigate('/reserva-exitosa', { state: { reservas: reservasIds, ticketId, email: emailSuscripcion } });
 			limparFormulario();
 			setSuscribirseEventos(false);
 			setEmailSuscripcion("");
@@ -184,9 +215,6 @@ export default function ReservarEntradaSinPlano() {
 			setGardando(false);
 		}
 	};
-
-	if (loading) return <div className="container py-4">Cargando evento...</div>;
-	if (error) return <div className="container py-4 text-danger">{error}</div>;
 	if (!evento) return <div className="container py-4">Evento non encontrado</div>;
 
 	const formatDataCompleta = (dateString: string) => {
@@ -214,17 +242,27 @@ export default function ReservarEntradaSinPlano() {
 		? String(prezoEvento)
 		: prezoEvento.toFixed(2);
 
-	return (
-		<>
-			<MainNavbar />
-			<div className="container py-4">
-				<div className="card shadow-sm">
-					<div className="p-3">
-						<div className="d-flex align-items-start pb-2 mb-3">
-							<Button className="volver-btn me-3" onClick={() => navigate(-1)}>
-								<FaArrowLeft className="me-2" />
-								Volver
-							</Button>
+	   // Engadir estilos para ocultar o texto 'Volver' en pantallas pequenas
+	   const volverTextStyle = `
+	   @media (max-width: 576px) {
+		 .volver-text {
+		   display: none !important;
+		 }
+	   }
+	   `;
+
+	   return (
+		   <>
+			   <style>{volverTextStyle}</style>
+			   <MainNavbar />
+			   <div className="container py-4">
+				   <div className="card shadow-sm">
+					   <div className="p-3">
+						   <div className="d-flex align-items-start pb-2 mb-3">
+							   <Button className="volver-btn me-3" onClick={() => navigate(-1)}>
+								   <FaArrowLeft className="me-2" />
+								   <span className="volver-text">Volver</span>
+							   </Button>
 							<div className="flex-grow-1 text-center">
 								<h2 className="m-0 mb-2">{evento.nome_evento}</h2>
 								<p className="text-center mb-1 mt-0">
@@ -406,6 +444,13 @@ export default function ReservarEntradaSinPlano() {
 				</Modal.Footer>
 			</Modal>
 
+			<LoginModalCrearEvento show={showLoginModal} onClose={() => {
+				setShowLoginModal(false);
+				if (pendingReserva) {
+					pendingReserva();
+					setPendingReserva(null);
+				}
+			}} redirectTo={undefined} />
 		</>
 	);
 }

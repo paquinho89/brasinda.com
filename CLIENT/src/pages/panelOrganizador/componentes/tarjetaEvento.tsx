@@ -68,9 +68,9 @@ export default function TarjetaEvento({ evento, isPast = false }: EventoProps) {
 
   const textoXestionImporte =
     evento.tipo_gestion_entrada === "pagina"
-      ? "Xestionado a través da páxina"
+      ? "A través da páxina"
       : evento.tipo_gestion_entrada === "manual"
-      ? "Xestionado polo organizador"
+      ? "A través do organizador"
       : null;
 
   return (
