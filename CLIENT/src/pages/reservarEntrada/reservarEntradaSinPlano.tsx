@@ -25,7 +25,6 @@ interface Evento {
 export default function ReservarEntradaSinPlano() {
 	const { id } = useParams<{ id: string }>();
 	const [evento, setEvento] = useState<Evento | null>(null);
-	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [cantidadeReservar, setCantidadeReservar] = useState<number>(0);
 	const [nomeXeral, setNomeXeral] = useState("");
