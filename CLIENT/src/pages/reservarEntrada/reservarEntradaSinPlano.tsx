@@ -178,7 +178,8 @@ export default function ReservarEntradaSinPlano() {
 			}
 			const ticketId = data?.ticket_id || data?.id || data?.ticketId;
 
-			// Se o pago é online, navegar a info-pagamento e NON enviar email aquí
+			// Se o pago é online ("pagina" ou "a través da páxina"), NUNCA enviar email aquí!
+			// Só navegar a infoPagamento, o email cos PDFs enviarase despois do pago desde infoPagamento.tsx
 			if (evento.tipo_gestion_entrada === "pagina" || evento.tipo_gestion_entrada === "a través da páxina") {
 				const prezoEvento = Number(evento.prezo_evento ?? 0);
 				const importeTotal = prezoEvento * cantidadeReservar;
@@ -201,6 +202,7 @@ export default function ReservarEntradaSinPlano() {
 			}
 
 			// Se o pago é MANUAL, fluxo antigo: enviar email e navegar a ReservaExitosa
+			// Aquí podes manter o envío de email só para eventos que NON sexan online
 			navigate('/reserva-exitosa', { state: { reservas: reservasIds, ticketId, email: emailSuscripcion } });
 			limparFormulario();
 			setSuscribirseEventos(false);

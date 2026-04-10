@@ -7,10 +7,10 @@ from django.conf import settings
 
 
 def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
+    print(f"[DEBUG] xerar_pdf_entrada called for reserva id: {getattr(reserva, 'id', None)}, evento id: {getattr(evento, 'id', None)}, tipo_pdf: {tipo_pdf}")
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
-
 
     import os
 

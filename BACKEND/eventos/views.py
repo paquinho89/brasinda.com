@@ -29,6 +29,7 @@ def descargar_pdf_invitacion(request, reserva_id):
     # Decidir tipo_pdf segundo tipo_reserva
     tipo_pdf = "invitacion" if reserva.tipo_reserva == ReservaButaca.TIPO_RESERVA_INVITACION else "entrada"
     buffer = xerar_pdf_entrada(reserva, evento, tipo_pdf=tipo_pdf)
+    print(f"[DEBUG] PDF buffer generated for reserva {reserva_id}, buffer size: {buffer.getbuffer().nbytes if hasattr(buffer, 'getbuffer') else 'n/a'}")
     response = HttpResponse(buffer, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename=invitacion_{reserva_id}.pdf'
     return response
@@ -58,6 +59,9 @@ def enviar_invitacion_individual(request):
         enviar_entrada_email(email_destinatario, buffer, evento, reserva)
         return Response({"success": True})
     except Exception as e:
+        import traceback
+        print(f"[ERROR] Exception in enviar_entrada_email: {e}")
+        traceback.print_exc()
         return Response({"error": f"Erro ao enviar email: {str(e)}"}, status=500)
 
 # PDF multipáxina para varias reservas por id
@@ -147,26 +151,52 @@ def enviar_entradas(request, evento_id):
     Endpoint para enviar entradas por email a petición do frontend.
     Recibe: zona, entradas (array de {row, seat}), email
     """
+    print("[DEBUG] enviar_entradas called", {
+        "evento_id": evento_id,
+        "request_data": request.data
+    })
     evento = get_object_or_404(Evento, id=evento_id)
     zona = request.data.get("zona")
     entradas = request.data.get("entradas", [])
     email = request.data.get("email")
     if not email or not entradas:
+        print(f"[DEBUG] Missing email or entradas: email={email}, entradas={entradas}")
         return Response({"error": "Faltan datos obrigatorios (email, entradas)"}, status=400)
-    pdfs = []
+    pdf_buffers = []
+    reservas_objs = []
     for entrada in entradas:
-        row = entrada.get("row")
-        seat = entrada.get("seat")
-        reserva = ReservaButaca.objects.filter(evento=evento, zona=zona, fila=row, butaca=seat, email=email).first()
+        reserva = None
+        if 'id' in entrada and entrada['id']:
+            reserva = ReservaButaca.objects.filter(id=entrada['id']).first()
+            print(f"[DEBUG] Buscando reserva por ID: {entrada['id']} -> {reserva}")
+        elif 'row' in entrada and 'seat' in entrada:
+            row = entrada.get("row")
+            seat = entrada.get("seat")
+            print(f"[DEBUG] Processing entrada: row={row}, seat={seat}, zona={zona}, email={email}")
+            reserva = ReservaButaca.objects.filter(evento=evento, zona=zona, fila=row, butaca=seat, email=email).first()
         if not reserva:
+            print(f"[DEBUG] Reserva not found for entrada: {entrada}")
             continue
-        buffer = xerar_pdf_entrada(reserva, evento)
-        pdfs.append(buffer.getvalue())
         try:
-            enviar_entrada_email(email, buffer, evento, reserva)
+            buffer = xerar_pdf_entrada(reserva, evento)
+            buffer_size = buffer.getbuffer().nbytes if hasattr(buffer, 'getbuffer') else 'n/a'
+            print(f"[DEBUG] PDF buffer generated for reserva {getattr(reserva, 'id', None)}, buffer size: {buffer_size}")
         except Exception as e:
-            print(f"Erro enviando email de entrada: {e}")
-    return Response({"success": True, "enviados": len(pdfs)})
+            print(f"[ERROR] PDF generation failed for reserva {getattr(reserva, 'id', None)}: {e}")
+            continue
+        pdf_buffers.append((buffer, reserva))
+        reservas_objs.append(reserva)
+    print(f"[DEBUG] Total reservas para enviar: {len(reservas_objs)}. Total buffers: {len(pdf_buffers)}")
+    if pdf_buffers:
+        try:
+            from .email_entradas import enviar_entrada_email_multi
+            enviar_entrada_email_multi(email, pdf_buffers, evento, reservas_objs)
+        except Exception as e:
+            import traceback
+            print(f"[ERROR] Exception in enviar_entrada_email_multi: {e}")
+            traceback.print_exc()
+    print(f"[DEBUG] Finished enviar_entradas, total enviados: {len(pdf_buffers)}")
+    return Response({"success": True, "enviados": len(pdf_buffers)})
 
 def _actualizar_contadores_evento(evento):
     """Sincroniza en BD os contadores de reservas/vendas confirmadas do evento."""
@@ -417,17 +447,7 @@ def reservar_entradas(request, evento_id):
 
         _actualizar_contadores_evento(evento)
 
-        # Se a reserva está confirmada, xerar PDFs e enviar UN solo email con todos os PDFs, salvo se no_email==True
-        no_email = request.data.get("no_email", False)
-        if estado == ReservaButaca.ESTADO_CONFIRMADO and not no_email:
-            pdf_buffers = []
-            for reserva in reservas_creadas:
-                buffer = xerar_pdf_entrada(reserva, evento)
-                pdf_buffers.append((buffer, reserva))
-            try:
-                enviar_entrada_email_multi(email, pdf_buffers, evento, reservas_creadas)
-            except Exception as e:
-                print(f"Erro enviando email de entrada: {e}")
+        # Xa non se envía email automático ao crear reservas aquí. O email cos PDFs só se enviará cando o frontend o solicite explicitamente ao endpoint correspondente.
 
     entradas_ocupadas_total = evento.entradas_reservadas + evento.entradas_vendidas
 
@@ -671,20 +691,8 @@ def invitacions_sen_plano(request, evento_id):
                     letras = ''.join(random.choices(string.ascii_uppercase, k=3))
                     reserva.codigo_validacion = f"{reserva.id}-{letras}"
                     reserva.save(update_fields=["codigo_validacion"])
-            # Só enviar email se NON é o organizador (usuario non autenticado)
-            # e só se o evento NON é de tipo_gestion_entrada 'pagina' ou 'a través da páxina'
-            if not (request.user and request.user.is_authenticated):
-                if evento.tipo_gestion_entrada not in [Evento.TIPO_ENTRADA_PAGINA, 'a través da páxina']:
-                    pdf_buffers = []
-                    for reserva in novas_objs:
-                        # Se é invitación, xerar PDF de invitación; se é entrada, xerar PDF estándar
-                        tipo_pdf = "invitacion" if reserva.tipo_reserva == ReservaButaca.TIPO_RESERVA_INVITACION else "entrada"
-                        buffer = xerar_pdf_entrada(reserva, evento, tipo_pdf=tipo_pdf)
-                        pdf_buffers.append((buffer, reserva))
-                    try:
-                        enviar_entrada_email_multi("paquinho89@gmail.com", pdf_buffers, evento, novas_objs)
-                    except Exception as e:
-                        print(f"[ERRO RESEND] invitacions sen plano: {e}")
+
+            # Xa non se envía email automático ao crear reservas aquí. O email cos PDFs só se enviará cando o frontend o solicite explicitamente ao endpoint correspondente.
         _actualizar_contadores_evento(evento)
         # Gardar suscripción á newsletter se se proporcionou email
         if email_suscripcion:

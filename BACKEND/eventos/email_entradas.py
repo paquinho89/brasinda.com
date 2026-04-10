@@ -1,7 +1,7 @@
 import resend
 import qrcode
-import base64
 import os
+import base64
 from io import BytesIO
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -46,7 +46,13 @@ def enviar_entrada_email_multi(email, pdf_buffers, evento, reservas):
     attachments = []
     for buffer, reserva in pdf_buffers:
         nome_pdf = f"entrada_{evento.id}_{reserva.id}.pdf"
-        attachments.append({"filename": nome_pdf, "content": list(buffer.getvalue())})
+        buffer.seek(0)
+        pdf_b64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+        attachments.append({
+            "filename": nome_pdf,
+            "content": pdf_b64,
+            "contentType": "application/pdf"
+        })
     try:
         resend.Emails.send({
             "from": settings.DEFAULT_FROM_EMAIL,
@@ -94,13 +100,15 @@ def enviar_entrada_email(email, pdf_buffer, evento, reserva):
         }
     )
     nome_pdf = f"entrada_{evento.id}_{reserva.id}.pdf"
+    pdf_buffer.seek(0)
+    pdf_b64 = base64.b64encode(pdf_buffer.getvalue()).decode("utf-8")
     try:
         resend.Emails.send({
             "from": settings.DEFAULT_FROM_EMAIL,
             "to": ["paquinho89@gmail.com"],  # TODO: cambiar a [email] en produción
             "subject": subject,
             "html": html_body,
-            "attachments": [{"filename": nome_pdf, "content": list(pdf_buffer.getvalue())}],
+            "attachments": [{"filename": nome_pdf, "content": pdf_b64, "contentType": "application/pdf"}],
         })
         print(f"[EMAIL ENVIADO] para {email} evento {evento.nome_evento}")
     except Exception as e:
@@ -177,8 +185,9 @@ def enviar_entradas_recuperadas_email(email, reservas_por_evento_data, pdf_buffe
     attachments = []
     for idx, (buffer, evento_id, reserva_id) in enumerate(pdf_buffers_all):
         nome_pdf = f"entrada_{evento_id}_{reserva_id}.pdf"
-        attachments.append({"filename": nome_pdf, "content": list(buffer.getvalue())})
-    
+        buffer.seek(0)
+        pdf_b64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+        attachments.append({"filename": nome_pdf, "content": pdf_b64, "contentType": "application/pdf"})
     try:
         resend.Emails.send({
             "from": settings.DEFAULT_FROM_EMAIL,
