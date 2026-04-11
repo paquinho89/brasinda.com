@@ -169,7 +169,7 @@ def login_organizador (request):
         )
     if not organizador.check_password(password):
         return Response(
-            {"error": "A contraseña é incorrecta. Se a esqueciches pódela recuperar"},
+            {"error": "Contrasinal incorrecto"},
             status=status.HTTP_401_UNAUTHORIZED
         )
 
