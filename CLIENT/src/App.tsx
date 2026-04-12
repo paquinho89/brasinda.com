@@ -1,7 +1,29 @@
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+// Limpa as seleccións de butacas cando se navega a páxinas non permitidas
+function useLimparSeleccionButacas() {
+  const location = useLocation();
+  useEffect(() => {
+    const rutasPermitidas = [
+      '/reservar-entrada-auditorio',
+      '/info-pagamento',
+      '/reservar-entrada-con-plano',
+      '/reservar-entrada',
+    ];
+    const enRutaPermitida = rutasPermitidas.some(r => location.pathname.startsWith(r));
+    if (!enRutaPermitida) {
+      const zonas = ['central', 'dereita', 'anfiteatro', 'esquerda'];
+      Object.keys(localStorage).forEach(key => {
+        if (zonas.some(z => key.startsWith(`auditorio_verin_selected_${z}_`))) {
+          localStorage.removeItem(key);
+        }
+      });
+    }
+  }, [location.pathname]);
+}
 import SeleccionZonaAuditorio from './pages/reservarEntrada/SeleccionZonaAuditorio';
 import SeleccionButacaAuditorio from './pages/reservarEntrada/SeleccionButacaAuditorio';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { useEffect } from 'react';
 import Home from './pages/Home';
 import DescripcionEvento from './pages/reservarEntrada/descripcionEvento';
 import ReservarEntrada from './pages/reservarEntrada/reservarEntradaConPlano';
@@ -36,7 +58,7 @@ import AuditorioVerinLateralDereita from './pages/planoAuditorios/Planos/auditor
 import AuditorioVerinAnfiteatro from './pages/planoAuditorios/Planos/auditorioVerin/anfiteatro';
 import AuditorioVigoAnfiteatro from './pages/planoAuditorios/Planos/auditorioVigo/anfiteatro';
 
-import { useLocation } from 'react-router-dom';
+// import { useLocation } from 'react-router-dom';
 import IntroducirNuevaContraseña from './pages/componentes/IntroducirNuevaContraseña';
 import CookieFloatingButton from './pages/componentes/CookieFloatingButton';
 import AvisoLegal from './pages/componentes/Políticas/AvisoLegal';
@@ -59,6 +81,11 @@ function IntroducirNuevaContraseñaWrapper() {
 }
 
 
+function LimparSeleccionButacasWrapper() {
+  useLimparSeleccionButacas();
+  return null;
+}
+
 function App() {
   useEffect(() => {
     const applyCurrentPreferences = () => {
@@ -75,6 +102,7 @@ function App() {
 
   return (
     <Router>
+      <LimparSeleccionButacasWrapper />
       <>
         <Routes>
           <Route path="/" element={<Home />} />

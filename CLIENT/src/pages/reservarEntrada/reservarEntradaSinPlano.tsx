@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, Modal } from "react-bootstrap";
-import { FaCalendarAlt, FaTicketAlt, FaCreditCard, FaArrowLeft, FaExclamationTriangle } from "react-icons/fa";
+import { FaCalendarAlt, FaTicketAlt, FaCreditCard, FaArrowLeft, FaExclamationTriangle, FaEnvelope, FaUser } from "react-icons/fa";
 import MainNavbar from "../componentes/NavBar";
 import LoginModalCrearEvento from "../componentes/InicioSesionCrearEventoCuadro";
 
@@ -311,25 +311,37 @@ export default function ReservarEntradaSinPlano() {
 
 					<div className="card-body">
 						<div className="mb-3" style={{ maxWidth: "400px" }}>
-							<label htmlFor="cantidade-reserva" className="form-label">
-								Número de entradas a reservar:
+							<label htmlFor="cantidade-reserva" className="form-label" style={{ display: 'flex', alignItems: 'center', fontWeight: 700 }}>
+								<FaTicketAlt style={{ color: '#ff0093', marginRight: 8, fontSize: '1.2em' }} />
+								<span style={{ fontWeight: 700 }}>Número de entradas a reservar:</span>
 							</label>
-							<input
-								id="cantidade-reserva"
-								type="number"
-								min={0}
-								value={cantidadeReservar > 0 ? cantidadeReservar : ""}
-								onChange={(e) => handleCantidadeChange(e.target.value)}
-								className="form-control"
-								placeholder="Introduce o numero de entradas a reservar"
-							/>
+							<div style={{ maxWidth: 180 }}>
+								<input
+										id="cantidade-reserva"
+										type="number"
+										min={0}
+										step={1}
+										value={cantidadeReservar > 0 ? cantidadeReservar : ""}
+										onChange={(e) => handleCantidadeChange(e.target.value)}
+										className="form-control"
+										placeholder="0"
+										style={{ borderRadius: 8, width: 80, textAlign: 'center', fontWeight: 600 }}
+									/>
+							</div>
+							{errorCantidade && (
+								<div className="alert alert-danger" style={{ background: "#ffe6f3", color: "#000", marginTop: 0, display: 'flex', alignItems: 'center' }}>
+									<FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
+									{errorCantidade}
+								</div>
+							)}
 						</div>
 
 						{!nomearTodas && (
 							<>
 							<div className="mb-3" style={{ maxWidth: "400px" }}>
-								<label htmlFor="email-xeral" className="form-label">
-									Email:
+								<label htmlFor="email-xeral" className="form-label" style={{ display: 'flex', alignItems: 'center', fontWeight: 700 }}>
+									<FaEnvelope style={{ color: '#ff0093', marginRight: 8, fontSize: '1.2em' }} />
+									<span style={{ fontWeight: 700 }}>Email:</span>
 								</label>
 								<input
 									id="email-xeral"
@@ -339,10 +351,17 @@ export default function ReservarEntradaSinPlano() {
 									className="form-control"
 									placeholder="Introduce o teu email"
 								/>
+								{!nomearTodas && errorEmail && (
+									<div className="alert alert-danger" style={{ background: "#ffe6f3", color: "#000", marginTop: 0, display: 'flex', alignItems: 'center' }}>
+										<FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
+										{errorEmail}
+									</div>
+								)}
 							</div>
 							<div className="mb-3" style={{ maxWidth: "400px" }}>
-								<label htmlFor="nome-xeral" className="form-label">
-									Nome:
+								<label htmlFor="nome-xeral" className="form-label" style={{ display: 'flex', alignItems: 'center', fontWeight: 700 }}>
+									<FaUser style={{ color: '#ff0093', marginRight: 8, fontSize: '1.2em' }} />
+									<span style={{ fontWeight: 700 }}>Nome:</span>
 								</label>
 								<input
 									id="nome-xeral"
@@ -352,6 +371,12 @@ export default function ReservarEntradaSinPlano() {
 									className="form-control"
 									placeholder="Nome da reserva"
 								/>
+								{!nomearTodas && errorNome && (
+									<div className="alert alert-danger" style={{ background: "#ffe6f3", color: "#000", marginTop: 0, display: 'flex', alignItems: 'center' }}>
+										<FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
+										{errorNome}
+									</div>
+								)}
 							</div>
 							</>
 						)}
@@ -387,6 +412,12 @@ export default function ReservarEntradaSinPlano() {
 										/>
 									))}
 								</div>
+								{nomearTodas && errorNome && (
+									<div className="alert alert-danger" style={{ background: "#ffe6f3", color: "#000", marginTop: 0, display: 'flex', alignItems: 'center' }}>
+										<FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
+										{errorNome}
+									</div>
+								)}
 							</div>
 						)}
 
@@ -437,30 +468,6 @@ export default function ReservarEntradaSinPlano() {
 						</button>
 						</div>
 
-						{errorCantidade && (
-							<div className="alert alert-danger" style={{ background: "#ffe6f3", color: "#000", marginTop: 0, display: 'flex', alignItems: 'center' }}>
-								<FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
-								{errorCantidade}
-							</div>
-						)}
-						{!nomearTodas && errorEmail && (
-							<div className="alert alert-danger" style={{ background: "#ffe6f3", color: "#000", marginTop: 0, display: 'flex', alignItems: 'center' }}>
-								<FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
-								{errorEmail}
-							</div>
-						)}
-						{!nomearTodas && errorNome && (
-							<div className="alert alert-danger" style={{ background: "#ffe6f3", color: "#000", marginTop: 0, display: 'flex', alignItems: 'center' }}>
-								<FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
-								{errorNome}
-							</div>
-						)}
-						{nomearTodas && errorNome && (
-							<div className="alert alert-danger" style={{ background: "#ffe6f3", color: "#000", marginTop: 0, display: 'flex', alignItems: 'center' }}>
-								<FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
-								{errorNome}
-							</div>
-						)}
 						{error && !errorCantidade && !errorEmail && !errorNome && (
 							<div className="alert alert-danger" style={{ background: "#ffe6f3", color: "#000", marginTop: 0, display: 'flex', alignItems: 'center' }}>
 								<FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />

@@ -28,7 +28,8 @@ interface Evento {
 }
 
 export default function ReservarEntrada() {
-    const [modalError, setModalError] = useState<string | null>(null);
+  const [modalError, setModalError] = useState<string | null>(null);
+  const [gardando, setGardando] = useState(false);
   const { id } = useParams<{ id: string }>();
   const [evento, setEvento] = useState<Evento | null>(null);
   const [loading, setLoading] = useState(true);
@@ -321,65 +322,107 @@ export default function ReservarEntrada() {
               <>
                 <Button
                   className="reserva-entrada-btn mt-3"
+                  disabled={gardando}
                   onClick={async () => {
-                    if (summaryBoxRef.current && summaryBoxRef.current.getEditAll && summaryBoxRef.current.getEditAll()) {
-                      summaryBoxRef.current.handleSaveAll();
-                    }
-                    const seatNames = summaryBoxRef.current?.getSeatNames ? summaryBoxRef.current.getSeatNames() : {};
-                    const entradasConNome = entradasSeleccionadas.map((b: any) => {
-                      const seatId = `${b.row}-${b.seat}-${b.zona || ''}`;
-                      const nomeFinal = seatNames[seatId] && seatNames[seatId].trim() !== "" ? seatNames[seatId] : nome;
-                      return { ...b, nome: nomeFinal, nome_titular: nomeFinal };
-                    });
-                    if (!email || !nome) {
-                      if (!email) setErrorEmail("Por favor, introduce un email válido");
-                      if (!nome) setErrorNome("Por favor, introduce o teu nome");
-                      return;
-                    }
-                    // Validación de email
-                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                      setErrorEmail("Por favor, introduce un email válido");
-                      return;
-                    }
-                    if (!Array.isArray(entradasConNome) || entradasConNome.length === 0) {
-                      setModalError("Debes seleccionar polo menos unha butaca");
-                      return;
-                    }
-                    const payload = {
-                      zona: "central",
-                      entradas: entradasConNome,
-                      email: email,
-                      nome_titular: nome,
-                      duracion_reserva: 10,
-                      confirmada: false,
-                    };
+                    setGardando(true);
+                    try {
+                      if (summaryBoxRef.current && summaryBoxRef.current.getEditAll && summaryBoxRef.current.getEditAll()) {
+                        summaryBoxRef.current.handleSaveAll();
+                      }
+                      const seatNames = summaryBoxRef.current?.getSeatNames ? summaryBoxRef.current.getSeatNames() : {};
+                      const entradasConNome = entradasSeleccionadas.map((b: any) => {
+                        const seatId = `${b.row}-${b.seat}-${b.zona || ''}`;
+                        const nomeFinal = seatNames[seatId] && seatNames[seatId].trim() !== "" ? seatNames[seatId] : nome;
+                        return { ...b, nome: nomeFinal, nome_titular: nomeFinal };
+                      });
+                      if (!email || !nome) {
+                        if (!email) setErrorEmail("Por favor, introduce un email válido");
+                        if (!nome) setErrorNome("Por favor, introduce o teu nome");
+                        return;
+                      }
+                      // Validación de email
+                      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                        setErrorEmail("Por favor, introduce un email válido");
+                        return;
+                      }
+                      if (!Array.isArray(entradasConNome) || entradasConNome.length === 0) {
+                        setModalError("Debes seleccionar polo menos unha butaca");
+                        return;
+                      }
+                      const payload = {
+                        zona: entradasConNome[0]?.zona || "central",
+                        entradas: entradasConNome,
+                        email: email,
+                        nome_titular: nome,
+                        duracion_reserva: 10,
+                        confirmada: false,
+                      };
                     // Novo fluxo: só vai a infoPagamento se tipo_gestion_entrada é "pagina" ou "a través da páxina"
                     const tipoGestion = (evento as any).tipo_gestion_entrada?.toLowerCase?.() || "";
                     if (tipoGestion === "pagina" || tipoGestion === "a través da páxina") {
                       // Pago online: reservar temporal e navegar a infoPagamento
-                      try {
-                        const resp = await fetch(`${API_BASE_URL}/crear-eventos/${evento.id}/reservar/`, {
-                          method: "POST",
-                          headers: {
-                            "Content-Type": "application/json",
-                          },
-                          body: JSON.stringify(payload),
+                      const resp = await fetch(`${API_BASE_URL}/crear-eventos/${evento.id}/reservar/`, {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(payload),
+                      });
+                      if (!resp.ok) {
+                        const data = await resp.json();
+                        setModalError(data.error || "Erro ao reservar temporalmente as entradas");
+                        return;
+                      }
+                      // Navegar á zona da primeira butaca seleccionada
+                      const zonaNavegar = entradasConNome[0]?.zona || "central";
+                      navigate(`/info-pagamento/${evento.id}/${zonaNavegar}`, {
+                        state: { seats: entradasConNome, email, nome },
+                      });
+                    } else {
+                      // Calquera outro caso (incluídos balde e cobro manual):
+                      // Se o evento é SEN PLANO, usar invitacions-sen-plano (PUT)
+                      const isSenPlano = Array.isArray(entradasConNome) && entradasConNome.length > 0 && entradasConNome.every(e => e.row == null && e.seat == null);
+                      if (isSenPlano) {
+                        // Evento sen plano: PUT a invitacions-sen-plano
+                        const reservaPayload = {
+                          cantidade: entradasConNome.length,
+                          email: email,
+                          nomes: entradasConNome.map(e => e.nome),
+                          nome_xeral: nome,
+                          confirmada: true
+                        };
+                        const resp = await fetch(`${API_BASE_URL}/crear-eventos/${evento.id}/invitacions-sen-plano/`, {
+                          method: "PUT",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(reservaPayload),
                         });
                         if (!resp.ok) {
                           const data = await resp.json();
-                          setModalError(data.error || "Erro ao reservar temporalmente as entradas");
+                          setModalError(data.error || "Erro ao reservar as entradas");
                           return;
                         }
-                        navigate(`/info-pagamento/${evento.id}/central`, {
-                          state: { seats: entradasConNome, email, nome },
+                        const reservaData = await resp.json();
+                        // Enviar email ao usuario
+                        await fetch(`${API_BASE_URL}/crear-eventos/${evento.id}/enviar-entradas/`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            zona: undefined,
+                            entradas: (reservaData.reservas || []).map((r: any) => ({ id: r.id })),
+                            email: email
+                          }),
                         });
-                      } catch (err) {
-                        setModalError("Erro de conexión ao reservar temporalmente as entradas");
-                        return;
-                      }
-                    } else {
-                      // Calquera outro caso (incluídos balde e cobro manual): reservar, enviar email e ir a ReservaExitosa
-                      try {
+                        // Navegar a ReservaExitosa pasando ids das reservas
+                        const reservasIds = (reservaData.reservas || []).map((r: any) => r.id);
+                        navigate("/reserva-exitosa", {
+                          state: {
+                            reservas: reservasIds,
+                            ticketId: reservaData?.ticket_id || reservaData?.id || reservaData?.ticketId,
+                            email
+                          }
+                        });
+                      } else {
+                        // Evento con plano: POST a reservar
                         const reservaPayload = { ...payload, confirmada: true };
                         const resp = await fetch(`${API_BASE_URL}/crear-eventos/${evento.id}/reservar/`, {
                           method: "POST",
@@ -392,10 +435,11 @@ export default function ReservarEntrada() {
                           return;
                         }
                         const reservaData = await resp.json();
+                        // Navegar a ReservaExitosa pasando ids das reservas
+                        const reservasIds = (reservaData.reservas || []).map((r: any) => r.id);
                         // Enviar email ao usuario
                         const enviarPayload = {
-                          zona: "central",
-                          entradas: entradasConNome,
+                          entradas: reservasIds.map((id: any) => ({ id })),
                           email: email || "paquinho89@gmail.com"
                         };
                         await fetch(`${API_BASE_URL}/crear-eventos/${evento.id}/enviar-entradas/`, {
@@ -403,43 +447,44 @@ export default function ReservarEntrada() {
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify(enviarPayload),
                         });
-                        // Navegar a ReservaExitosa pasando ids das reservas
-                        const reservasIds = (reservaData.reservas || []).map((r: any) => r.id);
                         navigate("/reserva-exitosa", {
                           state: {
                             reservas: reservasIds,
-                            email: email
+                            ticketId: reservaData?.ticket_id || reservaData?.id || reservaData?.ticketId,
+                            email
                           }
                         });
-                      } catch (err) {
-                        alert("Erro ao reservar ou enviar email");
-                                                setModalError("Erro ao reservar ou enviar email");
-                                    {/* Modal de erro bonito */}
-                                    <Modal show={!!modalError} onHide={() => setModalError(null)} centered>
-                                      <Modal.Header closeButton style={{ background: "#ffe6f3" }}>
-                                        <Modal.Title style={{ color: "#ff0093", display: "flex", alignItems: "center", gap: 8 }}>
-                                          <FaExclamationTriangle style={{ color: "#ff0093", marginRight: 8 }} />
-                                          Aviso
-                                        </Modal.Title>
-                                      </Modal.Header>
-                                      <Modal.Body style={{ background: "#fff" }}>
-                                        <div style={{ color: "#000", fontSize: "1.1em", display: "flex", alignItems: "center", gap: 8 }}>
-                                          {modalError}
-                                        </div>
-                                      </Modal.Body>
-                                      <Modal.Footer style={{ background: "#fff" }}>
-                                        <Button variant="secondary" onClick={() => setModalError(null)}>
-                                          Pechar
-                                        </Button>
-                                      </Modal.Footer>
-                                    </Modal>
-                        return;
                       }
                     }
-                  }}
+                  } catch (err) {
+                    setModalError("Erro ao reservar ou enviar email");
+                  } finally {
+                    setGardando(false);
+                  }
+                }}
                 >
-                  Reservar
+                  {gardando ? "Reservando..." : "Reservar"}
                 </Button>
+
+        {/* Modal de erro bonito */}
+        <Modal show={!!modalError} onHide={() => setModalError(null)} centered>
+          <Modal.Header closeButton style={{ background: "#ffe6f3" }}>
+            <Modal.Title style={{ color: "#ff0093", display: "flex", alignItems: "center", gap: 8 }}>
+              <FaExclamationTriangle style={{ color: "#ff0093", marginRight: 8 }} />
+              Aviso
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body style={{ background: "#fff" }}>
+            <div style={{ color: "#000", fontSize: "1.1em", display: "flex", alignItems: "center", gap: 8 }}>
+              {modalError}
+            </div>
+          </Modal.Body>
+          <Modal.Footer style={{ background: "#fff" }}>
+            <Button variant="secondary" onClick={() => setModalError(null)}>
+              Pechar
+            </Button>
+          </Modal.Footer>
+        </Modal>
               </>
             )}
           </div>
