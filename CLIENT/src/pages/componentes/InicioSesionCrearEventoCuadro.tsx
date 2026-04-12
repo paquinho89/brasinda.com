@@ -34,10 +34,10 @@ function LoginModalCrearEvento({ show, onClose, redirectTo = "/crear-evento/tipo
 
     const [email, setEmail] = useState("");
     const [errorEmail, setErrorEmail] = useState(""); // Pode tomar valor "invalido"
-    const validarEmail = (email: string) => {
-        const expresionRegular = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return expresionRegular.test(email);
-    };
+    // const validarEmail = (email: string) => {
+    //     const expresionRegular = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    //     return expresionRegular.test(email);
+    // };
     const [errorEmailLogin, setErrorEmailLogin] = useState("");
 
 

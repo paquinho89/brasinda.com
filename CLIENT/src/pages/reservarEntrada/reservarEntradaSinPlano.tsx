@@ -104,31 +104,17 @@ export default function ReservarEntradaSinPlano() {
 		setEmailSuscripcion("");
 	};
 
-	const isFormValid = () => {
-		if (cantidadeReservar <= 0) {
-			return false;
-		}
-
-		if (nomearTodas) {
-			const nomesValidos = nomesAsistentes.slice(0, cantidadeReservar);
-			return nomesValidos.every((nome) => nome.trim().length > 0);
-		}
-
-		if (!nomeXeral.trim().length) {
-			return false;
-		}
-
-		const isValidEmail = (email: string) => {
-			// Simple email regex
-			return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-		};
-
-		if (!emailSuscripcion.trim().length || !isValidEmail(emailSuscripcion)) {
-			return false;
-		}
-
-		return true;
-	};
+	// const isFormValid = () => {
+	//   if (cantidadeReservar <= 0) return false;
+	//   if (nomearTodas) {
+	//     const nomesValidos = nomesAsistentes.slice(0, cantidadeReservar);
+	//     return nomesValidos.every((nome) => nome.trim().length > 0);
+	//   }
+	//   if (!nomeXeral.trim().length) return false;
+	//   const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+	//   if (!emailSuscripcion.trim().length || !isValidEmail(emailSuscripcion)) return false;
+	//   return true;
+	// };
 
 	const gardarReserva = async () => {
 		setError(null);

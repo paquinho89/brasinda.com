@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 // import { Button } from "react-bootstrap";
 import { Button, Modal } from "react-bootstrap";
-import AuditorioSelectorVerin from "../planoAuditorios/auditorioBotones/auditorioVerin";
-import AuditorioSelectorOurense from "../planoAuditorios/auditorioBotones/auditorioOurense";
+// import AuditorioSelectorVerin from "../planoAuditorios/auditorioBotones/auditorioVerin";
+// import AuditorioSelectorOurense from "../planoAuditorios/auditorioBotones/auditorioOurense";
 import MainNavbar from "../componentes/NavBar";
 
 import { FaCalendarAlt, FaArrowLeft, FaEnvelope, FaUser, FaExclamationTriangle } from "react-icons/fa";
@@ -34,7 +34,7 @@ export default function ReservarEntrada() {
   const [evento, setEvento] = useState<Evento | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [openZonaCentralSignal] = useState(0);
+  // const [openZonaCentralSignal] = useState(0);
   const butacasRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
   // Inputs para email e nome
@@ -74,7 +74,7 @@ export default function ReservarEntrada() {
   });
 
   // Gardar todas as seleccións cando se eliminan butacas
-  const handleEliminarButaca = (seat: any, idx: number) => {
+  const handleEliminarButaca = (_seat: any, idx: number) => {
     setEntradasSeleccionadas(prev => {
       const novas = prev.filter((_, i) => i !== idx);
       // Actualizar localStorage para todas as zonas
@@ -157,7 +157,7 @@ export default function ReservarEntrada() {
   const normalizar = (t: string) =>
     t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-  const lugarKey = normalizar(evento.localizacion);
+  // const lugarKey = normalizar(evento.localizacion);
 
   return (
     <>

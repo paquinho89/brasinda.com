@@ -1,11 +1,11 @@
 import API_BASE_URL from "../../utils/api";
 import React, { useState, useEffect } from "react";
-import { FaArrowLeft } from "react-icons/fa";
+// import { FaArrowLeft } from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
 import "../../estilos/infoPagamento.css";
 
 import "../../estilos/infoPagamento.css";
-import SummaryBox from "./SummaryBox";
+// import SummaryBox from "./SummaryBox";
 
 interface SelectedSeat {
   row: number;
