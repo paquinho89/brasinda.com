@@ -1,8 +1,8 @@
 // Listado de zonas por auditorio, nomes normalizados para usar en formularios e selects
 export const ZONAS_AUDITORIOS: Record<string, string[]> = {
   "auditorio de verin": [
-    "ZonaCentral",
-    "ZonaDereita",
+    "Zona Central",
+    "Zona Dereita",
     "ZonaEsquerda",
     "Anfiteatro"
   ],

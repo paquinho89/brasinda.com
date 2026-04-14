@@ -117,119 +117,101 @@ const PrezoContaBancaria: React.FC = () => {
       <Card.Body className="p-4">
         <h3 className="text-center mb-4">Prezo da entrada</h3>
         {/* Botón para mostrar/ocultar zonas do auditorio para calquera auditorio con zonas */}
-        {(() => {
-          // Normalización consistente para lookup e comparación
-          const normalize = (str: string) => (str || "").normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-          const lugarEventoNorm = normalize(evento.lugar);
-          const zonasKeys = Object.keys(ZONAS_AUDITORIOS);
-          const normalizedKeyMap = Object.fromEntries(zonasKeys.map(k => [normalize(k), k]));
-          const audKey = normalizedKeyMap[lugarEventoNorm];
-          const zonas = audKey ? ZONAS_AUDITORIOS[audKey] : undefined;
-          // Mostrar botón se o lugar coincide con calquera auditorio con zonas
-          if (zonas && zonas.length > 0) {
-            return (
-              <div className="mb-4">
-                {mostrarZonas && (
-                  <div className="p-3 bg-light rounded border">
-                    <h5 className="mb-2">Zonas do Auditorio:</h5>
-                    <ul className="mb-0 ps-4">
-                      {zonas.map(zona => (
-                        <li key={zona} style={{ fontWeight: 500 }}>{zona}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            );
-          }
-          // Se non hai match, mostrar advertencia de depuración
-          if (evento.lugar && !zonas) {
-            return (
-              <div style={{ color: "red", margin: "1em 0" }}>
-                <strong>Advertencia:</strong> Non se atoparon zonas para o auditorio "{evento.lugar}".<br />
-                Normalized lugar: <code>{lugarEventoNorm}</code><br />
-                Normalized keys: <code>{JSON.stringify(Object.keys(normalizedKeyMap))}</code>
-              </div>
-            );
-          }
-          return null;
-        })()}
+        {/* Eliminado: bloque de visualización de zonas do auditorio */}
         <Form onSubmit={handleSubmit}>
               {/* Opción de prezos por zona só se hai zonas */}
               {(() => {
                 const lugarEvento = (evento.lugar || "").toLowerCase();
                 const zonas = Array.isArray(ZONAS_AUDITORIOS[lugarEvento]) ? ZONAS_AUDITORIOS[lugarEvento] : [];
                 if (zonas.length === 0) return null;
+              })()}
+              {/* Prezo da entrada xeral só visible se non se mostran as zonas */}
+              {!mostrarZonas && (
+                <Form.Group className="mb-3">
+                  <Form.Label>Prezo da entrada (€)</Form.Label>
+                  <InputGroup>
+                    <InputGroup.Text>€</InputGroup.Text>
+                    <Form.Control
+                      type="text"
+                      inputMode="decimal"
+                      value={prezo}
+                      placeholder="Prezo da entrada"
+                      onChange={e => {
+                        const value = e.target.value.replace(".", ",");
+                        const regex = /^\d*(,\d{0,2})?$/;
+                        if (regex.test(value)) setPrezo(value);
+                      }}
+                      onBlur={() => {
+                        if (!prezo) return;
+                        let [intPart, decPart] = prezo.split(",");
+                        if (!decPart) decPart = "00";
+                        else if (decPart.length === 1) decPart += "0";
+                        else if (decPart.length > 2) decPart = decPart.slice(0, 2);
+                        setPrezo(`${intPart},${decPart}`);
+                      }}
+                    />
+                  </InputGroup>
+                  {errorPrezo && (
+                    <div className="text-danger mt-2">{errorPrezo}</div>
+                  )}
+                  {prezoValidoVista && evento.tipo_gestion_entrada === "pagina" && (
+                    <div className="mt-2 text-secondary">
+                      <div>
+                        <ul>
+                          <li>Prezo venta público: {prezoVentaPublico.toFixed(2).replace(".", ",")} €.</li>
+                          <li>Gastos de xestión (5%): {gastosXestion.toFixed(2).replace(".", ",")} €.</li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                </Form.Group>
+              )}
+              {(() => {
+                // Normalizar para comparar ignorando maiúsculas/minúsculas e acentos
+                const normalize = (str: string) => (str || "").normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+                const lugarNorm = normalize(evento.lugar);
+                const audVerin = normalize("Auditorio de Verín");
+                const audOurense = normalize("Auditorio de Ourense");
+                const audSantiago = normalize("Auditorio de Santiago");
+                if (![audVerin, audOurense, audSantiago].includes(lugarNorm)) return null;
                 return (
-                  <div className="mb-3">
-                    <Button
-                      variant={usarPrezoporZona ? "secondary" : "outline-secondary"}
-                      className="mb-2"
-                      onClick={() => setUsarPrezoporZona((v) => !v)}
-                    >
-                      {usarPrezoporZona ? "Prezo único por entrada" : "Diferentes prezos por zona"}
-                    </Button>
-                  </div>
+                  <Button
+                    variant={mostrarZonas ? "secondary" : "outline-secondary"}
+                    className="boton-avance"
+                    onClick={() => {
+                      setMostrarZonas((prev) => {
+                        const novoEstado = !prev;
+                        setUsarPrezoporZona(novoEstado);
+                        // Inicializar prezosZona se está baleiro e se vai mostrar
+                        if (novoEstado && Object.keys(prezosZona).length === 0) {
+                          setPrezosZona({
+                            "Zona Central": "",
+                            "Zona Dereita": "",
+                            "Zona Esquerda": "",
+                            "Anfiteatro": ""
+                          });
+                        }
+                        return novoEstado;
+                      });
+                    }}
+                  >
+                    Establecer distintos prezos por zona
+                  </Button>
                 );
               })()}
-              {/* Prezo da entrada sempre visible */}
-              <Form.Group className="mb-3">
-                <Form.Label>Prezo da entrada (€)</Form.Label>
-                <InputGroup>
-                  <InputGroup.Text>€</InputGroup.Text>
-                  <Form.Control
-                    type="text"
-                    inputMode="decimal"
-                    value={prezo}
-                    placeholder="Prezo da entrada"
-                    onChange={e => {
-                      const value = e.target.value.replace(".", ",");
-                      const regex = /^\d*(,\d{0,2})?$/;
-                      if (regex.test(value)) setPrezo(value);
-                    }}
-                    onBlur={() => {
-                      if (!prezo) return;
-                      let [intPart, decPart] = prezo.split(",");
-                      if (!decPart) decPart = "00";
-                      else if (decPart.length === 1) decPart += "0";
-                      else if (decPart.length > 2) decPart = decPart.slice(0, 2);
-                      setPrezo(`${intPart},${decPart}`);
-                    }}
-                  />
-                </InputGroup>
-                {errorPrezo && (
-                  <div className="text-danger mt-2">{errorPrezo}</div>
-                )}
-                {prezoValidoVista && evento.tipo_gestion_entrada === "pagina" && (
-                  <div className="mt-2 text-secondary">
-                    <div>
-                      <ul>
-                        <li>Prezo venta público: {prezoVentaPublico.toFixed(2).replace(".", ",")} €.</li>
-                        <li>Gastos de xestión (5%): {gastosXestion.toFixed(2).replace(".", ",")} €.</li>
-                      </ul>
-                    </div>
-                  </div>
-                )}
-              </Form.Group>
-              <Button
-                  variant={mostrarZonas ? "secondary" : "outline-secondary"}
-                  className="boton-avance"
-                  onClick={() => setMostrarZonas(v => !v)}
-                >
-                  Establecer distintos prezos por zona
-                </Button>
               {/* Inputs dinámicos para prezos por zona, só se está activado */}
-              {usarPrezoporZona && (() => {
-                const normalize = (str: string) => str.normalize('NFD').replace(/[\u0000-\u036f]/g, "");
-                const lugarEvento = normalize((evento.lugar || "").toLowerCase());
-                const zonas = ZONAS_AUDITORIOS[lugarEvento] || [];
-                if (!zonas.length) return null;
+              {mostrarZonas && (() => {
+                // Normalizar o nome do auditorio igual que no resto do ficheiro
+                const normalize = (str: string) => (str || "").normalize('NFD').replace(/[ -\u036f]/g, '').toLowerCase().trim();
+                const lugarEventoNorm = normalize(evento.lugar);
+                const zonasKeys = Object.keys(ZONAS_AUDITORIOS);
+                const normalizedKeyMap = Object.fromEntries(zonasKeys.map(k => [normalize(k), k]));
+                const audKey = normalizedKeyMap[lugarEventoNorm];
+                const zonas = audKey ? ZONAS_AUDITORIOS[audKey] : [];
                 return (
                   <>
                     {zonas.map((zona) => {
-                      let key = zona.replace(/^zona/i, "").toLowerCase();
-                      let label = key.charAt(0).toUpperCase() + key.slice(1);
-                      if (key === "anfiteatro") label = "Anfiteatro";
+                      let label = zona.replace(/^Zona ?/i, "");
                       return (
                         <Form.Group className="mb-3" key={zona}>
                           <Form.Label>Prezo {label} (€)</Form.Label>
@@ -239,7 +221,7 @@ const PrezoContaBancaria: React.FC = () => {
                               type="text"
                               inputMode="decimal"
                               value={prezosZona[zona] || ""}
-                              placeholder={`Prezo ${label}`}
+                              placeholder={`0`}
                               onChange={e => {
                                 const value = e.target.value.replace(".", ",");
                                 const regex = /^\d*(,\d{0,2})?$/;

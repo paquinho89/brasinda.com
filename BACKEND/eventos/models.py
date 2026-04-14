@@ -34,6 +34,7 @@ class Evento(models.Model):
     descripcion_evento = models.TextField()
     imaxe_evento = models.ImageField(upload_to='eventos/', blank=True, null=True)
     data_evento = models.DateTimeField()
+    duracion = models.PositiveIntegerField(default=0)
     localizacion = models.CharField(max_length=200, blank=True, null=True)
     localidade = models.CharField(max_length=100, blank=True, null=True)
     nota_lugar = models.CharField(max_length=100, blank=True, null=True)

@@ -63,7 +63,7 @@ export default function Fecha() {
     setEvento({ 
       ...evento, 
       fecha: fechaCompleta,
-      duracion: duracion // pode ser string baleiro se non se completa
+      duracion: duracion ? Number(duracion) : 0
     });
 
     navigate("/crear-evento/lugar");
