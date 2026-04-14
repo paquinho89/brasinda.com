@@ -66,6 +66,14 @@ class Evento(models.Model):
         return self.nome_evento
 
 
+class ZonaPrezo(models.Model):
+    evento = models.ForeignKey(Evento, on_delete=models.CASCADE, related_name="zonas")
+    nome = models.CharField(max_length=100)
+    prezo = models.DecimalField(max_digits=6, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.nome} ({self.prezo} €) - {self.evento.nome_evento}"
+
 class ReservaButaca(models.Model):
     TIPO_RESERVA_INVITACION = 'invitacion'
     TIPO_RESERVA_VENTA = 'venta'

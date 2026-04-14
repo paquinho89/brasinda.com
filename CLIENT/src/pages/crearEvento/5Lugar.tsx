@@ -173,6 +173,40 @@ const LugarPaso: React.FC = () => {
             Lugar do evento
           </h3>
 
+          {/* SELECT TIPO LUGAR */}
+          <div className="mb-3">
+            <label
+              htmlFor="place-select"
+              className="form-label"
+            >
+              Tipo de lugar
+            </label>
+
+            <select
+              id="place-select"
+              className="form-select"
+              value={selectedPlace}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedPlace(val);
+                setEvento((prev) => ({
+                  ...prev,
+                  ubicacion: val,
+                }));
+              }}
+            >
+              <option value="">
+                Selecciona unha opción
+              </option>
+
+              {PLACE_TYPES.map((place) => (
+                <option key={place} value={place}>
+                  {place}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* AUTOCOMPLETE + NOTA */}
           <div className="mb-4">
             <label className="form-label">Buscar lugar</label>
@@ -209,39 +243,6 @@ const LugarPaso: React.FC = () => {
             )}
           </div>
 
-          {/* SELECT TIPO LUGAR */}
-          <div className="mb-3">
-            <label
-              htmlFor="place-select"
-              className="form-label"
-            >
-              Tipo de lugar
-            </label>
-
-            <select
-              id="place-select"
-              className="form-select"
-              value={selectedPlace}
-              onChange={(e) => {
-                const val = e.target.value;
-                setSelectedPlace(val);
-                setEvento((prev) => ({
-                  ...prev,
-                  ubicacion: val,
-                }));
-              }}
-            >
-              <option value="">
-                Selecciona unha opción
-              </option>
-
-              {PLACE_TYPES.map((place) => (
-                <option key={place} value={place}>
-                  {place}
-                </option>
-              ))}
-            </select>
-          </div>
           <div className="mb-3 mt-4 d-flex justify-content-between align-items-center">
             <Button
               className="boton-avance"

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { getDefaultImageFile } from "./3Imagen";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import { Button, Container, Card } from "react-bootstrap";
-import type { OutletContext } from "../crearEvento/0ElementoPadre";
+import type { OutletContext } from "./0ElementoPadre";
 import API_BASE_URL from "../../utils/api";
 import { FaArrowLeft } from "react-icons/fa";
 

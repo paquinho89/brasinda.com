@@ -39,7 +39,7 @@ const Entradas: React.FC = () => {
     setEvento({ ...evento, entradas: Number(entradas) });
 
     // Navegar ao seguinte paso
-    navigate("/crear-evento/prezo"); // Cambia a ruta segundo o teu wizard
+    navigate("/crear-evento/gestion-entradas");
   };
 
   return (

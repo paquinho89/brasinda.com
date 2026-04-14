@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import { Button, Form, Container, Card } from "react-bootstrap";
-import type { OutletContext } from "../crearEvento/0ElementoPadre";
+import type { OutletContext } from "./0ElementoPadre";
 import { FaArrowLeft } from "react-icons/fa";
 
 const CondicionesLegales: React.FC = () => {

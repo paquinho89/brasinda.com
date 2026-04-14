@@ -22,6 +22,7 @@ export interface Evento {
   tipo_gestion_entrada?: "pagina" | "manual" | "gratis" | null;
   procedimiento_cobro_manual?: string;
   condicionesConfirmacion: boolean;
+  precios_zona?: { [zona: string]: string };
 }
 
 export interface OutletContext {
@@ -85,6 +86,7 @@ export function CreateEventLayout() {
     "/crear-evento/fecha",
     "/crear-evento/lugar",
     "/crear-evento/entradas",
+    "/crear-evento/gestion-entradas",
     "/crear-evento/prezo",
     "/crear-evento/condiciones-legales",
     "/crear-evento/resumen",

@@ -1,4 +1,4 @@
-import { Container, Card, Form, Button } from "react-bootstrap";
+import { Container, Card, Form, Button, InputGroup } from "react-bootstrap";
 import { useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa";
@@ -29,6 +29,8 @@ export default function Fecha() {
     }
   }
   const [hora, setHora] = useState(horaInicial);
+  // Duración do evento (opcional)
+  const [duracion, setDuracion] = useState(evento.duracion || "");
   const fechaValida = fecha instanceof Date && !isNaN(fecha.getTime());
   const horaValida = /^\d{2}:\d{2}$/.test(hora);
   const formularioIncompleto = !fechaValida || !horaValida;
@@ -40,6 +42,19 @@ export default function Fecha() {
       return;
     }
 
+    // Validación: se a data é hoxe, a hora debe ser posterior á actual
+    const agora = new Date();
+    const selectedDate = new Date(fecha!);
+    const [h, m] = hora.split(":").map(Number);
+    selectedDate.setHours(h, m, 0, 0);
+
+    // Só comprobar hora se a data é hoxe
+    const isToday = fecha && fecha instanceof Date && fecha.getFullYear() === agora.getFullYear() && fecha.getMonth() === agora.getMonth() && fecha.getDate() === agora.getDate();
+    if (isToday && selectedDate <= agora) {
+      setError("A hora debe ser posterior á actual");
+      return;
+    }
+
     const formattedDate = fecha instanceof Date
       ? `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}-${String(fecha.getDate()).padStart(2, "0")}`
       : "";
@@ -47,7 +62,8 @@ export default function Fecha() {
 
     setEvento({ 
       ...evento, 
-      fecha: fechaCompleta 
+      fecha: fechaCompleta,
+      duracion: duracion // pode ser string baleiro se non se completa
     });
 
     navigate("/crear-evento/lugar");
@@ -178,6 +194,27 @@ export default function Fecha() {
                 </div>
               </div>
             </Form.Group>
+
+            {/* Duración do evento (opcional) */}
+            <div style={{ height: 20 }} />
+            <Form.Group className="mb-3">
+              <Form.Label>Duración do evento <span style={{ color: '#888', fontWeight: 400 }}>(opcional)</span></Form.Label>
+              <InputGroup>
+                <Form.Control
+                  type="number"
+                  min="1"
+                  step="1"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  placeholder="0"
+                  value={duracion}
+                  onChange={e => setDuracion(e.target.value.replace(/[^0-9]/g, ""))}
+                  style={{ maxWidth: 180 }}
+                />
+                <InputGroup.Text>min</InputGroup.Text>
+              </InputGroup>
+            </Form.Group>
+
             {error && <div className="alert alert-danger mt-2">{error}</div>}
 
             <div className="mt-4 d-flex justify-content-between">

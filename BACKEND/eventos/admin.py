@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Evento, ReservaButaca, SuscripcionNewsletter
+from .models import Evento, ZonaPrezo, ReservaButaca, SuscripcionNewsletter
 
 # Register your models here.
 
@@ -7,6 +7,9 @@ from .models import Evento, ReservaButaca, SuscripcionNewsletter
 class EventoAdmin(admin.ModelAdmin):
     list_display = ("id", "nome_evento", "data_evento", "localizacion", "organizador", "gastos_xestion")
 
+@admin.register(ZonaPrezo)
+class ZonaPrezoAdmin(admin.ModelAdmin):
+    list_display = ("id", "nome", "prezo", "evento")
 
 @admin.register(ReservaButaca)
 class ReservaButacaAdmin(admin.ModelAdmin):
