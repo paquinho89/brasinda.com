@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Evento, ReservaButaca
+from .models import Evento, ReservaButaca, ZonaPrezo
 
 class EventoSerializer(serializers.ModelSerializer):
     entradas_vendidas = serializers.SerializerMethodField()
@@ -14,7 +14,31 @@ class EventoSerializer(serializers.ModelSerializer):
         # Se non se especifica gastos_xestion, poñer 5 por defecto
         if 'gastos_xestion' not in validated_data or validated_data['gastos_xestion'] is None:
             validated_data['gastos_xestion'] = 5
-        return super().create(validated_data)
+
+        # Extraer prezos por zona do contexto/request
+        request = self.context.get('request')
+        precios_zona = None
+        if request and hasattr(request, 'data'):
+            precios_zona = request.data.get('precios_zona')
+            if isinstance(precios_zona, str):
+                import json
+                try:
+                    precios_zona = json.loads(precios_zona)
+                except Exception:
+                    precios_zona = None
+
+        evento = super().create(validated_data)
+
+        # Crear ZonaPrezo se hai prezos por zona
+        if precios_zona and isinstance(precios_zona, dict):
+            for nome, prezo in precios_zona.items():
+                try:
+                    prezo_float = float(str(prezo).replace(",", "."))
+                except Exception:
+                    continue
+                ZonaPrezo.objects.create(evento=evento, nome=nome, prezo=prezo_float)
+
+        return evento
 
     def get_entradas_vendidas(self, obj):
         """Calcula as entradas vendidas dinamicamente desde ReservaButaca"""

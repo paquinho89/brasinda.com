@@ -41,11 +41,15 @@ const Resumen: React.FC = () => {
     if (precioBackend !== null) formData.append("prezo_evento", precioBackend);
     if (evento.tipo_gestion_entrada) formData.append("tipo_gestion_entrada", evento.tipo_gestion_entrada);
     if (evento.procedimiento_cobro_manual) formData.append("procedimiento_cobro_manual", evento.procedimiento_cobro_manual);
-      if (evento.localidade) formData.append("localidade", evento.localidade);
-      if (evento.nota_lugar) formData.append("nota_lugar", evento.nota_lugar);
-      if (evento.coordenadas && evento.coordenadas.length > 0) {
-        formData.append("coordenadas", JSON.stringify(evento.coordenadas));
-      }
+    if (evento.localidade) formData.append("localidade", evento.localidade);
+    if (evento.nota_lugar) formData.append("nota_lugar", evento.nota_lugar);
+    if (evento.coordenadas && evento.coordenadas.length > 0) {
+      formData.append("coordenadas", JSON.stringify(evento.coordenadas));
+    }
+    // Gardar prezos por zona se existen
+    if (evento.precios_zona && Object.keys(evento.precios_zona).length > 0) {
+      formData.append("precios_zona", JSON.stringify(evento.precios_zona));
+    }
     formData.append(
       "condiciones_confirmacion",
       evento.condicionesConfirmacion ? "true" : "false"

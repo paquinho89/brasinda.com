@@ -92,7 +92,7 @@ const GestionEntradas: React.FC = () => {
                       onClick={() => {
                         setEvento({ ...evento, tipo_gestion_entrada: "manual", procedimiento_cobro_manual: manualPaymentProcedure });
                         setShowManualModal(false);
-                        navigate("/crear-evento/condiciones-legales");
+                        navigate("/crear-evento/prezo");
                       }}
                       disabled={!manualPaymentProcedure.trim()}
                     >

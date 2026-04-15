@@ -4,21 +4,18 @@ import React, { useState, useEffect } from "react";
 import type { OutletContext } from "./0ElementoPadre";
 import { FaArrowLeft } from "react-icons/fa";
 import { ZONAS_AUDITORIOS } from "../planoAuditorios/ZonasAuditorios";
+import { FaExclamationTriangle } from "react-icons/fa";
 
 const PrezoContaBancaria: React.FC = () => {
   const [mostrarZonas, setMostrarZonas] = React.useState(false);
   const { evento, setEvento } = useOutletContext<OutletContext>();
   const [prezo, setPrezo] = useState<string>("");
   // Estados dinámicos para prezos por zona
-  const [usarPrezoporZona, setUsarPrezoporZona] = useState(false);
   const [prezosZona, setPrezosZona] = useState<{ [zona: string]: string }>({});
   const [errorPrezoZona, setErrorPrezoZona] = useState("");
   const [errorPrezo, setErrorPrezo] = useState<string>("");
   const navigate = useNavigate();
 
-  const [tipoEntrada, setTipoEntrada] = useState<"gratis" | "pago" | null>(null);
-  // const [showManualPaymentModal, setShowManualPaymentModal] = useState<boolean>(false);
-  // const [manualPaymentProcedure, setManualPaymentProcedure] = useState<string>("");
   const prezoNumericoVista = Number(prezo.replace(",", "."));
   const prezoValidoVista = prezo !== "" && !isNaN(prezoNumericoVista) && prezoNumericoVista > 0;
   // Novo cálculo: Prezo venta público = prezo + 5%
@@ -28,6 +25,17 @@ const PrezoContaBancaria: React.FC = () => {
   // 🔹 Inicializar cos valores gardados
 
   useEffect(() => {
+    // Primeiro, intentar cargar prezosZona do localStorage
+    const prezosZonaLS = localStorage.getItem("prezosZona");
+    let prezosZonaInicial: { [zona: string]: string } | null = null;
+    if (prezosZonaLS) {
+      try {
+        prezosZonaInicial = JSON.parse(prezosZonaLS);
+        if (prezosZonaInicial && typeof prezosZonaInicial === 'object' && !Array.isArray(prezosZonaInicial)) {
+          setPrezosZona(prezosZonaInicial);
+        }
+      } catch {}
+    }
     if (evento.precio) {
       const precioNum = Number(evento.precio.replace(",", "."));
       if (!isNaN(precioNum) && precioNum > 0) {
@@ -39,76 +47,100 @@ const PrezoContaBancaria: React.FC = () => {
       setPrezo("");
     }
     // Detectar se é auditorio e activar prezos por zona automaticamente
-    // Normalizar lugarEvento quitando acentos
-    const normalize = (str: string) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
-    const lugarEvento = normalize((evento.lugar || "").toLowerCase());
-    const zonas = ZONAS_AUDITORIOS[lugarEvento] || [];
-    if (zonas.length > 0) {
-      setUsarPrezoporZona(true);
-    } else {
-      setUsarPrezoporZona(false);
-    }
-    if (evento.precios_zona && zonas.length > 0) {
-      // Construír o estado para os inputs: { 'ZonaCentral': valor, ... }
-      const prezos: { [zona: string]: string } = {};
-      zonas.forEach(zona => {
-        let key = zona.replace(/^zona/i, "").toLowerCase();
-        if (key === "anfiteatro") key = "anfiteatro";
-        prezos[zona] = evento.precios_zona?.[key] || "";
-      });
-      setPrezosZona(prezos);
-    } else if (evento.precios_zona) {
-      setPrezosZona({ ...evento.precios_zona });
-    } else {
-      setPrezosZona({});
+    // Usar sempre a mesma función de normalización
+    const normalizeAuditorio = (str: string) => (str || "").normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "").toLowerCase().trim();
+    const zonasKeys = Object.keys(ZONAS_AUDITORIOS);
+    const normalizedKeyMap = Object.fromEntries(zonasKeys.map(k => [normalizeAuditorio(k), k]));
+    const lugarEventoNorm = normalizeAuditorio(evento.lugar);
+    const audKey = normalizedKeyMap[lugarEventoNorm];
+    const zonas = audKey ? ZONAS_AUDITORIOS[audKey] : [];
+    // Sempre sincronizar prezosZona co evento, se existen prezos gardados, pero só se non se cargou de localStorage
+    if (!prezosZonaLS) {
+      if (evento.precios_zona && zonas.length > 0) {
+        const prezos: { [zona: string]: string } = {};
+        zonas.forEach(zona => {
+          let key = zona.replace(/^zona/i, "").toLowerCase();
+          if (key === "anfiteatro") key = "anfiteatro";
+          prezos[zona] = evento.precios_zona?.[key] || "";
+        });
+        setPrezosZona(prezos);
+      } else if (evento.precios_zona) {
+        // Mapear as claves de prezos_zona ás zonas do auditorio se existen
+        const prezos: { [zona: string]: string } = {};
+        Object.entries(evento.precios_zona).forEach(([key, val]) => {
+          // Buscar a zona correspondente
+          const zona = zonas.find(z => z.replace(/^zona/i, "").toLowerCase() === key);
+          if (zona) prezos[zona] = val;
+        });
+        setPrezosZona(prezos);
+      } else {
+        setPrezosZona({});
+      }
     }
   }, [evento]);
 
 
+  // Gardar prezosZona en localStorage cando cambie
+  useEffect(() => {
+    localStorage.setItem("prezosZona", JSON.stringify(prezosZona));
+  }, [prezosZona]);
+
   const handleSubmit = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    let hasError = false;
-    if (usarPrezoporZona) {
-      // Detectar auditorio seleccionado
-      const lugarEvento = (evento.lugar || "").toLowerCase();
-      const zonas = ZONAS_AUDITORIOS[lugarEvento] || [];
-      // Validar todos os prezos de zona
-      for (let i = 0; i < zonas.length; i++) {
-        const zona = zonas[i];
-        const valor = Number((prezosZona[zona] || "").replace(",", "."));
-        if (!prezosZona[zona] || isNaN(valor) || valor <= 0) {
-          setErrorPrezoZona(`Por favor, introduce un prezo válido para a zona ${zona}`);
-          hasError = true;
-          break;
-        }
-      }
-      if (!hasError) setErrorPrezoZona("");
-      if (hasError) return;
-      // Gardar prezos de zona no evento
-      setEvento({
-        ...evento,
-        precios_zona: zonas.reduce((acc, zona) => {
-          // Normalizar: quitar 'Zona'/'zona' e pasar a minúsculas
+    if (e) e.preventDefault();    // Detectar auditorio seleccionado
+    const normalizeAuditorio = (str: string) => (str || "").normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "").toLowerCase().trim();
+    const zonasKeys = Object.keys(ZONAS_AUDITORIOS);
+    const normalizedKeyMap = Object.fromEntries(zonasKeys.map(k => [normalizeAuditorio(k), k]));
+    const lugarEventoNorm = normalizeAuditorio(evento.lugar);
+    const audKey = normalizedKeyMap[lugarEventoNorm];
+    const zonasAuditorio = audKey ? ZONAS_AUDITORIOS[audKey] : [];
+    // Se se mostran as zonas, usar as zonas do auditorio (inputs visibles)
+    const zonas = mostrarZonas ? zonasAuditorio : [];
+    // Comprobación: ou prezo xeral OU todos os prezos de zona deben estar completos
+    let prezoXeralCuberto = prezo !== "" && !isNaN(Number(prezo.replace(",", "."))) && Number(prezo.replace(",", ".")) > 0;
+    // Comprobar só as zonas visibles cando mostrarZonas é true, sen depender do texto das claves
+    const todasZonasCubertas = mostrarZonas && zonas.length > 0 && zonas.every((_, idx) => {
+      // O input visible é prezosZona[zonasAuditorio[idx]]
+      const raw = prezosZona[zonasAuditorio[idx]];
+      const valor = Number((raw || "").replace(",", "."));
+      const valido = raw !== undefined && raw !== null && raw.trim() !== "" && !isNaN(valor) && valor > 0;
+      return valido;
+    });
+    // DEBUG: imprimir valores en consola
+    console.log('todasZonasCubertas:', todasZonasCubertas, 'prezoXeralCuberto:', prezoXeralCuberto, 'zonas:', zonas.length, 'mostrar Zonas:', mostrarZonas);
+
+    // Permitir avanzar se todos os prezos das zonas están cubertos OU prezo xeral cuberto
+    if (todasZonasCubertas || prezoXeralCuberto) {
+      setErrorPrezo("");
+      setErrorPrezoZona("");
+      // Gardar sempre prezos_zona se hai algún valor cuberto
+      let prezosZonaGardar: { [zona: string]: string } | undefined = undefined;
+      if (zonas.length > 0 && Object.values(prezosZona).some(v => v && v.trim() !== "")) {
+        prezosZonaGardar = zonas.reduce((acc, zona) => {
           let key = zona.replace(/^zona/i, "").toLowerCase();
-          if (key === "anfiteatro") key = "anfiteatro"; // keep as is
+          if (key === "anfiteatro") key = "anfiteatro";
           acc[key] = Number((prezosZona[zona] || "").replace(",", ".")).toFixed(2).replace(".", ",");
           return acc;
-        }, {} as { [zona: string]: string })
-      });
+        }, {} as { [zona: string]: string });
+      }
+      if (todasZonasCubertas) {
+        setEvento({
+          ...evento,
+          precio: '',
+          precios_zona: prezosZonaGardar
+        });
+      } else {
+        const precioNumerico = Number(prezo.replace(",", "."));
+        setEvento({ ...evento, precio: precioNumerico.toFixed(2).replace(".", ","), precios_zona: prezosZonaGardar });
+      }
+      // Limpar prezosZona do localStorage ao avanzar
+      localStorage.removeItem("prezosZona");
       navigate("/crear-evento/condiciones-legales");
       return;
     }
-    // Prezo único
-    const precioNumerico = Number(prezo.replace(",", "."));
-    if (!prezo || isNaN(precioNumerico) || precioNumerico <= 0) {
-      setErrorPrezo("Por favor, introduce un prezo válido");
-      hasError = true;
-    } else {
-      setErrorPrezo("");
-    }
-    if (hasError) return;
-    setEvento({ ...evento, precio: precioNumerico.toFixed(2).replace(".", ",") });
-    navigate("/crear-evento/condiciones-legales");
+    // Se non se cumpre ningunha, mostrar erro
+    setErrorPrezo("Falta o prezo");
+    setErrorPrezoZona("Cubre o prezo en todas as zonas");
+    return;
   };
 
   return (
@@ -151,8 +183,12 @@ const PrezoContaBancaria: React.FC = () => {
                       }}
                     />
                   </InputGroup>
+                  {/* Só mostrar erro se realmente se require o prezo xeral */}
                   {errorPrezo && (
-                    <div className="text-danger mt-2">{errorPrezo}</div>
+                    <div className="alert alert-danger" style={{ background: "#ffe6f3", color: "#000", marginTop: 0, display: 'flex', alignItems: 'center' }}>
+                        <FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
+                        {errorPrezo}
+                    </div>
                   )}
                   {prezoValidoVista && evento.tipo_gestion_entrada === "pagina" && (
                     <div className="mt-2 text-secondary">
@@ -181,7 +217,6 @@ const PrezoContaBancaria: React.FC = () => {
                     onClick={() => {
                       setMostrarZonas((prev) => {
                         const novoEstado = !prev;
-                        setUsarPrezoporZona(novoEstado);
                         // Inicializar prezosZona se está baleiro e se vai mostrar
                         if (novoEstado && Object.keys(prezosZona).length === 0) {
                           setPrezosZona({
@@ -242,7 +277,10 @@ const PrezoContaBancaria: React.FC = () => {
                       );
                     })}
                     {errorPrezoZona && (
-                      <div className="text-danger mt-2">{errorPrezoZona}</div>
+                      <div className="alert alert-danger" style={{ background: "#ffe6f3", color: "#000", marginTop: 0, display: 'flex', alignItems: 'center' }}>
+                        <FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
+                        {errorPrezoZona}
+                    </div>
                     )}
                   </>
                 );
