@@ -11,16 +11,6 @@ import "../estilos/Botones.css";
 import { useAuth } from "./AuthContext";
 import confetti from "canvas-confetti";
 
-  id: number;
-  imaxe_evento?: string | null;
-  nome_evento: string;
-  data_evento: string;
-  tipo_evento: string;
-  localizacion: string;
-  localidade: string;
-  entradas_venta: number;
-  prezo_evento?: number;
-}
 
 interface Evento {
   id: number;
@@ -66,10 +56,7 @@ function Home() {
         const resp = await fetch(`${API_BASE_URL}/crear-eventos/publicos/`);
         if (!resp.ok) throw new Error(`Error al cargar eventos: ${resp.status}`);
 
-        // Engadimos fallback para localidade se non existe
-          ...ev,
-          localidade: ev.localidade || "",
-        }));
+
 
         const data: Evento[] = (await resp.json()).map((ev: any) => ({
           ...ev,
