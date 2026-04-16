@@ -27,6 +27,7 @@ interface EventoHomeProps {
     localidade: string;
     entradas_venta: number;
     prezo_evento?: number;
+    evento_verificado: boolean;
   };
 }
 
@@ -179,7 +180,9 @@ export default function TarjetaEventoHome({ evento }: EventoHomeProps) {
           onClick={handleReservation}
           disabled={evento.entradas_venta === 0}
         >
-          {evento.entradas_venta > 0 ? "Reservar Entrada" : "Agotadas"}
+          {!evento.evento_verificado
+            ? "Ver evento"
+            : (evento.entradas_venta > 0 ? "Reservar Entrada" : "Agotadas")}
         </Button>
       </div>
     </div>

@@ -245,7 +245,14 @@ def crear_evento_view(request):
 
     serializer = EventoSerializer(data=request.data, context={'request': request})
     if serializer.is_valid():
-        serializer.save(organizador=request.user)
+        evento = serializer.save(organizador=request.user)
+        # Enviar email de publicación ao organizador
+        from .email_entradas import enviar_publicacion_evento_email
+        # Construír URLs para o panel e o evento público
+        url_panel = f"https://brasinda.com/panel-organizador/evento/{evento.id}" if not settings.DEBUG else f"http://localhost:5173/panel-organizador/evento/{evento.id}"
+        url_publico = f"https://brasinda.com/evento/{evento.id}" if not settings.DEBUG else f"http://localhost:5173/evento/{evento.id}"
+        email = "paquinho89@gmail.com"  # Forzar destinatario para probas
+        enviar_publicacion_evento_email(email, evento, url_panel, url_publico)
         return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
 

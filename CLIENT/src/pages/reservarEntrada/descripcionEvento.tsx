@@ -34,6 +34,7 @@ interface evento {
   descripcion_evento?: string;
   tipo_evento?: string;
   coordenadas?: [number, number];
+  evento_verificado: boolean;
 }
 
 const normalizarTexto = (texto: string) =>
@@ -220,16 +221,24 @@ export default function DescripcionEvento() {
                 <FaArrowLeft className="me-2" />
                 Volver
               </Button>
-              <Button
-                variant="success"
-                size="lg"
-                className="reserva-entrada-btn"
-                onClick={handleReservation}
-                disabled={evento.entradas_venta === 0}
-              >
-                {evento.entradas_venta > 0 ? "Reservar Entrada" : "Agotadas"}
-              </Button>
+              {evento.evento_verificado && (
+                <Button
+                  variant="success"
+                  size="lg"
+                  className="reserva-entrada-btn"
+                  onClick={handleReservation}
+                  disabled={evento.entradas_venta === 0}
+                >
+                  {evento.entradas_venta > 0 ? "Reservar Entrada" : "Agotadas"}
+                </Button>
+              )}
             </div>
+            {/* Mensaxe se non está verificado */}
+            {!evento.evento_verificado && (
+              <div className="fw-bold my-4" style={{ color: 'black', background: 'none', border: 'none', textAlign: 'left' }}>
+                En breve, as entradas estarán dispoñibles!
+              </div>
+            )}
 
             <div className="card mb-4 p-3">
               <p className="mb-2">
@@ -265,18 +274,20 @@ export default function DescripcionEvento() {
               </div>
             )}
 
-            {/* Boton abajo */}
-            <div className="d-flex">
-              <Button
-                variant="success"
-                size="lg"
-                className="reserva-entrada-btn"
-                onClick={handleReservation}
-                disabled={evento.entradas_venta === 0}
-              >
-                {evento.entradas_venta > 0 ? "Reservar Entrada" : "Agotadas"}
-              </Button>
-            </div>
+            {/* Boton abaixo, só se está verificado */}
+            {evento.evento_verificado && (
+              <div className="d-flex">
+                <Button
+                  variant="success"
+                  size="lg"
+                  className="reserva-entrada-btn"
+                  onClick={handleReservation}
+                  disabled={evento.entradas_venta === 0}
+                >
+                  {evento.entradas_venta > 0 ? "Reservar Entrada" : "Agotadas"}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </Container>

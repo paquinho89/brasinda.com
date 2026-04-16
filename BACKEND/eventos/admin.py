@@ -5,7 +5,7 @@ from .models import Evento, ZonaPrezo, ReservaButaca, SuscripcionNewsletter
 
 @admin.register(Evento)
 class EventoAdmin(admin.ModelAdmin):
-    list_display = ("id", "nome_evento", "data_evento", "localizacion", "organizador", "gastos_xestion")
+    list_display = ("id", "nome_evento", "data_evento", "localizacion", "organizador", "gastos_xestion", "evento_verificado")
 
 @admin.register(ZonaPrezo)
 class ZonaPrezoAdmin(admin.ModelAdmin):

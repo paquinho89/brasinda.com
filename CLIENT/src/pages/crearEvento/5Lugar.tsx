@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button, Container, Card, Form } from "react-bootstrap";
+import { FaExclamationTriangle } from "react-icons/fa";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import type { OutletContext } from "./0ElementoPadre";
 import { GeocoderAutocomplete } from "@geoapify/geocoder-autocomplete";
@@ -31,7 +32,10 @@ const LugarPaso: React.FC = () => {
   const navigate = useNavigate();
 
   // O autocomplete debe ter valor para poder avanzar
-  const formularioIncompleto = !evento?.lugar?.trim() || !selectedPlace;
+  const formularioIncompleto = !inputValue.trim() || !selectedPlace;
+  const [showError, setShowError] = useState(false);
+  const [showErrorTipo, setShowErrorTipo] = useState(false);
+  const [showErrorLugar, setShowErrorLugar] = useState(false);
   useEffect(() => {
     console.log("🔍 Debug:", {
       selectedPlace,
@@ -68,15 +72,24 @@ const LugarPaso: React.FC = () => {
   ================================== */
 
   const handleSubmit = () => {
-    // Usar directamente inputValue y selectedPlace
+    let error = false;
     if (!selectedPlace) {
-      alert("Por favor, selecciona o tipo de lugar");
-      return;
+      setShowErrorTipo(true);
+      error = true;
+    } else {
+      setShowErrorTipo(false);
     }
     if (!inputValue.trim()) {
-      alert("Por favor, selecciona o lugar onde vas a realizar o evento");
+      setShowErrorLugar(true);
+      error = true;
+    } else {
+      setShowErrorLugar(false);
+    }
+    if (error) {
+      setShowError(true);
       return;
     }
+    setShowError(false);
     setEvento({
       ...evento,
       lugar: inputValue.trim(),
@@ -205,6 +218,12 @@ const LugarPaso: React.FC = () => {
                 </option>
               ))}
             </select>
+            {showErrorTipo && (
+              <div className="alert mt-2 mb-0 d-flex align-items-center" style={{ fontSize: '1em', background: '#ffe6f3', color: '#000', border: 'none', fontWeight: 500 }}>
+                <FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
+                Por favor, selecciona o tipo de lugar.
+              </div>
+            )}
           </div>
 
           {/* AUTOCOMPLETE + NOTA */}
@@ -214,6 +233,12 @@ const LugarPaso: React.FC = () => {
               ref={containerRef}
               style={{ width: "100%", position: "relative", zIndex: 1000 }}
             />
+            {showErrorLugar && (
+              <div className="alert mt-2 mb-0 d-flex align-items-center" style={{ fontSize: '1em', background: '#ffe6f3', color: '#000', border: 'none', fontWeight: 500 }}>
+                <FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
+                Por favor, selecciona o lugar do evento.
+              </div>
+            )}
             <div className="mt-2 d-flex justify-content-center">
               <button
                 className="boton-avance"
@@ -254,7 +279,6 @@ const LugarPaso: React.FC = () => {
 
             <Button
               className="reserva-entrada-btn"
-              disabled={formularioIncompleto}
               onClick={handleSubmit}
             >
               Continuar

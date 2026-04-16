@@ -1,3 +1,35 @@
+def enviar_publicacion_evento_email(email, evento, url_panel, url_publico):
+    """
+    Envía un email ao organizador cando se publica un evento, usando a plantilla envio_publicacionEventos.html
+    """
+    from django.template.loader import render_to_string
+    subject = f"brasinda.com: Publicación do evento '{evento.nome_evento}' recibida"
+    data = evento.data_evento
+    data_galego = data.strftime('%A, %d de %B de %Y').capitalize()
+    hora_galego = data.strftime('%H:%M')
+    data_completa = f"{data_galego} ás {hora_galego}"
+    html_body = render_to_string(
+        'eventos/plantilla_email/envio_publicacionEventos.html',
+        {
+            'evento_info': {
+                'nome_evento': evento.nome_evento,
+                'data_evento': data_completa,
+                'lugar_evento': evento.localizacion,
+                'url_panel': url_panel,
+                'url_publico': url_publico,
+            }
+        }
+    )
+    try:
+        resend.Emails.send({
+            "from": settings.DEFAULT_FROM_EMAIL,
+            "to": [email],
+            "subject": subject,
+            "html": html_body,
+        })
+        print(f"[EMAIL PUBLICACION EVENTO] enviado a {email} para evento {evento.nome_evento}")
+    except Exception as e:
+        print(f"[ERRO ENVIANDO EMAIL PUBLICACION EVENTO] para {email}: {e}")
 import resend
 import qrcode
 import os

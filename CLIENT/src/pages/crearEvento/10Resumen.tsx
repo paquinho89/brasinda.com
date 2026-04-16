@@ -78,9 +78,10 @@ const Resumen: React.FC = () => {
 
       if (!response.ok) throw new Error("Erro ao crear o evento");
 
-      await response.json();
+      const data = await response.json();
       localStorage.removeItem("eventoDraft");
-      navigate("/panel-organizador");
+      // Suponse que o backend devolve o id do evento como data.id
+      navigate("/publicacion-exitosa", { state: { eventoId: data.id } });
     } catch (error) {
       console.error(error);
       setError("Erro ao crear o evento. Por favor, inténtao de novo.");
@@ -92,22 +93,18 @@ const Resumen: React.FC = () => {
     if (!dateString) return "-";
     try {
       const date = new Date(dateString);
-
       const data = new Intl.DateTimeFormat("gl-ES", {
         weekday: "long",
         day: "numeric",
         month: "long",
         year: "numeric",
       }).format(date);
-
       const hora = new Intl.DateTimeFormat("gl-ES", {
         hour: "2-digit",
         minute: "2-digit",
       }).format(date);
-
       const dataCapitalizada =
         data.charAt(0).toUpperCase() + data.slice(1);
-
       return `${dataCapitalizada} ás ${hora}`;
     } catch {
       return dateString;
@@ -229,82 +226,82 @@ const Resumen: React.FC = () => {
             <div className="alert alert-danger mb-3">{error}</div>
           )}
 
-          {/* Evento Gratuíto destacado como campo */}
-          {((!evento.precio || parseFloat(evento.precio) === 0) && (!evento.precios_zona || Object.values(evento.precios_zona).every(p => parseFloat((p as string).replace(',', '.')) === 0))) ? (
+          {/* TÁBOA DE PREZO FINAL */}
+          {(evento.tipo_gestion_entrada === "gratis") ? (
             <div className="row mb-3">
               <div className="col-md-6">
-                <strong>Evento Gratuíto:</strong>
+                <strong style={{ color: '#28a745' }}>Evento Gratuíto</strong>
               </div>
-              <div className="col-md-6" style={{ color: '#28a745', fontWeight: 500 }}>Sí</div>
+              <div className="col-md-6"></div>
             </div>
-          ) : (
-            <>
-              {/* TÁBOA DE PREZO FINAL */}
-              {evento.precio && parseFloat(evento.precio) > 0 && (
-                <div className="row mb-3">
-                  <div className="col-12">
-                    <table className="table table-bordered w-100" style={{ background: '#f8f9fa', margin: 0 }}>
-                      <tbody>
-                        <tr>
-                          <th style={{ width: '50%' }}>Prezo</th>
-                          <td>{evento.precio} €</td>
-                        </tr>
-                        {evento.tipo_gestion_entrada === "pagina" && (
-                          <>
-                            <tr>
-                              <th>PVP</th>
-                              <td>{(parseFloat(evento.precio.replace(',', '.')) * 1.05).toFixed(2).replace('.', ',')} €</td>
-                            </tr>
-                            <tr>
-                              <td colSpan={2} style={{ fontSize: '0.95em', color: '#888', textAlign: 'right', borderTop: 'none' }}>
-                                *Gastos xestión: 5%
-                              </td>
-                            </tr>
-                          </>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-
-              {/* TÁBOA DE PREZOS POR ZONA */}
-              {(evento.precios_zona && Object.keys(evento.precios_zona).length > 0 && evento.tipo_gestion_entrada && Object.values(evento.precios_zona).some(p => parseFloat((p as string).replace(',', '.')) > 0)) && (
-                <div className="row mb-3">
-                  <div className="col-12">
-                    <table className="table table-bordered w-100" style={{ background: '#f8f9fa', margin: 0 }}>
-                      <thead>
-                        <tr>
-                          <th style={{ width: evento.tipo_gestion_entrada === 'pagina' ? '40%' : '50%' }}>Zona</th>
-                          <th style={{ width: evento.tipo_gestion_entrada === 'pagina' ? '30%' : '50%' }}>Prezo</th>
-                          {evento.tipo_gestion_entrada === 'pagina' && (
-                            <th style={{ width: '30%' }}>PVP</th>
-                          )}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {Object.entries(evento.precios_zona).map(([zona, prezo]) => (
-                          parseFloat((prezo as string).replace(',', '.')) > 0 && (
-                            <tr key={zona}>
-                              <td>{zona}</td>
-                              <td>{prezo} €</td>
-                              {evento.tipo_gestion_entrada === 'pagina' && (
-                                <td>{(parseFloat((prezo as string).replace(',', '.')) * 1.05).toFixed(2).replace('.', ',')} €</td>
-                              )}
-                            </tr>
-                          )
-                        ))}
-                      </tbody>
-                    </table>
-                    {evento.tipo_gestion_entrada === 'pagina' && (
-                      <div style={{ fontSize: '0.95em', color: '#888', textAlign: 'right', marginTop: 4 }}>
-                        *Gastos de xestión: 5%
-                      </div>
+          ) : ((evento.precio && parseFloat(evento.precio) > 0) || (evento.precios_zona && Object.values(evento.precios_zona).some(p => parseFloat((p as string).replace(',', '.')) > 0))) ? (
+            <div className="row mb-3">
+              <div className="col-12">
+                <table className="table table-bordered w-100" style={{ background: '#f8f9fa', margin: 0 }}>
+                  <tbody>
+                    {evento.precio && parseFloat(evento.precio) > 0 && (
+                      <tr>
+                        <th style={{ width: '50%' }}>Prezo</th>
+                        <td>{evento.precio} €</td>
+                      </tr>
                     )}
+                    {evento.precio && parseFloat(evento.precio) > 0 && evento.tipo_gestion_entrada === "pagina" && (
+                      <>
+                        <tr>
+                          <th>PVP</th>
+                          <td>{(parseFloat(evento.precio.replace(',', '.')) * 1.05).toFixed(2).replace('.', ',')} €</td>
+                        </tr>
+                        <tr>
+                          <td colSpan={2} style={{ fontSize: '0.95em', color: '#888', textAlign: 'right', borderTop: 'none' }}>
+                            *Gastos xestión: 5%
+                          </td>
+                        </tr>
+                      </>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : null}
+
+          {/* TÁBOA DE PREZOS POR ZONA */}
+          {(evento.precios_zona && Object.keys(evento.precios_zona).length > 0 && Object.values(evento.precios_zona).some(p => parseFloat((p as string).replace(',', '.')) > 0)) && (
+            <div className="row mb-3">
+              <div className="col-12">
+                <table className="table table-bordered w-100" style={{ background: '#f8f9fa', margin: 0 }}>
+                  <thead>
+                    <tr>
+                      <th style={{ width: evento.tipo_gestion_entrada === 'pagina' ? '40%' : '50%' }}>Zona</th>
+                      <th style={{ width: evento.tipo_gestion_entrada === 'pagina' ? '30%' : '50%' }}>Prezo</th>
+                      {evento.tipo_gestion_entrada === 'pagina' ? (
+                        <th style={{ width: '30%' }}>PVP</th>
+                      ) : null}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(evento.precios_zona).map(([zona, prezo]) => {
+                      if (parseFloat((prezo as string).replace(',', '.')) > 0) {
+                        return (
+                          <tr key={zona}>
+                            <td>{zona}</td>
+                            <td>{prezo} €</td>
+                            {evento.tipo_gestion_entrada === 'pagina' ? (
+                              <td>{(parseFloat((prezo as string).replace(',', '.')) * 1.05).toFixed(2).replace('.', ',')} €</td>
+                            ) : null}
+                          </tr>
+                        );
+                      }
+                      return null;
+                    })}
+                  </tbody>
+                </table>
+                {evento.tipo_gestion_entrada === 'pagina' && (
+                  <div style={{ fontSize: '0.95em', color: '#888', textAlign: 'right', marginTop: 4 }}>
+                    *Gastos de xestión: 5%
                   </div>
-                </div>
-              )}
-            </>
+                )}
+              </div>
+            </div>
           )}
 
           <div className="d-flex justify-content-between mt-4">

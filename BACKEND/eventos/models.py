@@ -43,6 +43,7 @@ class Evento(models.Model):
     entradas_venta = models.PositiveIntegerField(default=0)
     entradas_reservadas= models.PositiveIntegerField(default=0)
     entradas_vendidas= models.PositiveIntegerField(default=0)
+    prezo_areas = models.BooleanField(default=False)
     prezo_evento = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     numero_iban = models.CharField(max_length=34, null=True, blank=True)
     tipo_gestion_entrada = models.CharField(max_length=20, choices=TIPO_ENTRADA_CHOICES, null=True, blank=True)
@@ -56,6 +57,7 @@ class Evento(models.Model):
         help_text="Porcentaxe de gastos de xestión aplicado ao evento (ex: 5.00 para 5%)"
     )
     data_creacion = models.DateTimeField(auto_now_add=True)
+    evento_verificado = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         self.total_dinheiro_recadado = self.prezo_evento * self.entradas_vendidas if self.prezo_evento and self.entradas_vendidas else 0

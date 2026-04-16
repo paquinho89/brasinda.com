@@ -104,7 +104,15 @@ const GestionEntradas: React.FC = () => {
               <Button
                 className="reserva-entrada-btn"
                 onClick={() => {
-                  setEvento({ ...evento, precio: "0,00", tipo_gestion_entrada: "gratis" });
+                  // Limpar prezos do localStorage
+                  localStorage.removeItem("prezosZona");
+                  // Limpar prezos do obxecto evento
+                  setEvento({
+                    ...evento,
+                    precio: "0,00",
+                    precios_zona: {},
+                    tipo_gestion_entrada: "gratis"
+                  });
                   navigate("/crear-evento/condiciones-legales");
                 }}
               >

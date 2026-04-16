@@ -275,7 +275,7 @@ export default function EventoDetalle() {
             <div className="d-flex align-items-start pb-3 mb-4">
               <Button
                 className="boton-avance me-3"
-                onClick={() => navigate(-1)}
+                onClick={() => navigate('/panel-organizador')}
               >
                 <FaArrowLeft className="me-0 me-sm-2" />
                 <span className="d-none d-sm-inline">Volver</span>
