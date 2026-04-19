@@ -1,31 +1,46 @@
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from .utils_pdf import xerar_pdf_listado
 import random
 import string
 from datetime import timedelta
 from io import BytesIO
-
 from django.conf import settings
 from django.db import transaction
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
-
 from django.contrib.auth.models import AnonymousUser
-
 from .email_entradas import enviar_entrada_email, enviar_entrada_email_multi, enviar_entradas_recuperadas_email
 from .models import Evento, ReservaButaca, SuscripcionNewsletter
 from .models import Evento, ReservaButaca, SuscripcionNewsletter, ZonaPrezo
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def descargar_pdf_listado(request, evento_id):
+    """
+    Xera e devolve un PDF co listado de entradas/invitacións do evento.
+    """
+    evento = get_object_or_404(Evento, id=evento_id)
+    reservas = ReservaButaca.objects.filter(evento=evento).exclude(estado=ReservaButaca.ESTADO_CANCELADO).order_by('zona', 'fila', 'butaca', 'id')
+    buffer = xerar_pdf_listado(evento, reservas)
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename=listado_evento_{evento_id}.pdf'
+    return response
+
 # Endpoint para obter as zonas e prezos dun evento
-from rest_framework.decorators import api_view
 @api_view(["GET"])
 def zonas_prezo_evento(request, evento_id):
     zonas = ZonaPrezo.objects.filter(evento_id=evento_id)
     data = [
-        {"nome": z.nome, "prezo": float(z.prezo)}
+        {
+            "nome": z.nome,
+            "prezo": float(z.prezo),
+            "prezo_pvp": float(z.prezo_pvp) if z.prezo_pvp is not None else None
+        }
         for z in zonas
     ]
     return Response(data)

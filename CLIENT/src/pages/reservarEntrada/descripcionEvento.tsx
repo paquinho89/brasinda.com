@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import API_BASE_URL from "../../utils/api";
 import { Container, Button, Spinner, Alert } from "react-bootstrap";
 import MainNavbar from "../componentes/NavBar";
+import { FaExclamationTriangle } from "react-icons/fa";
 
 import "../../estilos/TarjetaEventoHome.css";
 import "../../estilos/Botones.css";
@@ -238,7 +239,8 @@ export default function DescripcionEvento() {
             </div>
             {/* Mensaxe se non está verificado */}
             {!evento.evento_verificado && (
-              <div className="fw-bold my-4" style={{ color: 'black', background: 'none', border: 'none', textAlign: 'left' }}>
+              <div className="fw-bold my-4 d-flex align-items-center" style={{ color: 'black', background: 'none', border: 'none', textAlign: 'left' }}>
+                <FaExclamationTriangle className="me-2" style={{ color: '#ff0093', fontSize: '1.3em' }} />
                 En breve, as entradas estarán dispoñibles!
               </div>
             )}

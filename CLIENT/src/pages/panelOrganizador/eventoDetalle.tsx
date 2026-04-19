@@ -5,6 +5,7 @@ import AuditorioSelectorVerin from "../planoAuditorios/auditorioBotones/auditori
 import AuditorioSelectorOurense from "../planoAuditorios/auditorioBotones/auditorioOurense";
 import ReservaSinPlano from "./componentes/reservaSinPlano";
 import MainNavbar from "../componentes/NavBar";
+import TablaPrezosZonas from "./TablaPrezosZonas";
 import { FaCalendarAlt, FaUsers, FaEuroSign, FaImage, FaRegFileAlt, FaExclamationTriangle, FaMoneyBill, FaArrowLeft, FaTicketAlt, FaMapMarkerAlt } from "react-icons/fa";
 import API_BASE_URL from "../../utils/api";
 
@@ -21,6 +22,8 @@ interface Evento {
   entradas_reservadas?: number;
   entradas_vendidas?: number;
   prezo_evento?: number;
+  prezo_pvp?: number;
+  prezo_areas?: boolean;
   numero_iban?: string | null;
   tipo_gestion_entrada?: "pagina" | "manual" | "gratis" | null;
   evento_cancelado?: boolean;
@@ -362,11 +365,11 @@ export default function EventoDetalle() {
                         <div className="mb-3">
                           {isAuditorioOurenseOuVerin ? (
                             <p className="mb-2">
-                              <FaUsers className="me-1" />Aforo Habilitado: <strong>{aforoHab}</strong> | Aforo Total: <strong>{aforoTotal}</strong>
+                              <FaUsers className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} /><strong>Aforo Habilitado:</strong> {aforoHab} | <strong>Aforo Total:</strong> {aforoTotal}
                             </p>
                           ) : (
                             <p className="mb-2">
-                              <FaUsers className="me-1" />Total Entradas: <strong>{aforoTotal}</strong>
+                              <FaUsers className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} />Total Entradas: <strong>{aforoTotal}</strong>
                             </p>
                           )}
                         </div>
@@ -386,7 +389,7 @@ export default function EventoDetalle() {
                             <div
                               style={{
                                 width: `${pctVendidas}%`,
-                                backgroundColor: "#60dd49",
+                                backgroundColor: "#8e24aa",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -419,12 +422,12 @@ export default function EventoDetalle() {
                             </div>
                           )}
 
-                          {/* Disponibles - Azul claro */}
+                          {/* Disponibles - Lila */}
                           {pctDisponibles > 0 && (
                             <div
                               style={{
                                 width: `${pctDisponibles}%`,
-                                backgroundColor: "#82CAD3",
+                                backgroundColor: "#60dd49",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -466,7 +469,7 @@ export default function EventoDetalle() {
                                 style={{
                                   width: "20px",
                                   height: "20px",
-                                  backgroundColor: "#60dd49",
+                                  backgroundColor: "#8e24aa",
                                   borderRadius: "4px",
                                   marginRight: "8px",
                                 }}
@@ -500,7 +503,7 @@ export default function EventoDetalle() {
                                 style={{
                                   width: "20px",
                                   height: "20px",
-                                  backgroundColor: "#82CAD3",
+                                  backgroundColor: "#60dd49",
                                   borderRadius: "4px",
                                   marginRight: "8px",
                                 }}
@@ -536,16 +539,57 @@ export default function EventoDetalle() {
                   })()}
                 </div>
 
-                <button className="reserva-entrada-btn mb-3" onClick={() => navigate(`/panel-organizador/evento/${id}/entradas`)}>
-                  Xestión das invitacións
+                <button
+                  className="reserva-entrada-btn mb-3"
+                  style={{
+                    background: '#ff0093',
+                  }}
+                  onMouseOver={e => (e.currentTarget.style.background = 'white')}
+                  onMouseOut={e => (e.currentTarget.style.background = '#ff0093')}
+                  onClick={() => navigate(`/panel-organizador/evento/${id}/entradas`)}
+                >
+                  Descargar listado de reservas
                 </button>
+                <hr style={{ width: '100%', border: 0, borderTop: '4px solid #bdbdbd', margin: '22px 0 24px 0' }} />
 
-                {evento.prezo_evento != null && Number(evento.prezo_evento) > 0 && <p><FaMoneyBill className="me-1" /><strong>Diñeiro recadado:</strong> {formatImporteEuro(Number(evento.prezo_evento) * (evento.entradas_vendidas ?? 0))} €</p>}
-                {evento.prezo_evento != null && <p><FaEuroSign className="me-1" /><strong>Prezo:</strong> {formatImporteEuro(Number(evento.prezo_evento))} €</p>}
-                {textoXestionImporte && <p><FaTicketAlt className="me-1" /><strong>Xestión do cobro:</strong> {textoXestionImporte}</p>}
+                {evento.prezo_evento != null && Number(evento.prezo_evento) > 0 && <p><FaMoneyBill className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} /><strong>Diñeiro recadado:</strong> {formatImporteEuro(Number(evento.prezo_evento) * (evento.entradas_vendidas ?? 0))} €</p>}
+                {/* Sempre mostrar título e icono, pero se é de balde só texto, sen táboa */}
+                <p><FaEuroSign className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} /><strong>Prezo:</strong></p>
+                {evento.prezo_evento === 0 || evento.tipo_gestion_entrada === 'gratis' ? (
+                  <div style={{ fontWeight: 700, color: '#222', fontSize: '1.08rem', margin: '10px 0 18px 0' }}>Evento de Balde</div>
+                ) : (
+                  <>
+                    {/* Táboa de prezo global cando prezo_areas é false */}
+                    {evento.prezo_areas === false && evento.prezo_evento != null && (
+                      <div className="row mb-3">
+                        <div className="col-12">
+                          <table className="w-100" style={{ background: '#fff', margin: 0, borderCollapse: 'collapse' }}>
+                            <thead>
+                              <tr style={{ background: '#f5f5f5' }}>
+                                <th style={{ border: 'none', padding: '10px 8px', textAlign: 'left', fontWeight: 600 }}>Prezo</th>
+                                {evento.tipo_gestion_entrada !== 'manual' && <th style={{ border: 'none', padding: '10px 8px', textAlign: 'left', fontWeight: 600 }}>PVP</th>}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td style={{ border: 'none', padding: '10px 8px' }}>{Number(evento.prezo_evento).toFixed(2).replace('.', ',')} €</td>
+                                {evento.tipo_gestion_entrada !== 'manual' && <td style={{ border: 'none', padding: '10px 8px' }}>{Number(evento.prezo_pvp ?? 0).toFixed(2).replace('.', ',')} €</td>}
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                    {/* Táboa de prezos por zona cando prezo_areas é true */}
+                    {evento.prezo_areas === true && (
+                      <TablaPrezosZonas eventoId={evento.id} mostrarPVP={evento.tipo_gestion_entrada !== 'manual'} />
+                    )}
+                  </>
+                )}
+                {textoXestionImporte && <p><FaTicketAlt className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} /><strong>Xestión do cobro:</strong> {textoXestionImporte}</p>}
                 {img && (
                   <div>
-                    <p><FaImage className="me-1" /><strong>Imaxe:</strong> {evento.imaxe_evento?.split("/").pop()}</p>
+                    <p><FaImage className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} /><strong>Imaxe:</strong> {evento.imaxe_evento?.split("/").pop()}</p>
                     <img
                       src={img}
                       alt={evento.nome_evento}
@@ -555,7 +599,7 @@ export default function EventoDetalle() {
                 )}
                 {evento.descripcion_evento && (
                   <div className="mt-3">
-                    <p><FaRegFileAlt className="me-1" /><strong>Descripción:</strong></p>
+                    <p><FaRegFileAlt className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} /><strong>Descripción:</strong></p>
                     <p><em>{evento.descripcion_evento}</em></p>
                   </div>
                 )}

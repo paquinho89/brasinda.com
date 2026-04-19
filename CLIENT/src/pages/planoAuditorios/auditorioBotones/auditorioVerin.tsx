@@ -1,4 +1,9 @@
 import React, { useState, useEffect } from "react";
+// Helper para formatear prezo
+function formatPrezo(prezo: number | undefined) {
+  if (prezo === undefined) return '';
+  return Number.isInteger(prezo) ? prezo + ' €' : prezo.toFixed(2) + ' €';
+}
 import { Modal } from "react-bootstrap";
 import "../../../estilos/BotonesAuditorios.css";
 import "../../../estilos/infoPagamento.css";
@@ -57,23 +62,42 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
   openZonaCentralSignal,
   onEntradasSeleccionadas,
 }) => {
-  // Limpar seleccións ao desmontar (abandonar páxina)
+  // Estado para prezos por zona e prezo global do evento
+  const [zonasPrezo, setZonasPrezo] = useState<Record<string, number>>({});
+  const [prezoAreas, setPrezoAreas] = useState<boolean | null>(null);
+  const [prezoEvento, setPrezoEvento] = useState<number | null>(null);
+
+  // Fetch event details (public endpoint)
   useEffect(() => {
-    return () => {
-      if (!eventoId) return;
-      const zonas: Zona[] = ["anfiteatro", "esquerda", "central", "dereita"];
-      zonas.forEach(zona => {
-        const key = `auditorio_verin_selected_${zona}_${eventoId}`;
-        localStorage.removeItem(key);
+    if (!eventoId) return;
+    fetch(`${API_BASE_URL}/crear-eventos/publico/${eventoId}/`)
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then((evento) => {
+        setPrezoAreas(!!evento.prezo_areas);
+        setPrezoEvento(evento.prezo_evento !== undefined && evento.prezo_evento !== null ? Number(evento.prezo_evento) : null);
+      })
+      .catch(() => {
+        setPrezoAreas(null);
+        setPrezoEvento(null);
       });
-      setEntradasSeleccionadasPorZona({
-        anfiteatro: [],
-        esquerda: [],
-        central: [],
-        dereita: [],
-      });
-    };
   }, [eventoId]);
+
+  // Fetch per-zone prices
+  useEffect(() => {
+    if (!eventoId) return;
+    fetch(`${API_BASE_URL}/eventos/${eventoId}/zonas-prezo/`)
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then((zonas: Array<{ nome: string; prezo: number }>) => {
+        const map: Record<string, number> = {};
+        zonas.forEach(z => {
+          const nome = z.nome?.toLowerCase().trim();
+          map[nome] = z.prezo;
+        });
+        setZonasPrezo(map);
+      })
+      .catch(() => setZonasPrezo({}));
+  }, [eventoId]);
+  // Eliminado: Non limpar seleccións ao desmontar para manter persistencia
   const [areaActiva, setAreaActiva] = useState<Record<Zona, boolean>>(AREA_ACTIVA_DEFAULT);
   const [areaActivaHydrated, setAreaActivaHydrated] = useState(false);
   const [zonaSeleccionada, setZonaSeleccionada] = useState<Zona | null>(null);
@@ -542,6 +566,7 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
         onClick={() => handleClick("anfiteatro")}
       >
         <div>ANFITEATRO</div>
+        {/* Prezo eliminado por petición do usuario */}
         {variant === "rosa" && (
           <div className="zona-estado-interno">{areaActiva.anfiteatro ? "(Activa)" : "(Inactiva)"}</div>
         )}
@@ -552,6 +577,7 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
           onClick={() => handleClick("esquerda")}
         >
           <div>ESQUERDA</div>
+          {/* Prezo eliminado por petición do usuario */}
           {variant === "rosa" && (
             <div className="zona-estado-interno">{areaActiva.esquerda ? "(Activa)" : "(Inactiva)"}</div>
           )}
@@ -562,6 +588,7 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
             onClick={() => handleClick("central")}
           >
             <div>CENTRAL</div>
+            {/* Prezo eliminado por petición do usuario */}
             {variant === "rosa" && (
               <div className="zona-estado-interno">{areaActiva.central ? "(Activa)" : "(Inactiva)"}</div>
             )}
@@ -573,6 +600,7 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
           onClick={() => handleClick("dereita")}
         >
           <div>DEREITA</div>
+          {/* Prezo eliminado por petición do usuario */}
           {variant === "rosa" && (
             <div className="zona-estado-interno">{areaActiva.dereita ? "(Activa)" : "(Inactiva)"}</div>
           )}

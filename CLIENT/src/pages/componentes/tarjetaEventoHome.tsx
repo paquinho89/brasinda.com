@@ -29,17 +29,29 @@ interface EventoHomeProps {
     prezo_evento?: number;
     evento_verificado: boolean;
   };
+  modoPublicacionExitosa?: boolean;
 }
 
-export default function TarjetaEventoHome({ evento }: EventoHomeProps) {
+export default function TarjetaEventoHome({ evento, modoPublicacionExitosa }: EventoHomeProps) {
   const navigate = useNavigate();
 
   const imageUrl = evento.imaxe_evento
     ? (evento.imaxe_evento.startsWith("http") ? evento.imaxe_evento : `${API_BASE_URL}${evento.imaxe_evento}`)
     : null;
 
-  const handleReservation = () => {
-    navigate(`/evento/${evento.id}`);
+
+  const handleReservation = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (modoPublicacionExitosa) {
+      window.open(`/evento/${evento.id}`, '_blank');
+    } else {
+      navigate(`/evento/${evento.id}`);
+    }
+  };
+
+  const handleGestionarEvento = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    window.open(`/panel-organizador/evento/${evento.id}`, '_blank');
   };
 
   const formatDataCompleta = (dateString: string) => {
@@ -139,8 +151,7 @@ export default function TarjetaEventoHome({ evento }: EventoHomeProps) {
       )}
 
       {/* Contenido */}
-      <div className="card-body d-flex flex-column">
-
+      <div className="card-body d-flex flex-column" style={{ textAlign: "left" }}>
         <p className="card-text mb-2">
           {getTipoIcon(evento.tipo_evento)}
           {evento.tipo_evento}
@@ -180,17 +191,44 @@ export default function TarjetaEventoHome({ evento }: EventoHomeProps) {
           {getDiaOuHora(evento.data_evento)}
         </p>
 
-        {/* Botón de reserva */}
-        <Button 
-          variant="success" 
-          className="reserva-entrada-btn"
-          onClick={handleReservation}
-          disabled={evento.entradas_venta === 0}
-        >
-          {!evento.evento_verificado
-            ? "Ver evento"
-            : (evento.entradas_venta > 0 ? "Reservar Entrada" : "Agotadas")}
-        </Button>
+        {/* Só mostrar Xestionar Evento e Ver evento se modoPublicacionExitosa */}
+        {modoPublicacionExitosa ? (
+          <>
+            <Button
+              className="reserva-entrada-btn mb-2"
+              onClick={handleGestionarEvento}
+            >
+              Xestionar Evento
+            </Button>
+            <Button 
+              variant="secondary" 
+              className="reserva-entrada-btn mb-2"
+              onClick={handleReservation}
+            >
+              Ver evento
+            </Button>
+            {/* Reservar Entrada oculto en modoPublicacionExitosa */}
+          </>
+        ) : (
+          evento.evento_verificado ? (
+            <Button 
+              variant="success" 
+              className="reserva-entrada-btn"
+              onClick={handleReservation}
+              disabled={evento.entradas_venta === 0}
+            >
+              Reservar Entrada
+            </Button>
+          ) : (
+            <Button 
+              variant="secondary" 
+              className="reserva-entrada-btn"
+              onClick={handleReservation}
+            >
+              Ver evento
+            </Button>
+          )
+        )}
       </div>
     </div>
   );

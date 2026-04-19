@@ -1,14 +1,18 @@
-import React, { useEffect } from 'react';
+
+import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import MainNavbar from "../componentes/NavBar";
-
-
+import TarjetaEventoHome from "../componentes/tarjetaEventoHome";
+import API_BASE_URL from "../../utils/api";
 import confetti from 'canvas-confetti';
 
-const ReservaExitosa: React.FC = () => {
 
+const ReservaExitosa: React.FC = () => {
   const location = useLocation();
   const { eventoId } = location.state || {};
+  const [evento, setEvento] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     confetti({
@@ -18,7 +22,19 @@ const ReservaExitosa: React.FC = () => {
     });
   }, []);
 
-
+  useEffect(() => {
+    if (!eventoId) return;
+    setLoading(true);
+    setError(null);
+    fetch(`${API_BASE_URL}/crear-eventos/publico/${eventoId}/`)
+      .then((resp) => {
+        if (!resp.ok) throw new Error("Erro ao cargar evento");
+        return resp.json();
+      })
+      .then((data) => setEvento(data))
+      .catch((e) => setError(e.message || "Erro ao cargar evento"))
+      .finally(() => setLoading(false));
+  }, [eventoId]);
 
   return (
     <>
@@ -32,32 +48,17 @@ const ReservaExitosa: React.FC = () => {
             Lembre que pode reservar invitacións ou modificar datos do evento no <span style={{ fontWeight: 500 }}>panel do organizador</span>.
           </span>
         </div>
-        <div className="d-flex flex-column flex-md-row justify-content-center gap-3 mb-5">
-          <button
-            className="reserva-entrada-btn"
-            onClick={() => {
-              if (eventoId) {
-                window.open(`/panel-organizador/evento/${eventoId}`, '_blank');
-              } else {
-                window.open('/panel-organizador', '_blank');
-              }
-            }}
-          >
-            Xestionar Evento
-          </button>
-          <button
-            className="reserva-entrada-btn"
-            onClick={() => {
-              if (eventoId) {
-                window.open(`/evento/${eventoId}`, '_blank');
-              } else {
-                window.open('/', '_blank');
-              }
-            }}
-          >
-            Ver o seu evento público
-          </button>
-        </div>
+
+        {/* Card do evento publicado */}
+        {loading && <div className="my-4">Cargando evento...</div>}
+        {error && <div className="alert alert-danger my-4">{error}</div>}
+        {evento && (
+          <div className="d-flex justify-content-center my-4">
+            <div style={{ maxWidth: 400, width: '100%' }}>
+              <TarjetaEventoHome evento={evento} modoPublicacionExitosa />
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

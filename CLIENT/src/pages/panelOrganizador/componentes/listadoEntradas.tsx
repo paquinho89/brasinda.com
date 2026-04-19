@@ -4,6 +4,7 @@ function handleDownloadInvitacionPdf(invitacionId: number) {
   window.open(`${API_BASE_URL}/eventos/descargar-pdf-invitacion/${invitacionId}`, '_blank');
 }
 import { useEffect, useState, useRef } from "react";
+import { useAuth } from "../../AuthContext";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "react-bootstrap";
 import { Modal } from "react-bootstrap";
@@ -26,6 +27,7 @@ interface InvitacionData {
 }
 
 export default function ListadoEntradas() {
+  const { organizador } = useAuth();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [invitacionsData, setInvitacionsData] = useState<InvitacionData[]>([]);
@@ -303,44 +305,6 @@ export default function ListadoEntradas() {
 
   return (
     <>
-      <style>{`
-        @media print {
-          @page {
-            margin: 0;
-            size: auto;
-          }
-          .no-print {
-            display: none !important;
-          }
-          .d-print-block {
-            display: block !important;
-          }
-          body {
-            margin: 15mm 10mm;
-            padding: 0;
-          }
-          .container {
-            max-width: 100% !important;
-            padding: 0 !important;
-          }
-          .card {
-            border: none !important;
-            box-shadow: none !important;
-          }
-          .table {
-            page-break-inside: auto;
-          }
-          .table tr {
-            page-break-inside: avoid;
-            page-break-after: auto;
-          }
-          .print-header {
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #333;
-          }
-        }
-      `}</style>
       <div className="no-print">
         {successMessage && (
           <div
@@ -407,13 +371,22 @@ export default function ListadoEntradas() {
               </p>
             )}
             {editingId === null && (
-              <div className="d-flex justify-content-center mt-2">
+              <div className="d-flex justify-content-center mt-2 gap-2">
                 <button
                   type="button"
                   className="reserva-entrada-btn"
-                  onClick={() => window.print()}
+                  onClick={() => {
+                    if (id) {
+                      // Evitar duplicado de /eventos/eventos
+                      let url = API_BASE_URL.replace(/\/+$/, '');
+                      if (!/\/eventos\/?$/.test(url)) {
+                        url += '/eventos';
+                      }
+                      window.open(`${url}/${id}/descargar-listado-pdf/`, '_blank');
+                    }
+                  }}
                 >
-                  Imprimir
+                  Descargar Listado
                 </button>
               </div>
             )}
@@ -567,12 +540,18 @@ export default function ListadoEntradas() {
                                       ref={editingInputRef}
                                     />
                                   ) : (
-                                    invitacion.nome_titular || "Invitación"
+                                    invitacion.tipo_reserva === "invitacion" && (!invitacion.nome_titular || invitacion.nome_titular.trim() === "")
+                                      ? (organizador?.nome_organizador || "Organizador")
+                                      : (invitacion.nome_titular || "Invitación")
                                   )}
                                 </td>
-                                <td>{invitacion.email || "-"}</td>
+                                <td>
+                                  {invitacion.tipo_reserva === "invitacion"
+                                    ? (organizador?.email || invitacion.email || "-")
+                                    : (invitacion.email || "-")}
+                                </td>
                                 <td>{invitacion.codigo_validacion || "-"}</td>
-                                <td>{invitacion.tipo_reserva === "invitacion" ? "-" : `${invitacion.prezo_entrada ?? 0} €`}</td>
+                                <td>{invitacion.tipo_reserva === "invitacion" ? "0 €" : `${parseInt(invitacion.prezo_entrada ?? "0", 10)} €`}</td>
                                 <td>{formatTipoReservaDisplay(invitacion.tipo_reserva)}</td>
                                 <td className="no-print text-center">
                                   {editingId !== invitacion.id && (
@@ -616,10 +595,24 @@ export default function ListadoEntradas() {
                                         <>
                                           <button
                                             style={{ background: "none", border: "none", color: "#000", cursor: "pointer", padding: "4px 8px" }}
+                                            onClick={() => handleDownloadInvitacionPdf(invitacion.id)}
+                                            title="Descargar invitación en PDF"
+                                          >
+                                            <FaPrint color="#000" />
+                                          </button>
+                                          <button
+                                            style={{ background: "none", border: "none", color: "#000", cursor: "pointer", padding: "4px 8px" }}
                                             onClick={() => handleEditarInvitacion(invitacion.id, invitacion.nome_titular)}
                                             title="Editar invitación"
                                           >
                                             <FaEdit color="#000" />
+                                          </button>
+                                          <button
+                                            style={{ background: "none", border: "none", color: "#000", cursor: "pointer", padding: "4px 8px" }}
+                                            onClick={() => handleEnviarInvitacionEmail(invitacion)}
+                                            title="Enviar invitación por email"
+                                          >
+                                            <FaEnvelope color="#000" />
                                           </button>
                                           <button
                                             style={{ background: "none", border: "none", color: "#000", cursor: "pointer", padding: "4px 8px" }}
@@ -650,12 +643,18 @@ export default function ListadoEntradas() {
                                       ref={editingInputRef}
                                     />
                                   ) : (
-                                    invitacion.nome_titular || "Invitación"
+                                    invitacion.tipo_reserva === "invitacion" && (!invitacion.nome_titular || invitacion.nome_titular.trim() === "")
+                                      ? (organizador?.nome_organizador || "Organizador")
+                                      : (invitacion.nome_titular || "Invitación")
                                   )}
                                 </td>
-                                <td>{invitacion.email || "-"}</td>
+                                <td>
+                                  {invitacion.tipo_reserva === "invitacion"
+                                    ? (organizador?.email || invitacion.email || "-")
+                                    : (invitacion.email || "-")}
+                                </td>
                                 <td>{invitacion.codigo_validacion || "-"}</td>
-                                <td>{invitacion.tipo_reserva === "invitacion" ? "-" : `${invitacion.prezo_entrada ?? 0} €`}</td>
+                                <td>{invitacion.tipo_reserva === "invitacion" ? "0 €" : `${parseInt(invitacion.prezo_entrada ?? "0", 10)} €`}</td>
                                 <td>{formatTipoReservaDisplay(invitacion.tipo_reserva)}</td>
                                 <td className="no-print text-center">
                                   {invitacion.tipo_reserva === "invitacion" && (
@@ -738,12 +737,21 @@ export default function ListadoEntradas() {
                     Volver
                   </button>
                   <button
-                    type="button"
-                    className="reserva-entrada-btn"
-                    onClick={editingId !== null ? handleGuardarEdicion : () => window.print()}
-                  >
-                    {editingId !== null ? "Gardar Cambios" : "Imprimir"}
-                  </button>
+                  type="button"
+                  className="reserva-entrada-btn"
+                  onClick={() => {
+                    if (id) {
+                      // Evitar duplicado de /eventos/eventos
+                      let url = API_BASE_URL.replace(/\/+$/, '');
+                      if (!/\/eventos\/?$/.test(url)) {
+                        url += '/eventos';
+                      }
+                      window.open(`${url}/${id}/descargar-listado-pdf/`, '_blank');
+                    }
+                  }}
+                >
+                  Descargar Listado
+                </button>
                 </div>
               </>
             )}

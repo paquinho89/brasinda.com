@@ -3,8 +3,10 @@ import { Button, Card, ListGroup } from "react-bootstrap";
 import { FaSignInAlt, FaTools, FaTicketAlt } from "react-icons/fa";
 import { useAuth } from "../AuthContext";
 import { useTranslations } from "../../i18n/useTranslations";
+import { useNavigate } from "react-router-dom";
 
 export default function UserAvatarToggle({ hideLanguages = false }: { hideLanguages?: boolean }) {
+  const navigate = useNavigate();
   const { organizador, logout } = useAuth();
   const { t } = useTranslations();
   const [open, setOpen] = useState(false);
@@ -56,7 +58,11 @@ export default function UserAvatarToggle({ hideLanguages = false }: { hideLangua
                 </ListGroup.Item>
               </>
             )}
-            <ListGroup.Item action onClick={() => { logout(); setOpen(false); }}>
+            <ListGroup.Item action onClick={() => {
+            logout();
+            setOpen(false);
+            navigate("/");
+          }}>
               <FaSignInAlt style={{ marginRight: "8px" }} /> Pechar sesión
             </ListGroup.Item>
           </ListGroup>

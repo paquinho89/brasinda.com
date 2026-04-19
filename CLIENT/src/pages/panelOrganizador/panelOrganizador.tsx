@@ -114,15 +114,32 @@ export default function PanelOrganizador() {
 
     <Container className="mt-4 mb-5">
 
-      <div className="mb-4">
-        <h2 className="mt-4 text-center">Os teus eventos</h2>
+      <div className="mb-4 d-flex flex-column align-items-center justify-content-center">
+        <div className="mb-2" style={{ display: 'flex', justifyContent: 'center' }}>
+          <div style={{ transform: 'scale(1.7)', width: 60, height: 60, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <UserAvatarToggle hideLanguages />
+          </div>
+        </div>
+        <h1 className="mt-2 text-center fw-bold">Panel Organizador</h1>
+        <div style={{ display: 'flex', gap: 18, marginTop: 12, justifyContent: 'center' }}>
+          <div style={{ background: '#ffe6f5', borderRadius: 12, padding: '12px 28px', minWidth: 90, textAlign: 'center', boxShadow: '0 1px 4px rgba(255,0,147,0.07)' }}>
+            <div style={{ fontSize: 20, fontWeight: 700, color: 'black' }}>{eventosActivos.length}</div>
+            <div style={{ color: '#ff0093', fontSize: 14, fontWeight: 700 }}>Activos</div>
+          </div>
+          <div style={{ background: '#f3e5f5', borderRadius: 12, padding: '12px 28px', minWidth: 90, textAlign: 'center', boxShadow: '0 1px 4px rgba(156,39,176,0.07)' }}>
+            <div style={{ fontSize: 20, fontWeight: 700, color: 'black' }}>{eventosPasados.length}</div>
+            <div style={{ color: '#8e24aa', fontSize: 14, fontWeight: 700 }}>Pasados</div>
+          </div>
+        </div>
       </div>
 
       {/* ACTIVOS */}
-      <div className="panel-box panel-activos mb-5">
+
+      <div className="panel-box panel-activos mb-5" style={{ background: '#fff' }}>
         <div className="mb-3">
-          
-          <h4><FaCalendarCheck /> Eventos activos</h4>
+          <h4 style={{ color: 'black', fontWeight: 700 }}>
+            <FaCalendarCheck style={{ color: '#ff0093', marginRight: 6 }} /> Eventos activos
+          </h4>
         </div>
 
         {loading && <p className="text-center">Cargando eventos...</p>}
@@ -148,7 +165,9 @@ export default function PanelOrganizador() {
       {/* PASADOS */}
       <div className="panel-box panel-pasados">
         <div className="mb-3">
-          <h4><FaHistory />Eventos pasados</h4>
+          <h4 style={{ color: 'black', fontWeight: 700 }}>
+            <FaHistory style={{ color: '#8e24aa', marginRight: 6 }} /> Eventos pasados
+          </h4>
         </div>
 
         {!loading && !error && (

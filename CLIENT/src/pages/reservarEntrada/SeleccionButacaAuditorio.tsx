@@ -29,51 +29,33 @@ const SeleccionButacaAuditorio: React.FC = () => {
   };
   // Eliminado o flag localStorageRestaurado para evitar condicións de carreira
 
-  // Limpar seleccións só se se entra dende SeleccionZonaAuditorio (non ao cambiar de área)
+  // Eliminado: Non limpar seleccións ao entrar dende SeleccionZonaAuditorio
+
+
+  // Ao cambiar de zona, gardar a selección da zona anterior e cargar a da nova
+  // Gardar sempre a selección da zona actual antes de cambiar de zona ou navegar atrás
   useEffect(() => {
     if (!id || !zona) return;
-    // Detectar se a navegación vén dende SeleccionZonaAuditorio
-    const fromZona = window.history.state && window.history.state.usr && window.history.state.usr.fromSeleccionZonaAuditorio;
-    if (fromZona) {
-      const zonas = ["central", "dereita", "anfiteatro", "esquerda"];
-      zonas.forEach(z => {
-        const key = `auditorio_verin_selected_${z}_${id}`;
-        localStorage.removeItem(key);
-      });
-      setSelectedSeats([]);
+    // Cargar a selección da nova zona
+    const key = `auditorio_verin_selected_${zona}_${id}`;
+    const raw = localStorage.getItem(key);
+    console.log('[DEBUG] getItem (on zona change)', key, raw);
+    if (raw) {
+      try {
+        const lista = JSON.parse(raw);
+        if (Array.isArray(lista)) {
+          console.log('[DEBUG] setSelectedSeats (from localStorage)', lista);
+          setSelectedSeats(lista);
+          return;
+        }
+      } catch (e) { console.log('[DEBUG] JSON parse error', e); }
     }
+    console.log('[DEBUG] setSelectedSeats([]) (no data found)');
+    setSelectedSeats([]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, zona]);
 
-
-  // Recuperar todas as seleccións de todas as zonas ao montar, priorizando navigation state se existe
-  useEffect(() => {
-    if (!id) return;
-    const zonas = ["central", "dereita", "anfiteatro", "esquerda"];
-    const state = window.history.state && window.history.state.usr && window.history.state.usr.butacasSeleccionadas;
-    if (state && Array.isArray(state)) {
-      // Restaurar localStorage para todas as zonas
-      zonas.forEach(z => {
-        const key = `auditorio_verin_selected_${z}_${id}`;
-        const lista = state.filter((b: any) => b.zona === z);
-        localStorage.setItem(key, JSON.stringify(lista));
-      });
-      setSelectedSeats(state.filter((b: any) => b.zona === zona));
-    } else {
-      // Se non hai navigation state, cargar de localStorage
-      const key = `auditorio_verin_selected_${zona}_${id}`;
-      const raw = localStorage.getItem(key);
-      if (raw) {
-        try {
-          const lista = JSON.parse(raw);
-          if (Array.isArray(lista)) {
-            setSelectedSeats(lista);
-            return;
-          }
-        } catch {}
-      }
-      setSelectedSeats([]);
-    }
-  }, [id, zona]);
+  // Eliminado efecto beforeunload: agora só se garda nos handlers dos botóns
 
   // Eliminado o useEffect extra, xa non é necesario
 
@@ -98,6 +80,7 @@ const SeleccionButacaAuditorio: React.FC = () => {
     // Gardar todas as zonas
     zonas.forEach(z => {
       const key = `auditorio_verin_selected_${z}_${id}`;
+      console.log('[DEBUG] setItem (on selectedSeats change)', key, todas[z] || []);
       localStorage.setItem(key, JSON.stringify(todas[z] || []));
     });
   }, [selectedSeats, id, zona]);
@@ -174,6 +157,7 @@ const SeleccionButacaAuditorio: React.FC = () => {
                     if (id && zona && zonaEsquerda) {
                       // Gardar seleccións da zona actual antes de cambiar
                       const key = `auditorio_verin_selected_${zona}_${id}`;
+                      console.log('[DEBUG] setItem (on zona nav)', key, selectedSeats);
                       localStorage.setItem(key, JSON.stringify(selectedSeats));
                       navigate(`/reservar-entrada-auditorio/${id}/${zonaEsquerda}`);
                     }
@@ -191,6 +175,7 @@ const SeleccionButacaAuditorio: React.FC = () => {
                     if (id && zona && zonaDereita) {
                       // Gardar seleccións da zona actual antes de cambiar
                       const key = `auditorio_verin_selected_${zona}_${id}`;
+                      console.log('[DEBUG] setItem (on zona nav)', key, selectedSeats);
                       localStorage.setItem(key, JSON.stringify(selectedSeats));
                       navigate(`/reservar-entrada-auditorio/${id}/${zonaDereita}`);
                     }
@@ -203,13 +188,11 @@ const SeleccionButacaAuditorio: React.FC = () => {
             <div style={{ marginBottom: 24 }}>{ZonaComponent}</div>
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: 32 }}>
               <button className="boton-avance" onClick={() => {
-                if (id) {
-                  const zonas = ["central", "dereita", "anfiteatro", "esquerda"];
-                  zonas.forEach(z => {
-                    const key = `auditorio_verin_selected_${z}_${id}`;
-                    localStorage.removeItem(key);
-                  });
-                  setSelectedSeats([]);
+                if (id && zona) {
+                  // Gardar seleccións da zona actual antes de navegar atrás
+                  const key = `auditorio_verin_selected_${zona}_${id}`;
+                  console.log('[DEBUG] setItem (on volver)', key, selectedSeats);
+                  localStorage.setItem(key, JSON.stringify(selectedSeats));
                   navigate(`/reservar-entrada-auditorio/${id}`);
                 }
               }}>
@@ -217,10 +200,13 @@ const SeleccionButacaAuditorio: React.FC = () => {
               </button>
               <button
                 className="reserva-entrada-btn"
+                disabled={selectedSeats.length === 0}
                 onClick={() => {
+                  if (selectedSeats.length === 0) return;
                   if (id) {
                     // Gardar as seleccións actuais da zona no localStorage
                     const key = `auditorio_verin_selected_${zona}_${id}`;
+                    console.log('[DEBUG] setItem (on continuar)', key, selectedSeats);
                     localStorage.setItem(key, JSON.stringify(selectedSeats));
                     // Recuperar todas as seleccións de todas as zonas
                     const zonas = ["central", "dereita", "anfiteatro", "esquerda"];

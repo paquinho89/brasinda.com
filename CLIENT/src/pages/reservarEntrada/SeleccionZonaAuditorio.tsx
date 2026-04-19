@@ -23,12 +23,12 @@ const SeleccionZonaAuditorio: React.FC = () => {
           if (!res.ok) throw new Error("Non se atoparon prezos de zonas");
           return res.json();
         })
-        .then((zonas: Array<{ nome: string; prezo: number }>) => {
+        .then((zonas: Array<{ nome: string; prezo: number; prezo_pvp?: number }>) => {
           const map: Record<string, number> = {};
           zonas.forEach(z => {
             // Eliminar espazos e normalizar nomes
             const nome = z.nome?.toLowerCase().trim();
-            map[nome] = z.prezo;
+            map[nome] = z.prezo_pvp !== undefined ? z.prezo_pvp : z.prezo;
           });
           setZonasPrezo(map);
         })
@@ -99,12 +99,12 @@ const SeleccionZonaAuditorio: React.FC = () => {
             <div style={{ fontSize: 15, color: '#009688', fontWeight: 600, lineHeight: 1, marginTop: 2 }}>
               {evento?.prezo_areas
                 ? zonasPrezo["anfiteatro"] !== undefined
-                  ? (Number.isInteger(zonasPrezo["anfiteatro"])
+                  ? (Number(zonasPrezo["anfiteatro"]) % 1 === 0
                       ? zonasPrezo["anfiteatro"] + ' €'
                       : zonasPrezo["anfiteatro"].toFixed(2) + ' €')
                   : ''
                 : evento?.prezo_pvp > 0
-                  ? (Number.isInteger(evento.prezo_pvp)
+                  ? (Number(evento.prezo_pvp) % 1 === 0
                       ? Number(evento.prezo_pvp) + ' €'
                       : Number(evento.prezo_pvp).toFixed(2) + ' €')
                   : null}
@@ -116,12 +116,12 @@ const SeleccionZonaAuditorio: React.FC = () => {
               <div style={{ fontSize: 15, color: '#009688', fontWeight: 600, lineHeight: 1, marginTop: 2 }}>
                 {evento?.prezo_areas
                   ? zonasPrezo["esquerda"] !== undefined
-                    ? (Number.isInteger(zonasPrezo["esquerda"])
+                    ? (Number(zonasPrezo["esquerda"]) % 1 === 0
                         ? zonasPrezo["esquerda"] + ' €'
                         : zonasPrezo["esquerda"].toFixed(2) + ' €')
                     : ''
                   : evento?.prezo_pvp > 0
-                    ? (Number.isInteger(evento.prezo_pvp)
+                    ? (Number(evento.prezo_pvp) % 1 === 0
                         ? Number(evento.prezo_pvp) + ' €'
                         : Number(evento.prezo_pvp).toFixed(2) + ' €')
                     : null}
@@ -132,12 +132,12 @@ const SeleccionZonaAuditorio: React.FC = () => {
               <div style={{ fontSize: 15, color: '#009688', fontWeight: 600, lineHeight: 1, marginTop: 2 }}>
                 {evento?.prezo_areas
                   ? zonasPrezo["central"] !== undefined
-                    ? (Number.isInteger(zonasPrezo["central"])
+                    ? (Number(zonasPrezo["central"]) % 1 === 0
                         ? zonasPrezo["central"] + ' €'
                         : zonasPrezo["central"].toFixed(2) + ' €')
                     : ''
                   : evento?.prezo_pvp > 0
-                    ? (Number.isInteger(evento.prezo_pvp)
+                    ? (Number(evento.prezo_pvp) % 1 === 0
                         ? Number(evento.prezo_pvp) + ' €'
                         : Number(evento.prezo_pvp).toFixed(2) + ' €')
                     : null}
@@ -148,12 +148,12 @@ const SeleccionZonaAuditorio: React.FC = () => {
               <div style={{ fontSize: 15, color: '#009688', fontWeight: 600, lineHeight: 1, marginTop: 2 }}>
                 {evento?.prezo_areas
                   ? zonasPrezo["dereita"] !== undefined
-                    ? (Number.isInteger(zonasPrezo["dereita"])
+                    ? (Number(zonasPrezo["dereita"]) % 1 === 0
                         ? zonasPrezo["dereita"] + ' €'
                         : zonasPrezo["dereita"].toFixed(2) + ' €')
                     : ''
                   : evento?.prezo_pvp > 0
-                    ? (Number.isInteger(evento.prezo_pvp)
+                    ? (Number(evento.prezo_pvp) % 1 === 0
                         ? Number(evento.prezo_pvp) + ' €'
                         : Number(evento.prezo_pvp).toFixed(2) + ' €')
                     : null}
