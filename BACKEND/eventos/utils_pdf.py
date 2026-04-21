@@ -1,3 +1,10 @@
+from io import BytesIO
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+import qrcode
+from django.conf import settings
+
 def xerar_pdf_listado(evento, reservas):
     """
     Xera un PDF cun listado de entradas/invitacións, mostrando o nome do evento, data e lugar no heading.
@@ -68,9 +75,7 @@ def xerar_pdf_listado(evento, reservas):
         y -= 12
 
     y -= 10
-    # --- TÁBOA BONITA ESTILO listadoEntradas.tsx ---
-    from reportlab.platypus import Table, TableStyle
-    from reportlab.lib import colors
+    
     data = [["Zona", "Fila", "Butaca", "Nome", "Email", "Tipo", "Prezo", "Código"]]
     for r in reservas:
         zona = getattr(r, "zona", "") or "-"
@@ -159,12 +164,7 @@ def xerar_pdf_listado(evento, reservas):
     p.save()
     buffer.seek(0)
     return buffer
-from io import BytesIO
-from django.http import HttpResponse
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-import qrcode
-from django.conf import settings
+
 
 
 def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
@@ -226,7 +226,16 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
     y -= 28
     email_icon = icon_path("envelope.png")
     draw_icon_with_white_bg(p, email_icon, 60, y-6, 20, 20)
-    p.drawString(90, y, f"{reserva.email}")
+    if tipo_pdf == "invitacion":
+        email_organizador = getattr(evento.organizador, 'email', None)
+        if email_organizador and reserva.email and reserva.email != email_organizador:
+            p.drawString(90, y, f"{reserva.email} / {email_organizador}")
+        elif email_organizador:
+            p.drawString(90, y, f"{email_organizador}")
+        else:
+            p.drawString(90, y, f"{reserva.email}")
+    else:
+        p.drawString(90, y, f"{reserva.email}")
     y -= 28
     # División
     p.setStrokeColorRGB(0.7,0.7,0.7)
@@ -262,14 +271,14 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
         draw_icon_with_white_bg(p, clock_icon, 60, y-4, 20, 20)
         hora_galego = data.strftime('%H:%M')
         # Engadir duración se existe e é > 0
-        duracion = getattr(evento, "duracion_evento", None)
+        duracion = getattr(evento, "duracion", None)
         duracion_str = ""
         try:
             duracion_min = int(duracion) if duracion is not None else 0
         except Exception:
             duracion_min = 0
         if duracion_min > 0:
-            duracion_str = f" (duración: {duracion_min} min)"
+            duracion_str = f" (Duración: {duracion_min} min)"
         p.drawString(90, y, f"{hora_galego} h{duracion_str}")
         y -= 28
     else:

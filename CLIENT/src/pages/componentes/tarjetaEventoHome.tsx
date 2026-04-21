@@ -104,27 +104,28 @@ export default function TarjetaEventoHome({ evento, modoPublicacionExitosa }: Ev
     return eventoDate.toLocaleDateString('gl-ES', { day: 'numeric', month: 'long', year: 'numeric' }) + ' ás ' + hora;
   }
 
+  const rosa = "#ff0093";
   const getTipoIcon = (tipo: string) => {
     switch (tipo) {
       case "Concerto":
       case "Musical":
-        return <FaMusic style={{ marginRight: "6px" }} />;
+        return <FaMusic style={{ marginRight: "6px", color: rosa }} />;
       case "Obra de Teatro":
       case "Monólogo":
-        return <FaTheaterMasks style={{ marginRight: "6px" }} />;
+        return <FaTheaterMasks style={{ marginRight: "6px", color: rosa }} />;
       case "Coloquio":
       case "Charla":
-        return <FaCommentDots style={{ marginRight: "6px" }} />;
+        return <FaCommentDots style={{ marginRight: "6px", color: rosa }} />;
       case "Comida/Cena Popular":
-        return <FaUtensils style={{ marginRight: "6px" }} />;
+        return <FaUtensils style={{ marginRight: "6px", color: rosa }} />;
       case "Festa Popular":
-        return <FaGlassCheers style={{ marginRight: "6px" }} />;
+        return <FaGlassCheers style={{ marginRight: "6px", color: rosa }} />;
       case "Festival":
-        return <FaGuitar style={{ marginRight: "6px" }} />;
+        return <FaGuitar style={{ marginRight: "6px", color: rosa }} />;
       case "Feira":
-        return <FaStore style={{ marginRight: "6px" }} />;
+        return <FaStore style={{ marginRight: "6px", color: rosa }} />;
       default:
-        return <FaStar style={{ marginRight: "6px" }} />;
+        return <FaStar style={{ marginRight: "6px", color: rosa }} />;
     }
   };
 
@@ -154,20 +155,23 @@ export default function TarjetaEventoHome({ evento, modoPublicacionExitosa }: Ev
       <div className="card-body d-flex flex-column" style={{ textAlign: "left" }}>
         <p className="card-text mb-2">
           {getTipoIcon(evento.tipo_evento)}
-          {evento.tipo_evento}
+          <span style={{ fontWeight: 700 }}>{evento.tipo_evento}</span>
         </p>
 
         <p className="card-text mb-2">
-          <FaEuroSign style={{ marginRight: "6px" }} />
-          {prezoAreas
-            ? <><span style={{ color: '#000', fontWeight: 'normal' }}>Dende:</span> {Number((evento as any).prezo_pvp ?? 0) > 0 ? `${Number((evento as any).prezo_pvp) % 1 === 0 ? Number((evento as any).prezo_pvp) : Number((evento as any).prezo_pvp).toFixed(2)} €` : "Evento de Balde"}</>
-            : (Number((evento as any).prezo_pvp ?? 0) > 0
-                ? `${Number((evento as any).prezo_pvp) % 1 === 0 ? Number((evento as any).prezo_pvp) : Number((evento as any).prezo_pvp).toFixed(2)} €`
-                : "Evento de Balde")}
+          <FaEuroSign style={{ marginRight: "6px", color: rosa }} />
+          <span style={{ fontWeight: 700 }}>
+            {prezoAreas
+              ? <><span style={{ color: '#000', fontWeight: 'normal' }}>Dende:</span> {Number((evento as any).prezo_pvp ?? 0) > 0 ? `${Number((evento as any).prezo_pvp) % 1 === 0 ? Number((evento as any).prezo_pvp) : Number((evento as any).prezo_pvp).toFixed(2)} €` : "Evento de Balde"}</>
+              : (Number((evento as any).prezo_pvp ?? 0) > 0
+                  ? `${Number((evento as any).prezo_pvp) % 1 === 0 ? Number((evento as any).prezo_pvp) : Number((evento as any).prezo_pvp).toFixed(2)} €`
+                  : "Evento de Balde")}
+          </span>
         </p>
 
         <p className="card-text mb-2">
-            <FaMapMarkerAlt style={{ marginRight: "6px" }} />
+          <FaMapMarkerAlt style={{ marginRight: "6px", color: rosa }} />
+          <span style={{ fontWeight: 700 }}>
             {(() => {
               if (!evento.localizacion) return "";
               // Eliminar só 'GA' e 'España' e posibles comas/espazos antes/despois, pero nunca eliminar a localidade
@@ -184,11 +188,12 @@ export default function TarjetaEventoHome({ evento, modoPublicacionExitosa }: Ev
               !["ga", "españa"].includes(evento.localidade.trim().toLowerCase())
               ? ` | ${evento.localidade}`
               : ""}
+          </span>
         </p>
 
         <p className="card-text mb-2">
-          <FaCalendarAlt className="me-1" />
-          {getDiaOuHora(evento.data_evento)}
+          <FaCalendarAlt className="me-1" style={{ color: rosa }} />
+          <span style={{ fontWeight: 700 }}>{getDiaOuHora(evento.data_evento)}</span>
         </p>
 
         {/* Só mostrar Xestionar Evento e Ver evento se modoPublicacionExitosa */}

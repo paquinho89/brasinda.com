@@ -3,7 +3,7 @@ def enviar_publicacion_evento_email(email, evento, url_panel, url_publico):
     Envía un email ao organizador cando se publica un evento, usando a plantilla envio_publicacionEventos.html
     """
     from django.template.loader import render_to_string
-    subject = f"brasinda.com: Publicación do evento '{evento.nome_evento}' recibida"
+    subject = f"🍿 Publicación do evento '{evento.nome_evento}' recibida"
     data = evento.data_evento
     data_galego = data.strftime('%A, %d de %B de %Y').capitalize()
     hora_galego = data.strftime('%H:%M')
@@ -42,7 +42,7 @@ resend.api_key = settings.RESEND_API_KEY
 
 
 def enviar_entrada_email_multi(email, pdf_buffers, evento, reservas):
-    subject = f"brasinda.com {evento.nome_evento}"
+    subject = f"🍿 {evento.nome_evento}"
     data = evento.data_evento
     data_galego = data.strftime('%A, %d de %B de %Y').capitalize()
     data_completa = f"{data_galego} ás {data.strftime('%H:%M')}"
@@ -98,7 +98,7 @@ def enviar_entrada_email_multi(email, pdf_buffers, evento, reservas):
         print(f"[ERRO ENVIANDO EMAIL MULTI] para {email}: {e}")
 
 def enviar_entrada_email(email, pdf_buffer, evento, reserva):
-    subject = f"brasinda.com {evento.nome_evento}"
+    subject = f"🍿 {evento.nome_evento}"
     # Formato galego longo, capitalizado, igual que na web
     data = evento.data_evento
     data_galego = data.strftime('%A, %d de %B de %Y')
@@ -213,7 +213,7 @@ def enviar_entradas_recuperadas_email(email, reservas_por_evento_data, pdf_buffe
     )
     
     # Crear mensaje de email
-    subject = "Tus entradas recuperadas - brasinda.com"
+    subject = "🍿 As túas entradas recuperadas"
     attachments = []
     for idx, (buffer, evento_id, reserva_id) in enumerate(pdf_buffers_all):
         nome_pdf = f"entrada_{evento_id}_{reserva_id}.pdf"

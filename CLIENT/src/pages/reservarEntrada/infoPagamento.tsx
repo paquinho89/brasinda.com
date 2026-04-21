@@ -24,7 +24,7 @@ interface Evento {
   tipo_gestion_entrada?: string;
 }
 
-const InfoPagamento: React.FC = () => {
+const InfoPagamento_teu: React.FC = () => {
   const { eventoId, zona } = useParams<{ eventoId: string; zona: string }>();
   const navigate = useNavigate();
   // Recoller o importeTotal e prezoEvento do state se veñen do paso anterior
@@ -444,4 +444,4 @@ const InfoPagamento: React.FC = () => {
   );
 };
 
-export default InfoPagamento;
+export default InfoPagamento_teu;
