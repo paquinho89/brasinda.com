@@ -57,21 +57,18 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
   openZonaCentralSignal,
   onEntradasSeleccionadas,
 }) => {
-  // Estado para prezos por zona e prezo global do evento
-  const [zonasPrezo, setZonasPrezo] = useState<Record<string, number>>({});
-  const [prezoAreas, setPrezoAreas] = useState<boolean | null>(null);
-  const [prezoEvento, setPrezoEvento] = useState<number | null>(null);
+  // ...existing code...
 
   // Fetch event details (public endpoint)
   useEffect(() => {
     if (!eventoId) return;
     fetch(`${API_BASE_URL}/crear-eventos/publico/${eventoId}/`)
       .then(res => res.ok ? res.json() : Promise.reject())
-      .then((evento) => {
-        // Removed setPrezoAreas and setPrezoEvento
+      .then(() => {
+        // No-op
       })
       .catch(() => {
-        // Removed setPrezoAreas and setPrezoEvento
+        // No-op
       });
   }, [eventoId]);
 
@@ -80,15 +77,12 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
     if (!eventoId) return;
     fetch(`${API_BASE_URL}/eventos/${eventoId}/zonas-prezo/`)
       .then(res => res.ok ? res.json() : Promise.reject())
-      .then((zonas: Array<{ nome: string; prezo: number }>) => {
-        const map: Record<string, number> = {};
-        zonas.forEach(z => {
-          const nome = z.nome?.toLowerCase().trim();
-          map[nome] = z.prezo;
-        });
-        // Removed setZonasPrezo
+      .then(() => {
+        // No-op
       })
-      .catch(() => setZonasPrezo({}));
+      .catch(() => {
+        // No-op
+      });
   }, [eventoId]);
   // Eliminado: Non limpar seleccións ao desmontar para manter persistencia
   const [areaActiva, setAreaActiva] = useState<Record<Zona, boolean>>(AREA_ACTIVA_DEFAULT);
