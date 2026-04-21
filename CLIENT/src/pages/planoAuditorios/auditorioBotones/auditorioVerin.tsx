@@ -1,9 +1,4 @@
 import React, { useState, useEffect } from "react";
-// Helper para formatear prezo
-function formatPrezo(prezo: number | undefined) {
-  if (prezo === undefined) return '';
-  return Number.isInteger(prezo) ? prezo + ' €' : prezo.toFixed(2) + ' €';
-}
 import { Modal } from "react-bootstrap";
 import "../../../estilos/BotonesAuditorios.css";
 import "../../../estilos/infoPagamento.css";
@@ -63,9 +58,9 @@ const AuditorioSelectorVerin: React.FC<Props> = ({
   onEntradasSeleccionadas,
 }) => {
   // Estado para prezos por zona e prezo global do evento
-  const [zonasPrezo, setZonasPrezo] = useState<Record<string, number>>({});
-  const [prezoAreas, setPrezoAreas] = useState<boolean | null>(null);
-  const [prezoEvento, setPrezoEvento] = useState<number | null>(null);
+  // const [zonasPrezo, setZonasPrezo] = useState<Record<string, number>>({});
+  // const [prezoAreas, setPrezoAreas] = useState<boolean | null>(null);
+  // const [prezoEvento, setPrezoEvento] = useState<number | null>(null);
 
   // Fetch event details (public endpoint)
   useEffect(() => {
