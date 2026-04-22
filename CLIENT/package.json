@@ -13,6 +13,7 @@
     "@geoapify/geocoder-autocomplete": "^3.0.1",
     "@react-google-maps/api": "^2.20.8",
     "@react-oauth/google": "^0.13.4",
+    "@stripe/stripe-js": "^9.3.0",
     "axios": "^1.13.3",
     "bootstrap": "^5.3.8",
     "canvas-confetti": "^1.9.4",
