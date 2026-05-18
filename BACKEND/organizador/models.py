@@ -13,6 +13,9 @@ class Organizador(AbstractUser):
     telefono = models.CharField(max_length=20, validators=[RegexValidator(r'^\+?\d{5,20}$', message="Teléfono inválido")])
     numero_iban = models.CharField(max_length=34, blank=True, null=True)
     idioma = models.CharField(max_length=50, default='galego')
+    nome_razon_social_contrato = models.CharField(max_length=255, blank=True, null=True)
+    nif_cif = models.CharField(max_length=20, blank=True, null=True)
+    enderezo_fiscal = models.CharField(max_length=255, blank=True, null=True)
 
     # Evita conflitos con auth.User
     groups = models.ManyToManyField(

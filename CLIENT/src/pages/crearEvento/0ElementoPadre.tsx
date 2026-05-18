@@ -25,6 +25,10 @@ export interface Evento {
   procedimiento_cobro_manual?: string;
   condicionesConfirmacion: boolean;
   precios_zona?: { [zona: string]: string };
+  nomeCompleto?: string; // Para contrato
+  nifCif?: string; // Para contrato
+  enderezoFiscal?: string; // Para contrato
+  telefono?: string; // Para contrato
 }
 
 export interface OutletContext {
@@ -53,6 +57,10 @@ export function CreateEventLayout() {
     procedimiento_cobro_manual: "",
     esAuditorio: false,
     condicionesConfirmacion: false,
+    nomeCompleto: "",
+    nifCif: "",
+    enderezoFiscal: "",
+    telefono: "",
   };
 
   const [evento, setEvento] = useState<Evento>(() => {

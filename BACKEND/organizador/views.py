@@ -298,7 +298,11 @@ def perfil_organizador(request):
         numero_iban = request.data.get('numero_iban')
         idioma = request.data.get('idioma')
         new_password = request.data.get('new_password')
+        nome_razon_social_contrato = request.data.get('nome_razon_social_contrato')
+        nif_cif = request.data.get('nif_cif')
+        enderezo_fiscal = request.data.get('enderezo_fiscal')
         
+
         # Actualizar campos básicos
         if nome_organizador:
             organizador.nome_organizador = nome_organizador
@@ -313,7 +317,15 @@ def perfil_organizador(request):
             organizador.numero_iban = numero_iban
         if idioma:
             organizador.idioma = idioma
-        
+
+        # Novos campos contrato
+        if nome_razon_social_contrato is not None:
+            organizador.nome_razon_social_contrato = nome_razon_social_contrato
+        if nif_cif is not None:
+            organizador.nif_cif = nif_cif
+        if enderezo_fiscal is not None:
+            organizador.enderezo_fiscal = enderezo_fiscal
+
         # Cambiar contraseña si se proporciona
         if new_password:
             organizador.set_password(new_password)

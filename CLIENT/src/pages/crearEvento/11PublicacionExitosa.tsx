@@ -45,7 +45,7 @@ const ReservaExitosa: React.FC = () => {
           <span style={{ fontWeight: 600, color: '#ff0093', fontSize: '1.18em' }}>Estamos traballando para comprobar toda a info e publicar o evento o antes posible.</span>
           <br />
           <span style={{ fontSize: '1.05em', display: 'inline-block', marginTop: 8 }}>
-            Lembre que pode reservar invitacións ou modificar datos do evento no <span style={{ fontWeight: 500 }}>panel do organizador</span>.
+            Lembre que pode reservar invitacións ou modificar datos do evento no <span style={{ fontWeight: 500 }}>en Xestionar Evento</span>.
           </span>
         </div>
 

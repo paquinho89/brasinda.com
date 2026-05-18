@@ -2,7 +2,7 @@ import { Modal, Button, Form, InputGroup } from "react-bootstrap";
 import { useState } from "react";
 import EmailVerificationModal from "./1VerificacionEmailCreacionCuenta"
 import "../../estilos/Botones.css";
-import { FaEnvelope, FaLock, FaUser, FaCamera, FaPhone } from "react-icons/fa";
+import { FaEnvelope, FaLock, FaUser, FaCamera } from "react-icons/fa";
 import API_BASE_URL from "../../utils/api";
 import { GoogleLogin } from '@react-oauth/google';
 import type { CredentialResponse } from '@react-oauth/google';
@@ -34,6 +34,7 @@ function CreateAccountModal({ show, onClose }: {show: boolean; onClose: () => vo
   const [contraseña, setContraseña] = useState("");
   const [contraseñaError, setContraseñaError] = useState("");
   const [showContraseña, setShowContraseña] = useState(false);
+
   const validarContraseña = (pass: string) => {
     if (!pass) return "La contraseña es obligatoria";
     if (pass.length < 8) return "La contraseña debe tener al menos 8 caracteres";
@@ -44,13 +45,6 @@ function CreateAccountModal({ show, onClose }: {show: boolean; onClose: () => vo
 };
 
   const [fotoOrganizador, setFotoOrganizador] = useState<File | null>(null);
-  const [telefono, setTelefono] = useState("");
-
-  const [errorTelefono, setErrorTelefono] = useState("");
-  const validarTelefono = (telefono:string) => {
-    const expresionRegular = /^\+?[\d\s\-()]+$/;
-    return expresionRegular.test(telefono);
-  }
 
   const [mayorEdad, setMayorEdad] = useState(false);
   const [errorMayorEdad, setErrorMayorEdad] = useState(false);
@@ -74,10 +68,6 @@ function CreateAccountModal({ show, onClose }: {show: boolean; onClose: () => vo
   } else {
     setContraseñaError("")
   }
-  if (!validarTelefono(telefono)){
-    setErrorTelefono("invalido");
-    return false;
-  }
   if (!nombreOrganizador.trim()){
     setErroNomeOrganizador("invalidoNomeOrganizador");
     return false;
@@ -92,7 +82,6 @@ function CreateAccountModal({ show, onClose }: {show: boolean; onClose: () => vo
   formData.append("username", email.split("@")[0]);
   formData.append("nome_organizador", nombreOrganizador);
   formData.append("password", contraseña);
-  formData.append("telefono",  telefono.replace(/[^\d+]/g, "")); // Normalizar teléfono antes de enviar
   formData.append("mayor_edad", mayorEdad.toString());
   if (fotoOrganizador) {
     formData.append("foto_organizador", fotoOrganizador);
@@ -253,32 +242,6 @@ function CreateAccountModal({ show, onClose }: {show: boolean; onClose: () => vo
               }}
             />
           </Form.Group>
-
-          <Form.Group className="mb-3">
-            <FaPhone style={{ marginRight: "6px", color: "#ff0093" }} />
-            <Form.Label>Número de teléfono</Form.Label>
-            <Form.Control 
-              type="text" 
-              placeholder="666..."
-              value={telefono}
-              onChange={(e)=> {
-                const value = e.target.value; // solo números
-                setTelefono(value);
-                
-                if (value && !validarTelefono(value)){
-                  setErrorTelefono("invalido");
-                } else {
-                  setErrorTelefono("");
-                }
-              }}
-           />
-          </Form.Group>
-
-          {errorTelefono === "invalido" && (
-            <div className = "alert alert-danger">
-              Introduce un número de teléfono válido
-            </div>
-          )}
           
           <Form.Group className="mb-3">
             <Form.Check 
@@ -318,7 +281,6 @@ function CreateAccountModal({ show, onClose }: {show: boolean; onClose: () => vo
                 setErrorEmail("");
                 setErrorEmailBackend("");
                 setContraseñaError("");
-                setErrorTelefono("");
                 setErroNomeOrganizador("");
                 setErrorMayorEdad(false);
                 onClose();
