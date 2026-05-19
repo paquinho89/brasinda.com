@@ -20,12 +20,36 @@ def enviar_publicacion_evento_email(email, evento, url_panel, url_publico):
             }
         }
     )
+
+    # Xerar PDF do contrato e engadilo como adxunto
+    from .utils_pdf import xerar_pdf_contrato
+    # Recoller datos do organizador do modelo relacionado co evento
+    organizador = getattr(evento, 'organizador', None)
+    if organizador:
+        org_dict = {
+            'nome_razon_social_contrato': getattr(organizador, 'nome_razon_social_contrato', ''),
+            'nif_cif': getattr(organizador, 'nif_cif', ''),
+            'enderezo_fiscal': getattr(organizador, 'enderezo_fiscal', ''),
+            'telefono': getattr(organizador, 'telefono', ''),
+        }
+    else:
+        org_dict = {'nome_razon_social_contrato': '', 'nif_cif': '', 'enderezo_fiscal': '', 'telefono': ''}
+    pdf_buffer = xerar_pdf_contrato(evento, org_dict)
+    pdf_buffer.seek(0)
+    import base64
+    pdf_b64 = base64.b64encode(pdf_buffer.getvalue()).decode("utf-8")
+    attachments = [{
+        "filename": f"contrato_{evento.id}.pdf",
+        "content": pdf_b64,
+        "contentType": "application/pdf"
+    }]
     try:
         resend.Emails.send({
             "from": settings.DEFAULT_FROM_EMAIL,
             "to": [email],
             "subject": subject,
             "html": html_body,
+            "attachments": attachments,
         })
         print(f"[EMAIL PUBLICACION EVENTO] enviado a {email} para evento {evento.nome_evento}")
     except Exception as e:

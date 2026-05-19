@@ -61,9 +61,6 @@ const Resumen: React.FC = () => {
     }
     formData.append("data_evento", evento.fecha);
     // Gardar datos de contrato se existen
-    if (evento.nomeCompleto) formData.append("nome_razon_social_contrato", evento.nomeCompleto);
-    if (evento.nifCif) formData.append("nif_cif", evento.nifCif);
-    if (evento.enderezoFiscal) formData.append("enderezo_fiscal", evento.enderezoFiscal);
     formData.append("localizacion", evento.lugar);
     formData.append("tipo_localizacion", evento.ubicacion);
     formData.append("entradas_venta", evento.entradas.toString());
@@ -87,6 +84,7 @@ const Resumen: React.FC = () => {
       "condiciones_confirmacion",
       evento.condicionesConfirmacion ? "true" : "false"
     );
+      // NON engadir nomeCompleto, nifCif, enderezoFiscal, telefono ao evento
 
     try {
       const token = localStorage.getItem("access_token");

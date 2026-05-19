@@ -1,12 +1,16 @@
+
 import React, { useState } from "react";
+import { useAuth } from "../AuthContext";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import { Button, Form, Container, Card } from "react-bootstrap";
 import type { OutletContext } from "./0ElementoPadre";
 import { FaArrowLeft, FaIdCard, FaPhone, FaUser, FaMapMarkerAlt } from "react-icons/fa";
+import API_BASE_URL from "../../utils/api";
 
 
 const CondicionesLegales: React.FC = () => {
   const { evento, setEvento } = useOutletContext<OutletContext>();
+  const { token } = useAuth();
   const [aceptacionCondiciones, setAceptacionCondiciones] =
     useState<boolean>(evento.condicionesConfirmacion || false);
   const [nomeCompleto, setNomeCompleto] = useState(evento.nomeCompleto || "");
@@ -90,14 +94,14 @@ const CondicionesLegales: React.FC = () => {
     const enderezoFiscal = `${estrada}, ${numero}${portaPiso ? ", " + portaPiso : ""}, ${localidade}, ${codigoPostal}`;
 
 
-    // Enviar PATCH autenticado ao backend
+    // Enviar PATCH autenticado ao backend real
     try {
-      await fetch("/api/organizador/perfil/", {
+      await fetch(`${API_BASE_URL}/organizador/perfil/`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        credentials: "include",
         body: JSON.stringify({
           nome_razon_social_contrato: nomeCompleto,
           nif_cif: nifCif,
@@ -110,12 +114,13 @@ const CondicionesLegales: React.FC = () => {
       return;
     }
 
+    // Gardar tamén os datos fiscais no eventoDraft para manter ao volver atrás
     const eventoActualizado = {
       ...evento,
       condicionesConfirmacion: aceptacionCondiciones,
       nomeCompleto,
       nifCif,
-      enderezoFiscal,
+      enderezoFiscal: `${estrada}, ${numero}${portaPiso ? ", " + portaPiso : ""}, ${localidade}, ${codigoPostal}`,
       telefono,
     };
     setEvento(eventoActualizado);

@@ -1,3 +1,235 @@
+def xerar_pdf_contrato(evento, organizador):
+    """
+    Xera un PDF co contrato de colaboración, cos datos personalizados do evento e organizador.
+    Retorna un BytesIO listo para enviar como adxunto.
+    """
+    import textwrap
+    max_width = 90  # número de caracteres aproximado para ancho A4 (ajustable)
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.units import mm
+    from io import BytesIO
+    import datetime
+
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+    y = height - 60
+
+    # Logo brasinda á esquerda no alto
+    import os
+    from django.conf import settings
+    logo_path = os.path.join(settings.BASE_DIR, "BACKEND", "organizador", "formato_email", "branding", "logo.png")
+    if os.path.exists(logo_path):
+        p.drawInlineImage(logo_path, 40, height - 90, width=100, height=60)
+
+    # Título centrado
+    p.setFont("Helvetica-Bold", 18)
+    p.drawCentredString(width/2, y, "Contrato de colaboración para evento")
+    y -= 40
+
+    # Datos do organizador e evento
+    p.setFont("Helvetica", 11)
+    data = getattr(evento, 'data_evento', None)
+    import datetime
+    if isinstance(data, datetime.datetime):
+        data_str = data.strftime('%A, %d de %B de %Y ás %H:%M')
+    else:
+        data_str = str(data) if data else ""
+    lines = []
+    for line in lines:
+        wrapped = textwrap.wrap(line, width=max_width)
+        for wline in wrapped:
+            p.drawString(160, y, wline)
+            y -= 16
+    y -= 10
+
+    # Texto do contrato (con saltos de liña)
+    # Data de sinatura do contrato (data de xeración do PDF)
+    data_sinatura = datetime.datetime.now().strftime('%d/%m/%Y')
+    contrato_text = [
+        "REUNIDOS",
+        "Dunha parte, Eventos Brasinda, con NIF [●], titular da web brasinda.com, en adiante 'a Plataforma'.",
+        f"E doutra parte, {organizador.get('nome_razon_social_contrato', '')}, con NIF/CIF {organizador.get('nif_cif', '')} e domicilio en {organizador.get('enderezo_fiscal', '')}, en adiante 'o Organizador'.",
+        "Ambas partes se recoñécense a capacidade legal suficiente e",
+        "",
+        "",
+        "EXPOÑEN",
+        "Que a Plataforma ofrece un servizo tecnolóxico de publicación e venda de entradas para eventos a través dunha páxina web.",
+        "Que o Organizador é responsable da planificación, xestión e execución do evento descrito.",
+        "Que ambas partes desexan regular a súa relación de colaboración exclusivamente para a venda de entradas do evento.",
+        "",
+        "",
+        "CLÁUSULAS",
+        "1. OBXECTO DO CONTRATO",
+        "O presente contrato regula a colaboración para a publicación e venda de entradas do seguinte evento.",
+            f"Evento: {evento.nome_evento}",
+            f"Data: {data_str}",
+            f"Lugar: {getattr(evento, 'localizacion', '')}",
+        "",
+        "",
+        "2. ROL DA PLATAFORMA",
+        "A Plataforma actúa unicamente como intermediario tecnolóxico, proporcionando publicación, venda e xestión técnica dos pagos.",
+            "Publicación do evento na web",
+            "Sistema de venda de entradas",
+            "Xestión técnica dos pagos",
+        "",
+        "",
+        "A Plataforma non é organizadora nin promotora do evento.",
+        "",
+        "",
+        "3. RESPONSABILIDADE DO ORGANIZADOR",
+        "O Organizador é o único responsable da:",
+            "Legalidade do evento e permisos necesarios",
+            "Seguridade, licenzas e cumprimento normativo",
+            "Execución e realización do evento",
+            "Contido, artistas ou actividades do evento",
+            "Atención ao público e reclamacións",
+        "",
+        "",
+        "4. PAGOS E LIQUIDACIÓN",
+        "Os ingresos pola venda de entradas serán:"
+            "Recollidos a través da plataforma de pagamento",
+            "Transferidos ao Organizador descontadas as comisións acordadas",
+            "A Plataforma realizará a liquidación no prazo de 4 días despois das 00:00 horas do día seguinte á finalización do evento.",
+        "",
+        "",
+        "5. CANCELACIÓNS E DEVOLUCIÓNS",
+        "O Organizador será responsable de:",
+            "Definir a política de devolucións",
+            "Xestionar cancelacións ou cambios de data",
+            "Asumir os custos derivados das devolucións",
+        "",
+        "",
+        "A Plataforma executará as devolucións unicamente segundo instrucións do Organizador ou obrigas legais.",
+        "",
+        "",
+        "6. PROTECCIÓN E INDEMNIZACIÓN",
+        "O organizador comprométese a manger indemne á Plataforma fronte a:"
+            "Reclamacións de asistentes ou terceiros",
+            "Multas ou sancións por incumprimento normativo",
+            "Danos ou incidentes durante o evento",
+            "Incumprimentos legais do Organizador",
+        "",
+        "",
+        "7. DATOS E VERACIDADE",
+        "O Organizador declara que toda a información proporcionada é veraz e que dispón de autorizacións e permisos necesarios.",
+        "",
+        "",
+        "8. PROPIEDADE E USO DA PLATAFORMA",
+        "A Plataforma mantén todos os dereitos sobre o software e sistema de venda de entradas.",
+        "",
+        "",
+        "9. DURACIÓN",
+        "Este contrato é válido exclusivamente para o evento indicado e remata tras a súa finalización e liquidación.",
+        "",
+        "",
+        "10. LEI APLICABLE",
+        "Este contrato rexerase pola lexislación española.",
+    ]
+    p.setFont("Helvetica", 11)
+
+    bold_titles = [
+        "REUNIDOS",
+        "EXPOÑEN",
+        "CLÁUSULAS",
+        "1. OBXECTO DO CONTRATO",
+        "2. ROL DA PLATAFORMA",
+        "3. RESPONSABILIDADE DO ORGANIZADOR",
+        "4. PAGOS E LIQUIDACIÓN",
+        "5. CANCELACIÓNS E DEVOLUCIÓNS",
+        "6. PROTECCIÓN E INDEMNIZACIÓN",
+        "7. DATOS E VERACIDADE",
+        "8. PROPIEDADE E USO DA PLATAFORMA",
+        "9. DURACIÓN",
+        "10. LEI APLICABLE",
+    ]
+    def draw_footer():
+        p.setFont("Helvetica", 8)
+        # Tono máis apagado (gris claro)
+        p.setFillColorRGB(0.65, 0.65, 0.65)
+        p.drawCentredString(width/2, 30, "brasinda.com   |   Eventos únicos para xente única.")
+        p.setFillColorRGB(0, 0, 0)
+
+    def draw_header():
+        # Logo brasinda á esquerda no alto
+        if os.path.exists(logo_path):
+            p.drawInlineImage(logo_path, 40, height - 90, width=100, height=60)
+        # Título centrado
+        p.setFont("Helvetica-Bold", 18)
+        p.drawCentredString(width/2, height - 60, "Contrato de colaboración para evento")
+
+
+    for idx, line in enumerate(contrato_text):
+        wrapped = textwrap.wrap(line, width=max_width)
+        for wline in wrapped:
+            if y < 60:
+                draw_footer()
+                p.showPage()
+                draw_header()
+                y = height - 120  # Deixar espazo baixo cabeceira
+            # Poñer títulos en negrita
+            if wline.strip().upper() in [t.upper() for t in bold_titles]:
+                p.setFont("Helvetica-Bold", 11)
+            else:
+                p.setFont("Helvetica", 11)
+            p.drawString(60, y, wline)
+            y -= 18
+
+
+    # Bloque de sinaturas ao final do contrato con nomes e datas reais
+    y -= 10
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(60, y, "SINATURAS")
+    y -= 20
+    p.setFont("Helvetica", 11)
+    p.drawString(60, y, "En sinal de conformidade, ambas partes asinan o presente contrato:")
+    y -= 28
+    # Plataforma
+    import random
+    import string
+    nome_plataforma = "Eventos Brasinda"
+
+    # Colle datos reais do modelo Evento se existen
+    data_actual = None
+    if hasattr(evento, 'contrato_timestamp') and evento.contrato_timestamp:
+        data_actual = evento.contrato_timestamp.strftime('%d/%m/%Y %H:%M:%S')
+    else:
+        data_actual = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+
+    ip = getattr(evento, 'contrato_ip', None) or organizador.get('ip', '---.---.---.---')
+    navegador = getattr(evento, 'contrato_navegador', None) or organizador.get('navegador', '---')
+    id_aceptacion = getattr(evento, 'contrato_uid', None) or organizador.get('id_aceptacion', ''.join(random.choices(string.ascii_uppercase, k=3)) + ''.join(random.choices(string.digits, k=4)))
+
+    p.setFont("Helvetica-Bold", 11)
+    p.drawString(60, y, "A Plataforma")
+    y -= 18
+    p.setFont("Helvetica", 11)
+    p.drawString(80, y, f"Nome: {nome_plataforma}")
+    y -= 18
+    p.drawString(80, y, f"Data e hora: {data_actual}")
+    y -= 18
+    # Organizador
+    nome_organizador = organizador.get('nome_razon_social_contrato', '')
+    p.setFont("Helvetica-Bold", 11)
+    p.drawString(60, y, "O Organizador")
+    y -= 18
+    p.setFont("Helvetica", 11)
+    p.drawString(80, y, f"Nome: {nome_organizador}")
+    y -= 18
+    p.drawString(80, y, f"Data e hora: {data_actual}")
+    y -= 18
+    p.drawString(80, y, f"IP: {ip}")
+    y -= 18
+    p.drawString(80, y, f"Navegador: {navegador}")
+    y -= 18
+    p.drawString(80, y, f"ID aceptación: {id_aceptacion}")
+    y -= 10
+    draw_footer()
+
+    p.save()
+    buffer.seek(0)
+    return buffer
 from io import BytesIO
 from django.http import HttpResponse
 from reportlab.lib.pagesizes import A4

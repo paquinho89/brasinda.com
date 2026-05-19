@@ -106,12 +106,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'BACKEND.wsgi.application'
 
-if DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = True
-else:
-    CORS_ALLOW_ALL_ORIGINS = False
 
-CORS_ALLOWED_ORIGINS = [origin.strip().rstrip('/') for origin in os.getenv('CORS_ALLOWED_ORIGINS', FRONTEND_URL).split(',') if origin.strip()]
+# CORS settings: sempre require orixe explícito e credenciais para cookies
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [FRONTEND_URL]
+# Se queres permitir máis orixes, engádeos aquí:
+# CORS_ALLOWED_ORIGINS = [FRONTEND_URL, "http://outro-front.com"]
 
 
 # Database

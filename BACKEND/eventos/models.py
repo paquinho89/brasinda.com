@@ -6,6 +6,13 @@ from datetime import timedelta
 User = get_user_model()
 # Create your models here.
 class Evento(models.Model):
+    contrato_uid = models.CharField(
+        max_length=32,
+        unique=True,
+        null=True,
+        blank=True,
+        help_text="Identificador único da sinatura do contrato."
+    )
     total_dinheiro_recadado = models.DecimalField(
         max_digits=12, decimal_places=2, null=True, blank=True,
         help_text="Total de diñeiro recadado polas vendas deste evento"
@@ -17,6 +24,29 @@ class Evento(models.Model):
     total_a_pagar_ao_organizador = models.DecimalField(
         max_digits=12, decimal_places=2, null=True, blank=True,
         help_text="Total a transferir ao organizador tras descontar gastos de xestión"
+    )
+    contrato_pdf = models.FileField(
+        upload_to="contratos/",
+        null=True,
+        blank=True,
+        help_text="Arquivo PDF do contrato asinado."
+    )
+    contrato_timestamp = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Data e hora de sinatura do contrato."
+    )
+    contrato_ip = models.CharField(
+        max_length=45,
+        null=True,
+        blank=True,
+        help_text="IP dende onde se asinou o contrato."
+    )
+    contrato_navegador = models.CharField(
+        max_length=256,
+        null=True,
+        blank=True,
+        help_text="Navegador do usuario ao asinar o contrato."
     )
     TIPO_ENTRADA_PAGINA = 'pagina'
     TIPO_ENTRADA_MANUAL = 'manual'

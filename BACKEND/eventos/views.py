@@ -272,9 +272,35 @@ def crear_evento_view(request):
     serializer = EventoSerializer(data=request.data, context={'request': request})
     if serializer.is_valid():
         evento = serializer.save(organizador=request.user)
+
+        # --- Xerar e gardar PDF do contrato, timestamp, IP, navegador, UID ---
+        from .utils_pdf import xerar_pdf_contrato
+        from django.core.files.base import ContentFile
+        import uuid
+        # Datos do organizador para PDF
+        organizador_dict = {
+            'nome_razon_social_contrato': request.user.get_full_name() or request.user.username,
+            'nif_cif': getattr(request.user, 'nif_cif', ''),
+            'enderezo_fiscal': getattr(request.user, 'enderezo_fiscal', ''),
+        }
+        ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', ''))
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        organizador_dict['ip'] = ip
+        organizador_dict['navegador'] = user_agent
+        uid = uuid.uuid4().hex[:16]
+        organizador_dict['id_aceptacion'] = uid
+        # Xerar PDF
+        buffer = xerar_pdf_contrato(evento, organizador_dict)
+        nome_pdf = f"contrato_evento_{evento.id}.pdf"
+        evento.contrato_pdf.save(nome_pdf, ContentFile(buffer.getvalue()))
+        evento.contrato_timestamp = timezone.now()
+        evento.contrato_ip = ip
+        evento.contrato_navegador = user_agent
+        evento.contrato_uid = uid
+        evento.save(update_fields=["contrato_pdf", "contrato_timestamp", "contrato_ip", "contrato_navegador", "contrato_uid"])
+
         # Enviar email de publicación ao organizador
         from .email_entradas import enviar_publicacion_evento_email
-        # Construír URLs para o panel e o evento público
         url_panel = f"https://brasinda.com/panel-organizador/evento/{evento.id}" if not settings.DEBUG else f"http://localhost:5173/panel-organizador/evento/{evento.id}"
         url_publico = f"https://brasinda.com/evento/{evento.id}" if not settings.DEBUG else f"http://localhost:5173/evento/{evento.id}"
         email = "paquinho89@gmail.com"  # Forzar destinatario para probas
