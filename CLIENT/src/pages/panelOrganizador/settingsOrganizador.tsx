@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import MainNavbar from "../componentes/NavBar";
-import { FaUser, FaEnvelope, FaUniversity, FaGlobe, FaLock, FaExclamationTriangle, FaArrowLeft, FaSave, FaPhone, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaUniversity, FaGlobe, FaLock, FaExclamationTriangle, FaArrowLeft, FaSave, FaPhone, FaEye, FaEyeSlash, FaIdCard, FaMapMarkerAlt } from "react-icons/fa";
 import API_BASE_URL from "../../utils/api";
 import "../../estilos/Botones.css";
 import { Modal } from "react-bootstrap";
@@ -14,6 +14,8 @@ interface OrganizadorData {
   telefono: string;
   numero_iban?: string;
   idioma?: string;
+  nif_cif?: string;
+  enderezo_fiscal?: string;
 }
 
 export default function SettingsOrganizador() {
@@ -37,6 +39,8 @@ export default function SettingsOrganizador() {
     telefono: "",
     numero_iban: "",
     idioma: "galego",
+    nif_cif: "",
+    enderezo_fiscal: "",
   });
 
   const [originalData, setOriginalData] = useState<OrganizadorData>({
@@ -46,6 +50,8 @@ export default function SettingsOrganizador() {
     telefono: "",
     numero_iban: "",
     idioma: "galego",
+    nif_cif: "",
+    enderezo_fiscal: "",
   });
 
   useEffect(() => {
@@ -88,6 +94,8 @@ export default function SettingsOrganizador() {
         telefono: form.telefono,
         numero_iban: form.numero_iban,
         idioma: form.idioma,
+        nif_cif: form.nif_cif,
+        enderezo_fiscal: form.enderezo_fiscal,
       };
 
       // Si se cambió la contraseña
@@ -114,13 +122,20 @@ export default function SettingsOrganizador() {
       }
 
       const data = await response.json();
-      setForm(data);
-      setOriginalData(data);
+      // Aseguramos que todos os campos existen no estado tras PATCH
+      setForm(prev => ({
+        ...prev,
+        ...data
+      }));
+      setOriginalData(prev => ({
+        ...prev,
+        ...data
+      }));
       setIsEditing(false);
       setShowPasswordSection(false);
       setNewPassword("");
       setConfirmPassword("");
-      alert("Datos actualizados correctamente");
+      // Eliminada a alerta de éxito
     } catch (err: any) {
       alert(err.message || "Error ao gardar cambios");
     }
@@ -266,6 +281,45 @@ export default function SettingsOrganizador() {
               />
             ) : (
               <p style={{ fontSize: "1rem", color: "#666", marginBottom: 0 }}>{form.telefono}</p>
+            )}
+          </div>
+          {/* NIF/CIF */}
+          <div className="mb-4">
+            <label style={{ fontWeight: 600, marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <FaIdCard style={{ color: "#000" }} />
+              NIF/CIF
+            </label>
+            {isEditing ? (
+              <input
+                type="text"
+                name="nif_cif"
+                value={form.nif_cif || ""}
+                onChange={handleChange}
+                className="form-control"
+                style={{ borderRadius: "8px" }}
+              />
+            ) : (
+              <p style={{ fontSize: "1rem", color: "#666", marginBottom: 0 }}>{form.nif_cif || ""}</p>
+            )}
+          </div>
+
+          {/* Enderezo fiscal */}
+          <div className="mb-4">
+            <label style={{ fontWeight: 600, marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <FaMapMarkerAlt style={{ color: "#000" }} />
+              Enderezo fiscal
+            </label>
+            {isEditing ? (
+              <input
+                type="text"
+                name="enderezo_fiscal"
+                value={form.enderezo_fiscal || ""}
+                onChange={handleChange}
+                className="form-control"
+                style={{ borderRadius: "8px" }}
+              />
+            ) : (
+              <p style={{ fontSize: "1rem", color: "#666", marginBottom: 0 }}>{form.enderezo_fiscal || ""}</p>
             )}
           </div>
 

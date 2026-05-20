@@ -10,10 +10,9 @@ import API_BASE_URL from "../../utils/api";
 
 const CondicionesLegales: React.FC = () => {
   const { evento, setEvento } = useOutletContext<OutletContext>();
-  const { token } = useAuth();
+  const { organizador, token } = useAuth();
   const [aceptacionCondiciones, setAceptacionCondiciones] =
     useState<boolean>(evento.condicionesConfirmacion || false);
-  const [nomeCompleto, setNomeCompleto] = useState(evento.nomeCompleto || "");
   const [nifCif, setNifCif] = useState(evento.nifCif || "");
   // Recuperar enderezo fiscal descomposto se existe
   let estradaDefault = "", numeroDefault = "", portaPisoDefault = "", localidadeDefault = "", codigoPostalDefault = "";
@@ -75,7 +74,6 @@ const CondicionesLegales: React.FC = () => {
 
     // Validación campo a campo
     if (
-      nomeCompleto.trim() === "" ||
       nifCif.trim() === "" ||
       telefono.trim() === "" ||
       estrada.trim() === "" ||
@@ -103,7 +101,6 @@ const CondicionesLegales: React.FC = () => {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
-          nome_razon_social_contrato: nomeCompleto,
           nif_cif: nifCif,
           enderezo_fiscal: enderezoFiscal,
           telefono,
@@ -118,7 +115,6 @@ const CondicionesLegales: React.FC = () => {
     const eventoActualizado = {
       ...evento,
       condicionesConfirmacion: aceptacionCondiciones,
-      nomeCompleto,
       nifCif,
       enderezoFiscal: `${estrada}, ${numero}${portaPiso ? ", " + portaPiso : ""}, ${localidade}, ${codigoPostal}`,
       telefono,
@@ -139,52 +135,62 @@ const CondicionesLegales: React.FC = () => {
 
             <div className="mb-4" style={{ whiteSpace: "pre-line" }}>
               <h4>REUNIDOS</h4>
-              Dunha parte, Eventos Brasinda, con NIF [●], titular da web brasinda.com, en adiante “a Plataforma”.
-              E doutra parte, [NOME DO ORGANIZADOR], con NIF/CIF xxxxxxx e domicilio en xxxxxx, en adiante “o Organizador”.
+              Dunha parte, Eventos Brasinda, titular da web brasinda.com, en adiante “a Plataforma”.
+              E doutra parte, {(organizador && organizador.nome_organizador) ? organizador.nome_organizador : "[por cubrir]"}, con email {(organizador && organizador.email) ? organizador.email : "[por cubrir]"}, en adiante “o Organizador”.
               Ambas partes recoñécense capacidade legal suficiente e
 
               <h5 style={{marginTop: '0.5rem'}}>EXPOÑEN</h5>
-              Que a Plataforma ofrece un servizo tecnolóxico de publicación e venda de entradas para eventos a través dunha páxina web.
-              Que o Organizador é responsable da planificación, xestión e execución do evento descrito.
-              Que ambas partes desexan regular a súa relación de colaboración exclusivamente para a venda de entradas do evento.
+              que a Plataforma ofrece un servizo tecnolóxico de publicación e venda/reserva de entradas para eventos a través dunha páxina web.
+              que o Organizador é responsable da planificación, xestión e execución do evento descrito.
+              que ambas partes desexan regular a súa relación de colaboración exclusivamente para a venda ou reserva de entradas do evento.
 
               <div style={{marginTop: '2.5rem'}} />
               <h4>CLÁUSULAS</h4>
               <div style={{marginTop: '2.5rem'}} />
               <h5>1. OBXECTO DO CONTRATO</h5>
-              O presente contrato regula a colaboración para a publicación e venda de entradas do seguinte evento:
+              O presente contrato regula a colaboración para a publicación, venda ou reserva de entradas do seguinte evento:
+
               <ul>
-                <li>Nome do evento: [●]</li>
-                <li>Data e hora: [●]</li>
-                <li>Lugar: [●]</li>
+                <li>Nome do evento: <strong>{evento.tituloEvento || "[por cubrir]"}</strong></li>
+                <li>Data e hora: <strong>{evento.fecha ? (() => {
+                  const data = new Date(evento.fecha);
+                  const dataStr = data.toLocaleDateString("gl-ES");
+                  let hora = "";
+                  if (evento.fecha.includes("T")) {
+                    const partes = evento.fecha.split("T");
+                    if (partes[1]) hora = partes[1].slice(0,5);
+                  }
+                  return `${dataStr}${hora ? " ás " + hora : ""}`;
+                })() : "[por cubrir]"}</strong></li>
+                <li>Lugar: <strong>{evento.lugar || "[por cubrir]"}</strong></li>
               </ul>
 
               <h5>2. ROL DA PLATAFORMA</h5>
               A Plataforma actúa unicamente como intermediario tecnolóxico, proporcionando:
               <ul>
                 <li>Publicación do evento na web</li>
-                <li>Sistema de venda de entradas</li>
-                <li>Xestión técnica dos pagos</li>
+                <li>Sistema de venda ou reserva de entradas</li>
+                <li>Xestión técnica dos pagos, no caso de que o organizador así o solicite</li>
               </ul>
-              <strong>A Plataforma non é organizadora nin promotora do evento.</strong>
+              <strong>A Plataforma non é organizadora nin a promotora do evento.</strong>
 
               <div style={{marginTop: '2.5rem'}} />
               <h5>3. RESPONSABILIDADE DO ORGANIZADOR</h5>
-              O Organizador é o único responsable de:
+              O Organizador é o único responsable da:
               <ul>
                 <li>A legalidade do evento e permisos necesarios</li>
-                <li>Seguridade, licenzas e cumprimento normativo</li>
+                <li>Seguridade, licenzas, seguros e cumprimento normativo</li>
                 <li>Execución e realización do evento</li>
                 <li>Contido, artistas ou actividades do evento</li>
                 <li>Atención ao público e reclamacións</li>
               </ul>
 
               <h5>4. PAGOS E LIQUIDACIÓN</h5>
-              Os ingresos pola venda de entradas serán:
+              No caso de que os pagos se realicen a través da páxina web, os ingresos pola venda de entradas serán:
               <ul>
-                <li>Recolleitos a través da plataforma de pagamento</li>
-                <li>Transferidos ao Organizador descontadas as comisións acordadas: [●]% ou importe fixo</li>
-                <li>A Plataforma realizará a liquidación no prazo de [●] días tras o evento ou segundo acordo</li>
+                <li>Recollidos a través da plataforma de pagamento</li>
+                <li>Transferidos ao Organizador descontando as comisións acordadas</li>
+                <li>A Plataforma realizará a liquidación no prazo de 4 días contados a partir das 23:59 horas do día no que finaliza do evento.</li>
               </ul>
 
               <h5>5. CANCELACIÓNS E DEVOLUCIÓNS</h5>
@@ -208,11 +214,11 @@ const CondicionesLegales: React.FC = () => {
 
               <div style={{marginTop: '2.5rem'}} />
               <h5>7. DATOS E VERACIDADE</h5>
-              O Organizador declara que toda a información proporcionada é veraz e que dispón de autorizacións e permisos necesarios.
+              O Organizador declara que toda a información proporcionada é veraz e que dispón de autorizacións, seguros e permisos necesarios.
 
               <div style={{marginTop: '2.5rem'}} />
               <h5>8. PROPIEDADE E USO DA PLATAFORMA</h5>
-              A Plataforma mantén todos os dereitos sobre o software e sistema de venda de entradas.
+              A Plataforma mantén todos os dereitos sobre o software e sistema de venda e reserva de entradas.
 
               <div style={{marginTop: '2.5rem'}} />
               <h5>9. DURACIÓN</h5>
@@ -220,7 +226,7 @@ const CondicionesLegales: React.FC = () => {
 
               <div style={{marginTop: '2.5rem'}} />
               <h5>10. LEI APLICABLE</h5>
-              Este contrato rexerase pola lexislación española. Calquera conflito someterase aos xulgados de [cidade/provincia].
+              Este contrato rexerase pola lexislación española.
             </div>
 
           <Form>
@@ -237,20 +243,6 @@ const CondicionesLegales: React.FC = () => {
 
             {aceptacionCondiciones && (
               <>
-                <Form.Group className="mb-3">
-                  <FaUser style={{ marginRight: "6px", color: "#ff0093" }} />
-                  <Form.Label><strong>Nome Completo / Razón Social</strong></Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={nomeCompleto}
-                    onChange={e => setNomeCompleto(e.target.value)}
-                    onBlur={() => setTouched(t => ({ ...t, nomeCompleto: true }))}
-                    placeholder="Introduce o teu nome completo ou razón social"
-                  />
-                  {touched.nomeCompleto && nomeCompleto.trim() === "" && (
-                    <div className="text-danger small">Este campo é obrigatorio</div>
-                  )}
-                </Form.Group>
                 <Form.Group className="mb-3">
                   <FaIdCard style={{ marginRight: "6px", color: "#ff0093" }} />
                   <Form.Label><strong>NIF / CIF</strong></Form.Label>
@@ -390,7 +382,6 @@ const CondicionesLegales: React.FC = () => {
                 onClick={handleSubmit}
                 disabled={
                   !aceptacionCondiciones ||
-                  nomeCompleto.trim() === "" ||
                   nifCif.trim() === "" ||
                   telefono.trim() === "" ||
                   estrada.trim() === "" ||

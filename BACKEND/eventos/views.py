@@ -282,7 +282,9 @@ def crear_evento_view(request):
             'nome_razon_social_contrato': request.user.get_full_name() or request.user.username,
             'nif_cif': getattr(request.user, 'nif_cif', ''),
             'enderezo_fiscal': getattr(request.user, 'enderezo_fiscal', ''),
+            'email': getattr(request.user, 'email', ''),
         }
+        print(f"[DEBUG] Email do organizador: {getattr(request.user, 'email', None)}")
         ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', ''))
         user_agent = request.META.get('HTTP_USER_AGENT', '')
         organizador_dict['ip'] = ip
@@ -290,8 +292,7 @@ def crear_evento_view(request):
         uid = uuid.uuid4().hex[:16]
         organizador_dict['id_aceptacion'] = uid
         # Xerar PDF
-        buffer = xerar_pdf_contrato(evento, organizador_dict)
-        nome_pdf = f"contrato_evento_{evento.id}.pdf"
+        buffer, nome_pdf = xerar_pdf_contrato(evento, organizador_dict)
         evento.contrato_pdf.save(nome_pdf, ContentFile(buffer.getvalue()))
         evento.contrato_timestamp = timezone.now()
         evento.contrato_ip = ip

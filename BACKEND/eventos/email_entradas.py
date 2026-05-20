@@ -31,15 +31,16 @@ def enviar_publicacion_evento_email(email, evento, url_panel, url_publico):
             'nif_cif': getattr(organizador, 'nif_cif', ''),
             'enderezo_fiscal': getattr(organizador, 'enderezo_fiscal', ''),
             'telefono': getattr(organizador, 'telefono', ''),
+            'email': getattr(organizador, 'email', ''),
         }
     else:
         org_dict = {'nome_razon_social_contrato': '', 'nif_cif': '', 'enderezo_fiscal': '', 'telefono': ''}
-    pdf_buffer = xerar_pdf_contrato(evento, org_dict)
+    pdf_buffer, pdf_filename = xerar_pdf_contrato(evento, org_dict)
     pdf_buffer.seek(0)
     import base64
     pdf_b64 = base64.b64encode(pdf_buffer.getvalue()).decode("utf-8")
     attachments = [{
-        "filename": f"contrato_{evento.id}.pdf",
+        "filename": pdf_filename,
         "content": pdf_b64,
         "contentType": "application/pdf"
     }]

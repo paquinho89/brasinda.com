@@ -288,6 +288,8 @@ def perfil_organizador(request):
             "telefono": organizador.telefono,
             "numero_iban": getattr(organizador, 'numero_iban', None),
             "idioma": getattr(organizador, 'idioma', 'galego'),
+            "nif_cif": getattr(organizador, 'nif_cif', None),
+            "enderezo_fiscal": getattr(organizador, 'enderezo_fiscal', None),
         })
     
     elif request.method == 'PATCH':
@@ -333,13 +335,14 @@ def perfil_organizador(request):
         organizador.save()
         
         return Response({
-            "message": "Datos actualizados correctamente",
             "id": organizador.id,
             "email": organizador.email,
             "nome_organizador": organizador.nome_organizador,
             "telefono": organizador.telefono,
             "numero_iban": getattr(organizador, 'numero_iban', None),
             "idioma": getattr(organizador, 'idioma', 'galego'),
+            "nif_cif": getattr(organizador, 'nif_cif', None),
+            "enderezo_fiscal": getattr(organizador, 'enderezo_fiscal', None),
         })
     
     elif request.method == 'DELETE':

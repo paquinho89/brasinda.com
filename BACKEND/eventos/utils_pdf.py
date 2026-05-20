@@ -25,11 +25,10 @@ def xerar_pdf_contrato(evento, organizador):
 
     # Título centrado
     p.setFont("Helvetica-Bold", 18)
-    p.drawCentredString(width/2, y, "Contrato de colaboración para evento")
+    p.drawCentredString(width/2, y, "Contrato de colaboración")
     y -= 40
 
     # Datos do organizador e evento
-    p.setFont("Helvetica", 11)
     data = getattr(evento, 'data_evento', None)
     import datetime
     if isinstance(data, datetime.datetime):
@@ -47,86 +46,135 @@ def xerar_pdf_contrato(evento, organizador):
     # Texto do contrato (con saltos de liña)
     # Data de sinatura do contrato (data de xeración do PDF)
     data_sinatura = datetime.datetime.now().strftime('%d/%m/%Y')
+    email_organizador = (organizador.get('email', '') or '').strip() or 'non hai email'
+    # Recoller datos extra do evento
+    tipo_gestion = getattr(evento, 'tipo_gestion_entrada', '') or getattr(evento, 'tipo_gestion', '') or ''
+    prezo_evento = getattr(evento, 'prezo_evento', '')
+    prezo_pvp = getattr(evento, 'prezo_pvp', '')
+    entradas_venta = getattr(evento, 'entradas_venta', '')
+    gastos_xestion = getattr(evento, 'gastos_xestion', '')
+
+
+    # Buscar zonas e prezos se existen (fix: non usar 'all' como valor por defecto)
+    zonas = []
+    try:
+        zonas_manager = getattr(evento, 'zonas', None)
+        if zonas_manager is not None and hasattr(zonas_manager, 'all'):
+            zonas = list(zonas_manager.all())
+        elif isinstance(zonas_manager, list):
+            zonas = zonas_manager
+    except Exception:
+        zonas = []
+
+    prezos_zonas_lines = []
+    if zonas:
+        prezos_zonas_lines.append("• Prezos por zona:")
+        for z in zonas:
+            nome = getattr(z, 'nome', str(z))
+            prezo = getattr(z, 'prezo', None)
+            prezo_pvp_z = getattr(z, 'prezo_pvp', None)
+            partes = []
+            if prezo is not None:
+                partes.append(f"{prezo} €")
+            if prezo_pvp_z is not None:
+                try:
+                    pvp_fmt = f"{float(prezo_pvp_z):.2f} € (PVP)"
+                except Exception:
+                    pvp_fmt = f"{prezo_pvp_z} € (PVP)"
+                partes.append(pvp_fmt)
+            prezo_str = ', '.join(partes) if partes else "-"
+            prezos_zonas_lines.append(f"    - {nome}: {prezo_str}")
+
     contrato_text = [
         "REUNIDOS",
         "Dunha parte, Eventos Brasinda, con NIF [●], titular da web brasinda.com, en adiante 'a Plataforma'.",
-        f"E doutra parte, {organizador.get('nome_razon_social_contrato', '')}, con NIF/CIF {organizador.get('nif_cif', '')} e domicilio en {organizador.get('enderezo_fiscal', '')}, en adiante 'o Organizador'.",
-        "Ambas partes se recoñécense a capacidade legal suficiente e",
+        f"E doutra parte, {organizador.get('nome_organizador', '')}, con NIF/CIF {organizador.get('nif_cif', '')}, domicilio en {organizador.get('enderezo_fiscal', '')} e email {email_organizador}, en adiante 'o Organizador'.",
+        "Ambas partes recoñecen a capacidade legal suficiente e",
         "",
         "",
         "EXPOÑEN",
-        "Que a Plataforma ofrece un servizo tecnolóxico de publicación e venda de entradas para eventos a través dunha páxina web.",
-        "Que o Organizador é responsable da planificación, xestión e execución do evento descrito.",
-        "Que ambas partes desexan regular a súa relación de colaboración exclusivamente para a venda de entradas do evento.",
+        "que a Plataforma ofrece un servizo tecnolóxico de publicación e venda/reserva de entradas para eventos a través dunha páxina web.",
+        "que o Organizador é responsable da planificación, xestión e execución do evento descrito.",
+        "que ambas partes desexan regular a súa relación de colaboración exclusivamente para a venda ou reserva de entradas do evento.",
         "",
         "",
         "CLÁUSULAS",
         "1. OBXECTO DO CONTRATO",
-        "O presente contrato regula a colaboración para a publicación e venda de entradas do seguinte evento.",
-            f"Evento: {evento.nome_evento}",
-            f"Data: {data_str}",
-            f"Lugar: {getattr(evento, 'localizacion', '')}",
+        "O presente contrato regula a colaboración para a publicación, venda ou reserva de entradas do seguinte evento.",
+            f"• Evento: {getattr(evento, 'nome_evento', '')}",
+            f"• Data: {data_str}",
+            f"• Lugar: {getattr(evento, 'localizacion', '')}",
+            f"• Tipo xestión entrada: {tipo_gestion}",
+    ]
+    if prezos_zonas_lines:
+        contrato_text.extend(prezos_zonas_lines)
+    else:
+        partes = []
+        if prezo_evento:
+            partes.append(f"{prezo_evento} €")
+        if prezo_pvp:
+            try:
+                pvp_fmt = f"{float(prezo_pvp):.2f} € (PVP)"
+            except Exception:
+                pvp_fmt = f"{prezo_pvp} € (PVP)"
+            partes.append(pvp_fmt)
+        prezo_str = ', '.join(partes) if partes else "-"
+        contrato_text.append(f"• Prezo evento: {prezo_str}")
+    contrato_text.extend([
+        f"• Gastos xestión: {gastos_xestion} %",
+        f"• Entradas á venda: {entradas_venta}",
         "",
         "",
         "2. ROL DA PLATAFORMA",
-        "A Plataforma actúa unicamente como intermediario tecnolóxico, proporcionando publicación, venda e xestión técnica dos pagos.",
-            "Publicación do evento na web",
-            "Sistema de venda de entradas",
-            "Xestión técnica dos pagos",
+        "A Plataforma actúa unicamente como intermediario tecnolóxico, proporcionando:",
+            "• Publicación do evento na web",
+            "• Sistema de venda ou reserva de entradas",
+            "• Xestión técnica dos pagos, no caso de que o organizador así o solicite",
         "",
         "",
-        "A Plataforma non é organizadora nin promotora do evento.",
-        "",
+        "A Plataforma non é organizadora nin a promotora do evento.",
         "",
         "3. RESPONSABILIDADE DO ORGANIZADOR",
         "O Organizador é o único responsable da:",
-            "Legalidade do evento e permisos necesarios",
-            "Seguridade, licenzas e cumprimento normativo",
-            "Execución e realización do evento",
-            "Contido, artistas ou actividades do evento",
-            "Atención ao público e reclamacións",
-        "",
+            "• Legalidade do evento e permisos necesarios",
+            "• Seguridade, licenzas, seguros e cumprimento normativo",
+            "• Execución e realización do evento",
+            "• Contido, artistas ou actividades do evento",
+            "• Atención ao público e reclamacións",
         "",
         "4. PAGOS E LIQUIDACIÓN",
-        "Os ingresos pola venda de entradas serán:"
-            "Recollidos a través da plataforma de pagamento",
-            "Transferidos ao Organizador descontadas as comisións acordadas",
-            "A Plataforma realizará a liquidación no prazo de 4 días despois das 00:00 horas do día seguinte á finalización do evento.",
-        "",
+        "No caso de que os pagos se realicen a través da páxina web, os ingresos pola venda de entradas serán:",
+            "• Recollidos a través da plataforma de pagamento",
+            "• Transferidos ao Organizador descontando as comisións acordadas",
+            "• A Plataforma realizará a liquidación no prazo de 4 días contados a partir das 23:59 horas do día no que finaliza do evento.",
         "",
         "5. CANCELACIÓNS E DEVOLUCIÓNS",
         "O Organizador será responsable de:",
-            "Definir a política de devolucións",
-            "Xestionar cancelacións ou cambios de data",
-            "Asumir os custos derivados das devolucións",
-        "",
+            "• Definir a política de devolucións",
+            "• Xestionar cancelacións ou cambios de data",
+            "• Asumir os custos derivados das devolucións",
         "",
         "A Plataforma executará as devolucións unicamente segundo instrucións do Organizador ou obrigas legais.",
         "",
-        "",
         "6. PROTECCIÓN E INDEMNIZACIÓN",
-        "O organizador comprométese a manger indemne á Plataforma fronte a:"
-            "Reclamacións de asistentes ou terceiros",
-            "Multas ou sancións por incumprimento normativo",
-            "Danos ou incidentes durante o evento",
-            "Incumprimentos legais do Organizador",
-        "",
+        "O Organizador comprométese a manter indemne á Plataforma fronte a: ",
+            "• Reclamacións de asistentes ou terceiros",
+            "• Multas ou sancións por incumprimento normativo",
+            "• Danos ou incidentes durante o evento",
+            "• Incumprimentos legais do Organizador",
         "",
         "7. DATOS E VERACIDADE",
-        "O Organizador declara que toda a información proporcionada é veraz e que dispón de autorizacións e permisos necesarios.",
-        "",
+        "O Organizador declara que toda a información proporcionada é veraz e que dispón de autorizacións, seguros e permisos necesarios.",
         "",
         "8. PROPIEDADE E USO DA PLATAFORMA",
-        "A Plataforma mantén todos os dereitos sobre o software e sistema de venda de entradas.",
-        "",
+        "A Plataforma mantén todos os dereitos sobre o software e sistema de venda e reserva de entradas.",
         "",
         "9. DURACIÓN",
         "Este contrato é válido exclusivamente para o evento indicado e remata tras a súa finalización e liquidación.",
         "",
-        "",
         "10. LEI APLICABLE",
-        "Este contrato rexerase pola lexislación española.",
-    ]
+        "Este contrato rexerase pola lexislación española."
+    ])
     p.setFont("Helvetica", 11)
 
     bold_titles = [
@@ -157,24 +205,38 @@ def xerar_pdf_contrato(evento, organizador):
             p.drawInlineImage(logo_path, 40, height - 90, width=100, height=60)
         # Título centrado
         p.setFont("Helvetica-Bold", 18)
-        p.drawCentredString(width/2, height - 60, "Contrato de colaboración para evento")
+        p.drawCentredString(width/2, height - 60, "Contrato de colaboración")
 
 
+    salto_paxina_idx = None
+    line_height = 18
+    min_y = 80  # marxe inferior
     for idx, line in enumerate(contrato_text):
         wrapped = textwrap.wrap(line, width=max_width)
         for wline in wrapped:
-            if y < 60:
+            # Se non hai espazo suficiente, nova páxina
+            if y < min_y:
                 draw_footer()
                 p.showPage()
                 draw_header()
-                y = height - 120  # Deixar espazo baixo cabeceira
+                y = height - 120
             # Poñer títulos en negrita
             if wline.strip().upper() in [t.upper() for t in bold_titles]:
                 p.setFont("Helvetica-Bold", 11)
             else:
                 p.setFont("Helvetica", 11)
             p.drawString(60, y, wline)
-            y -= 18
+            y -= line_height
+        # Engadir salto de páxina só despois do punto 10 (mantense, pero agora non é obrigatorio para axuste automático)
+        if (
+            line.strip() == "Este contrato rexerase pola lexislación española."
+            and salto_paxina_idx is None
+        ):
+            draw_footer()
+            p.showPage()
+            draw_header()
+            y = height - 120
+            salto_paxina_idx = idx
 
 
     # Bloque de sinaturas ao final do contrato con nomes e datas reais
@@ -201,6 +263,7 @@ def xerar_pdf_contrato(evento, organizador):
     navegador = getattr(evento, 'contrato_navegador', None) or organizador.get('navegador', '---')
     id_aceptacion = getattr(evento, 'contrato_uid', None) or organizador.get('id_aceptacion', ''.join(random.choices(string.ascii_uppercase, k=3)) + ''.join(random.choices(string.digits, k=4)))
 
+
     p.setFont("Helvetica-Bold", 11)
     p.drawString(60, y, "A Plataforma")
     y -= 18
@@ -209,8 +272,9 @@ def xerar_pdf_contrato(evento, organizador):
     y -= 18
     p.drawString(80, y, f"Data e hora: {data_actual}")
     y -= 18
+
     # Organizador
-    nome_organizador = organizador.get('nome_razon_social_contrato', '')
+    nome_organizador = organizador.get('nome_organizador', '')
     p.setFont("Helvetica-Bold", 11)
     p.drawString(60, y, "O Organizador")
     y -= 18
@@ -219,17 +283,29 @@ def xerar_pdf_contrato(evento, organizador):
     y -= 18
     p.drawString(80, y, f"Data e hora: {data_actual}")
     y -= 18
-    p.drawString(80, y, f"IP: {ip}")
-    y -= 18
-    p.drawString(80, y, f"Navegador: {navegador}")
-    y -= 18
-    p.drawString(80, y, f"ID aceptación: {id_aceptacion}")
+
+    # Axuste de liña para IP, Navegador e ID aceptación
+    import textwrap
+    def draw_wrapped(label, value, indent=80, max_width=90):
+        wrapped_lines = textwrap.wrap(f"{label}: {value}", width=max_width)
+        nonlocal y
+        for wline in wrapped_lines:
+            p.drawString(indent, y, wline)
+            y -= 18
+
+    draw_wrapped("IP", ip)
+    draw_wrapped("Navegador", navegador)
+    draw_wrapped("ID aceptación", id_aceptacion)
     y -= 10
     draw_footer()
 
     p.save()
     buffer.seek(0)
-    return buffer
+    # Nomear PDF como contrato_IDaceptacion.pdf
+    import re
+    id_aceptacion_limpio = re.sub(r'[^\w\-]+', '', str(id_aceptacion))
+    filename = f"contrato_{id_aceptacion_limpio}.pdf"
+    return buffer, filename
 from io import BytesIO
 from django.http import HttpResponse
 from reportlab.lib.pagesizes import A4
