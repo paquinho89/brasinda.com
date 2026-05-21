@@ -194,13 +194,12 @@ const CondicionesLegales: React.FC = () => {
               </ul>
 
               <h5>5. CANCELACIÓNS E DEVOLUCIÓNS</h5>
-              O Organizador será responsable de:
               <ul>
-                <li>Definir a política de devolucións</li>
-                <li>Xestionar cancelacións ou cambios de data</li>
-                <li>Asumir os custos derivados das devolucións</li>
+                <li>No caso da cancelación ou calquera tipo de cambio (data, local, artistas...), o Organizador será responsable de informar á plataforma.</li>
+                <li>No caso de cancelación, e o importe da entrada sexa xestionado a través da páxina, éste será reembolsado ao comprador utilizando o mesmo método de pago utilizado para a compra.</li>
+                <li>No caso de cancelación e o importe da entrada sexa xestionado directamente co organizador, o proceso de reembolso será xestionado polo Organizador.</li>
+                <li>Os gastos derivados das devolucións serán asumidos polo Organizador.</li>
               </ul>
-              A Plataforma executará as devolucións unicamente segundo instrucións do Organizador ou obrigas legais.
 
               <div style={{marginTop: '2.5rem'}} />
               <h5>6. PROTECCIÓN E INDEMNIZACIÓN</h5>

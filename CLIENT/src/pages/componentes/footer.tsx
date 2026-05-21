@@ -113,7 +113,7 @@ function Footer() {
                   onMouseEnter={(e) => e.currentTarget.style.color = "#ff0093"}
                   onMouseLeave={(e) => e.currentTarget.style.color = "#666"}
                 >
-                  Termos e Condicións de Uso
+                  Termos e Condicións de Compra
                 </a>
               </li>
               <li style={{ marginBottom: "0.75rem" }}>

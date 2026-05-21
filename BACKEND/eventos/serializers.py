@@ -1,14 +1,26 @@
 from rest_framework import serializers
 from .models import Evento, ReservaButaca, ZonaPrezo
 
+
 class EventoSerializer(serializers.ModelSerializer):
     entradas_vendidas = serializers.SerializerMethodField()
     entradas_reservadas = serializers.SerializerMethodField()
+    contrato_pdf_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Evento
         fields = '__all__'
         read_only_fields = ['organizador', 'entradas_vendidas', 'entradas_reservadas']
+        # O campo contrato_pdf_url engádese automaticamente por SerializerMethodField
+
+    def get_contrato_pdf_url(self, obj):
+        request = self.context.get('request')
+        if obj.contrato_pdf:
+            url = obj.contrato_pdf.url
+            if request is not None:
+                return request.build_absolute_uri(url)
+            return url
+        return None
 
     def create(self, validated_data):
         # Establecer gastos_xestion segundo tipo_gestion_entrada

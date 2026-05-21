@@ -28,6 +28,7 @@ interface EventoHomeProps {
     entradas_venta: number;
     prezo_evento?: number;
     evento_verificado: boolean;
+    contrato_pdf_url?: string | null;
   };
   modoPublicacionExitosa?: boolean;
 }
@@ -212,7 +213,18 @@ export default function TarjetaEventoHome({ evento, modoPublicacionExitosa }: Ev
             >
               Ver evento
             </Button>
-            {/* Reservar Entrada oculto en modoPublicacionExitosa */}
+            <Button
+              variant="secondary"
+              className="reserva-entrada-btn mb-2"
+              onClick={e => {
+                e.stopPropagation();
+                if (evento.contrato_pdf_url) {
+                  window.open(evento.contrato_pdf_url, '_blank');
+                }
+              }}
+            >
+              Descargar contrato
+            </Button>
           </>
         ) : (
           evento.evento_verificado ? (

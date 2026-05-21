@@ -42,15 +42,21 @@ const termsSections = [
 		paragraphs: [
 			"As entradas están suxeitas á dispoñibilidade en tempo real e ao pagamento correcto cando corresponda.",
 			"Antes de confirmar unha compra ou reserva, a persoa usuaria debe revisar os datos do evento, prezo, data, localización e condicións específicas publicadas polo organizador.",
-			"Unha vez completada a operación, a plataforma poderá enviar confirmación por correo electrónico e permitir a descarga da entrada en formato dixital.",
+			"Unha vez completada a operación, a plataforma enviará confirmación por correo electrónico e permitirá a descarga da entrada en formato dixital.",
+			"Eventos Brasinda non se fai responsable de ningunha perda ou roubo de entradas.",
 		],
 	},
 	{
-		title: "6. Prezos, pagamentos e reembolsos",
+		title: "6. Prezos, pagamentos, cancelacións e reembolsos",
 		paragraphs: [
 			"Os prezos mostrados inclúen os importes indicados na ficha do evento. No caso de existir cargos adicionais, serán informados antes da confirmación.",
-			"Os pagamentos procesaranse a través dos provedores habilitados na plataforma e baixo os seus propios estándares de seguridade.",
-			"As políticas de cancelación e reembolso dependerán da natureza do evento e da normativa aplicable. Cando proceda, o reembolso realizarase polo mesmo medio de pagamento empregado na compra.",
+			"No caso de que o pago se xestione a través da páxina, éste farase a través dos provedores habilitados na plataforma e baixo os seus propios estándares de seguridade. Se o pago se xestiona directamente co organizador, a plataforma non intermediará nin asumirá responsabilidade sobre o proceso de pago.",
+			"Unha vez adquirida a entrada, unicamente se cambiará ou se devolverá o seu importe en caso de cancelación do evento.",
+			"Os cambios que se produzan no evento, tales como cambio de data, de local ou de artistas, que se produzan con posterioridade á recepción por parte do comprador da confirmación de compra da entrada, competen única e exclusivamente ao promotor, polo que Brasinda unicamente poderá proceder á cancelación das entradas e, polo tanto, á devolución do prezo cando reciba orde expresa do organizador/promotor do evento. En caso contrario, Brasinda non poderá proceder á devolución dos ditos importes.",
+			"No caso de cancelación durante o desenvolvemento do espectáculo, o comprador non terá dereito ao reembolso do prezo da entrada.",
+			"Calquera cambio ou cancelación do evento que se produza será publicado no sitio web na sección do evento unha vez o notifique oficialmente o organizador/promotor.",
+			"No caso de que o pago se xestione a través da páxina web, o reembolso farase a través do mesmo método de pago utilizado para a compra, e o prazo para que o importe se vexa reflectido na conta do comprador dependerá dos procedementos do provedor de pago e da entidade bancaria correspondente.",
+			"Se o pago se xestiona directamente co organizador, o proceso de reembolso será xestionado polo organizador e a plataforma non intermediará nin asumirá responsabilidade sobre o proceso de reembolso.",
 		],
 	},
 	{
@@ -85,13 +91,13 @@ const termsSections = [
 		title: "11. Modificación das condicións",
 		paragraphs: [
 			"O titular poderá modificar estas condicións para adaptalas a cambios legais, técnicos ou operativos. As novas versións publicaranse nesta mesma páxina e entrarán en vigor desde a súa publicación.",
-			"Última actualización: 30 de marzo de 2026.",
 		],
 	},
 	{
 		title: "12. Lei aplicable e xurisdición",
 		paragraphs: [
 			"Estas condicións rexeranse pola lexislación española. Para a resolución de conflitos, as partes someteranse aos xulgados e tribunais competentes conforme á normativa vixente en materia de consumo e contratación.",
+			"Última actualización: 30 de marzo de 2026.",
 		],
 	},
 ];

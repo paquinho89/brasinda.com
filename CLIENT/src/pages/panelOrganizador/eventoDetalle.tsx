@@ -28,6 +28,7 @@ interface Evento {
   tipo_gestion_entrada?: "pagina" | "manual" | "gratis" | null;
   evento_cancelado?: boolean;
   xustificacion_cancelacion?: string | null;
+  contrato_pdf_url?: string | null;
 }
 
 export default function EventoDetalle() {
@@ -553,40 +554,42 @@ export default function EventoDetalle() {
                 <hr style={{ width: '100%', border: 0, borderTop: '4px solid #bdbdbd', margin: '22px 0 24px 0' }} />
 
                 {evento.prezo_evento != null && Number(evento.prezo_evento) > 0 && <p><FaMoneyBill className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} /><strong>Diñeiro recadado:</strong> {formatImporteEuro(Number(evento.prezo_evento) * (evento.entradas_vendidas ?? 0))} €</p>}
-                {/* Sempre mostrar título e icono, pero se é de balde só texto, sen táboa */}
-                <p><FaEuroSign className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} /><strong>Prezo:</strong></p>
-                {evento.prezo_evento === 0 || evento.tipo_gestion_entrada === 'gratis' ? (
-                  <div style={{ fontWeight: 700, color: '#222', fontSize: '1.08rem', margin: '10px 0 18px 0' }}>Evento de Balde</div>
-                ) : (
-                  <>
-                    {/* Táboa de prezo global cando prezo_areas é false */}
-                    {evento.prezo_areas === false && evento.prezo_evento != null && (
-                      <div className="row mb-3">
-                        <div className="col-12">
-                          <table className="w-100" style={{ background: '#fff', margin: 0, borderCollapse: 'collapse' }}>
-                            <thead>
-                              <tr style={{ background: '#f5f5f5' }}>
-                                <th style={{ border: 'none', padding: '10px 8px', textAlign: 'left', fontWeight: 600 }}>Prezo</th>
-                                {evento.tipo_gestion_entrada !== 'manual' && <th style={{ border: 'none', padding: '10px 8px', textAlign: 'left', fontWeight: 600 }}>PVP</th>}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                <td style={{ border: 'none', padding: '10px 8px' }}>{Number(evento.prezo_evento).toFixed(2).replace('.', ',')} €</td>
-                                {evento.tipo_gestion_entrada !== 'manual' && <td style={{ border: 'none', padding: '10px 8px' }}>{Number(evento.prezo_pvp ?? 0).toFixed(2).replace('.', ',')} €</td>}
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    )}
-                    {/* Táboa de prezos por zona cando prezo_areas é true */}
-                    {evento.prezo_areas === true && (
-                      <TablaPrezosZonas eventoId={evento.id} mostrarPVP={evento.tipo_gestion_entrada !== 'manual'} />
-                    )}
-                  </>
+                {/* Mostrar título, icono e valor de prezo na mesma liña */}
+                <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.08rem', margin: '10px 0 18px 0' }}>
+                  <FaEuroSign className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} />
+                  <strong>Prezo:</strong>
+                  {evento.prezo_evento === 0 || evento.tipo_gestion_entrada === 'gratis' ? (
+                    <span style={{ fontWeight: 700, color: '#222' }}>Evento de Balde</span>
+                  ) : (
+                    evento.prezo_areas === false && evento.prezo_evento != null ? (
+                      <span style={{ fontWeight: 700, color: '#222' }}>{Number(evento.prezo_evento).toFixed(2).replace('.', ',')} €</span>
+                    ) : null
+                  )}
+                </p>
+                {/* Táboa de prezos por zona cando prezo_areas é true */}
+                {evento.prezo_areas === true && (
+                  <TablaPrezosZonas eventoId={evento.id} mostrarPVP={evento.tipo_gestion_entrada !== 'manual'} />
                 )}
                 {textoXestionImporte && <p><FaTicketAlt className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} /><strong>Xestión do cobro:</strong> {textoXestionImporte}</p>}
+
+                {/* Campo para descargar contrato en PDF, só se existe a propiedade evento.contrato_pdf_url */}
+                {evento.contrato_pdf_url && (
+                  <div style={{ margin: '16px 0' }}>
+                    <p>
+                      <FaRegFileAlt className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} />
+                      <strong>Contrato:</strong>
+                      <a
+                        href={evento.contrato_pdf_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ marginLeft: 8, fontWeight: 600, color: '#007bff', textDecoration: 'underline' }}
+                      >
+                        Descargar PDF
+                      </a>
+                    </p>
+                  </div>
+                )}
+
                 {img && (
                   <div>
                     <p><FaImage className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} /><strong>Imaxe:</strong> {evento.imaxe_evento?.split("/").pop()}</p>

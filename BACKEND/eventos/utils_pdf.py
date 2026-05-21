@@ -149,10 +149,10 @@ def xerar_pdf_contrato(evento, organizador):
             "• A Plataforma realizará a liquidación no prazo de 4 días contados a partir das 23:59 horas do día no que finaliza do evento.",
         "",
         "5. CANCELACIÓNS E DEVOLUCIÓNS",
-        "O Organizador será responsable de:",
-            "• Definir a política de devolucións",
-            "• Xestionar cancelacións ou cambios de data",
-            "• Asumir os custos derivados das devolucións",
+        "• No caso da cancelación ou calquera tipo de cambio (data, local, artistas...), o Organizador será responsable de informar á plataforma.",
+        "• No caso de cancelación, e o importe da entrada sexa xestionado a través da páxina, éste será reembolsado ao comprador utilizando o mesmo método de pago utilizado para a compra.",
+        "• No caso de cancelación e o importe da entrada sexa xestionado directamente co organizador, o proceso de reembolso será xestionado polo Organizador.",
+        "• Os gastos derivados das devolucións serán asumidos polo Organizador.",
         "",
         "A Plataforma executará as devolucións unicamente segundo instrucións do Organizador ou obrigas legais.",
         "",
@@ -662,25 +662,64 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
     p.line(60, y, width-60, y)
     y -= 18
 
-    p.setFont("Helvetica-Bold", 10)
+    # Engadir datos do organizador despois da liña divisoria
+    nome_organizador = None
+    nif_organizador = None
+    if hasattr(evento, "organizador") and evento.organizador:
+        org = evento.organizador
+        nome_organizador = getattr(org, "nome", None) or getattr(org, "nome_organizador", None) or ""
+        nif_organizador = getattr(org, "nif_cif", None) or getattr(org, "cif", None) or getattr(org, "nif", None) or ""
+
+    # Texto: etiqueta normal, valor en negrita, tamaño lixeiramente maior
+    font_size = 12
+    p.setFont("Helvetica", font_size)
+    p.setFillColorRGB(0.2, 0.2, 0.2)
+    # Organizador
+    label = "Organizador: "
+    valor = nome_organizador if nome_organizador else '-'
+    p.drawString(60, y, label)
+    p.setFont("Helvetica-Bold", font_size)
+    p.drawString(60 + p.stringWidth(label, "Helvetica", font_size), y, valor)
+    y -= 16
+    # CIF/NIF
+    p.setFont("Helvetica", font_size)
+    label2 = "CIF/NIF Organizador: "
+    valor2 = nif_organizador if nif_organizador else '-'
+    p.drawString(60, y, label2)
+    p.setFont("Helvetica-Bold", font_size)
+    p.drawString(60 + p.stringWidth(label2, "Helvetica", font_size), y, valor2)
+    y -= 26  # Máis espazo despois de CIF/NIF
+
+    p.setFont("Helvetica-Bold", 11)
     p.setFillColorRGB(0.2, 0.2, 0.2)
     p.drawString(60, y, "Condicións de uso:")
-    y -= 14
-    p.setFont("Helvetica", 8)
+    y -= 16
+    p.setFont("Helvetica", 9)
     p.setFillColorRGB(0.2, 0.2, 0.2)
+    import textwrap
     terms = [
-        "O uso desta entrada implica a aceptación das condicións de uso dispoñibles en brasinda.com.",
-        "Queda prohibida a súa reventa ou duplicación.",
-        "A organización resérvase o dereito de admisión.",
-        "Non se admiten cambios nin devolucións salvo cancelación do evento.",
-        "É obrigatorio conservar a entrada durante todo o evento.",
-        "A perda ou deterioro da entrada non será responsabilidade da organización.",
+        "1. O uso desta entrada implica a aceptación das condicións de compra dispoñibles en brasinda.com.",
+        "2. Puntualidade xa que non se garantiza a entrada ao evento unha vez comezado.",
+        "3. Queda prohibida a súa reventa ou duplicidade.",
+        "4. Ao entrar ó recinto pode estar suxeito a un rexistro co fin de evitar a entrada de obxetos que podan se considerados perigosos polo organizador",
+        "5. A organización resérvase o dereito de admisión.",
+        "6. Nos eventos teatrais ou musicais, non se pode gravar, fotografiar ou filmar sen autorización do Organizador, quedando así reservados todos os dereitos de imaxe e propiedade intelectual.",
+        "7. Non se admiten cambios nin devolucións salvo cancelación do evento.",
+        "8. É obrigatorio conservar a entrada durante todo o evento.",
+        "9. A perda ou deterioro da entrada non será responsabilidade da organización.",
         # Engade aquí máis puntos se o desexas
     ]
-    bullet = u"\u2022"  # Unicode bullet
+    # Aproveitar máis o ancho da folla para os terms
+    max_width_chars = 120  # máis caracteres por liña
+    left_margin = 60
+    right_margin = 60
+    available_width = width - left_margin - right_margin
     for t in terms:
-        p.drawString(70, y, f"{bullet} {t}")
-        y -= 12
+        # Wrap manual usando available_width en puntos
+        wrapped_lines = textwrap.wrap(t, width=max_width_chars)
+        for wline in wrapped_lines:
+            p.drawString(left_margin, y, wline)
+            y -= 13
 
     # Xeración do QR no header, arriba á dereita
     from PIL import Image
