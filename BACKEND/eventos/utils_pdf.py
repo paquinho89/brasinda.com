@@ -227,16 +227,7 @@ def xerar_pdf_contrato(evento, organizador):
                 p.setFont("Helvetica", 11)
             p.drawString(60, y, wline)
             y -= line_height
-        # Engadir salto de páxina só despois do punto 10 (mantense, pero agora non é obrigatorio para axuste automático)
-        if (
-            line.strip() == "Este contrato rexerase pola lexislación española."
-            and salto_paxina_idx is None
-        ):
-            draw_footer()
-            p.showPage()
-            draw_header()
-            y = height - 120
-            salto_paxina_idx = idx
+
 
 
     # Bloque de sinaturas ao final do contrato con nomes e datas reais

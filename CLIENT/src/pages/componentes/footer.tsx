@@ -1,10 +1,21 @@
 import { Container, Row, Col } from "react-bootstrap";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaFacebook, FaTwitter, FaInstagram, FaEnvelope } from "react-icons/fa";
+import RecuperarEntradaModal from "./RecuperarEntradaCuadro"
 
 function Footer() {
   const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
+  const [showRecuperacionEntradas, setShowRecuperacionEntradas] = useState(false);
+
+  const handleOpenRecuperacionEntradas = () => {
+    setShowRecuperacionEntradas(true);
+  };
+
+  const handleCloseRecuperacionEntradas = () => {
+    setShowRecuperacionEntradas(false);
+  };
 
   return (
     <footer style={{
@@ -180,18 +191,20 @@ function Footer() {
               </li>
               <li style={{ marginBottom: "0.75rem" }}>
                 <a
-                  onClick={() => navigate("/axuda")}
+                  onClick={handleOpenRecuperacionEntradas}
                   style={{ 
                     color: "#666", 
                     textDecoration: "none",
                     cursor: "pointer",
                     fontSize: "0.95rem",
-                    transition: "color 0.2s"
+                    transition: "color 0.2s",
+                    display: "flex",
+                    alignItems: "center"
                   }}
                   onMouseEnter={(e) => e.currentTarget.style.color = "#ff0093"}
                   onMouseLeave={(e) => e.currentTarget.style.color = "#666"}
                 >
-                  Centro de Axuda
+                  Volver imprimir entradas
                 </a>
               </li>
             </ul>
@@ -217,8 +230,11 @@ function Footer() {
             </p>
           </Col>
         </Row>
-      </Container>
-    </footer>
+
+      {/* Modal para recuperar entradas */}
+      <RecuperarEntradaModal show={showRecuperacionEntradas} onClose={handleCloseRecuperacionEntradas} />
+    </Container>
+  </footer>
   );
 }
 
