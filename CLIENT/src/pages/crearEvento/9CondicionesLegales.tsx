@@ -4,7 +4,7 @@ import { useAuth } from "../AuthContext";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import { Button, Form, Container, Card } from "react-bootstrap";
 import type { OutletContext } from "./0ElementoPadre";
-import { FaArrowLeft, FaIdCard, FaPhone, FaUser, FaMapMarkerAlt } from "react-icons/fa";
+import { FaArrowLeft, FaIdCard, FaPhone, FaMapMarkerAlt } from "react-icons/fa";
 import API_BASE_URL from "../../utils/api";
 
 
