@@ -279,7 +279,7 @@ def crear_evento_view(request):
         import uuid
         # Datos do organizador para PDF
         organizador_dict = {
-            'nome_razon_social_contrato': request.user.get_full_name() or request.user.username,
+            'nome_organizador': request.user.get_full_name() or request.user.username,
             'nif_cif': getattr(request.user, 'nif_cif', ''),
             'enderezo_fiscal': getattr(request.user, 'enderezo_fiscal', ''),
             'email': getattr(request.user, 'email', ''),

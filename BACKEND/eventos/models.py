@@ -89,6 +89,8 @@ class Evento(models.Model):
     )
     data_creacion = models.DateTimeField(auto_now_add=True)
     evento_verificado = models.BooleanField(default=False)
+    evento_envio_email_agradecemento_cobro = models.BooleanField(default=False)
+    evento_cobrado = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         from decimal import Decimal
@@ -154,6 +156,7 @@ class ReservaButaca(models.Model):
     fecha_expiracion = models.DateTimeField(blank=True, null=True)
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default=ESTADO_TEMPORAL)
     codigo_validacion = models.CharField(max_length=20, blank=True, null=True)
+    entrada_usada_validacion = models.BooleanField(default=False)
 
     class Meta:
         constraints = [

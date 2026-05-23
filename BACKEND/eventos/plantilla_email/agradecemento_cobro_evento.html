@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="gl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grazas por asistir - brasinda.com</title>
+    <style>
+      body {
+        background: #f7f7fa;
+        font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+        color: #222;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 480px;
+        margin: 40px auto;
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        padding: 32px 28px 28px 28px;
+        text-align: center;
+      }
+      .logo {
+        width: 60px;
+        margin-bottom: 4px;
+      }
+      h1 {
+        color: #ff0093;
+        font-size: 1.6rem;
+        margin: 16px 0 8px 0;
+        font-weight: 700;
+      }
+      h2 {
+        color: #222;
+        font-size: 1.2rem;
+        margin: 8px 0 16px 0;
+        font-weight: 600;
+      }
+      p {
+        font-size: 1rem;
+        margin-bottom: 16px;
+        color: #444;
+        line-height: 1.5;
+      }
+      .footer {
+        margin-top: 32px;
+        font-size: 0.95rem;
+        color: #aaa;
+        border-top: 1px solid #f0f0f0;
+        padding-top: 20px;
+      }
+      .footer a {
+        color: #ff0093;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <img src="branding/logo.png" alt="brasinda.com" class="logo" />
+      <h1>Grazas por confiar na Brasinda!</h1>
+      <p style="font-size:1.08rem; color:#444; margin-bottom: 18px;">Aqui tes un resumo do teu evento:</p>
+      
+      
+      <div style="margin: 28px 0 0 0;">
+        <strong style="color:#ff0093; font-size:1.15rem;">Evento:</strong> <span style="font-size:1.15rem;">{{ evento_info.nome_evento }}</span><br />
+        <strong style="color:#ff0093; font-size:1.15rem;">Data:</strong> <span style="font-size:1.15rem;">{{ evento_info.data_evento }}</span><br />
+        <strong style="color:#ff0093; font-size:1.15rem;">Lugar:</strong> <span style="font-size:1.15rem;">{{ evento_info.lugar_evento }}</span>
+      </div>
+        <br />
+        {% if evento_info.tipo_gestion_entrada == 'pagina' %}
+        <a href="http://localhost:5173/panel-organizador/evento/{{ evento_info.id }}/resumo" style="
+          display: inline-block;
+          margin-top: 18px;
+          padding: 10px 28px;
+          background: #ff0093;
+          color: #fff !important;
+          border: none;
+          border-radius: 8px;
+          font-size: 1.08em;
+          font-weight: 600;
+          text-decoration: none;
+          box-shadow: 0 2px 8px #0001;
+          transition: background 0.2s;
+        " target="_blank">Quiero mi pasta</a>
+        {% else %}
+        <a href="http://localhost:5173/panel-organizador/evento/{{ evento_info.id }}/resumo" style="
+          display: inline-block;
+          margin-top: 18px;
+          padding: 10px 28px;
+          background: #ff0093;
+          color: #fff !important;
+          border: none;
+          border-radius: 8px;
+          font-size: 1.08em;
+          font-weight: 600;
+          text-decoration: none;
+          box-shadow: 0 2px 8px #0001;
+          transition: background 0.2s;
+        " target="_blank">Ver Resumo do Evento</a>
+        {% endif %}
+
+      {# Só mostrar se tipo_gestion_entrada == 'pagina' #}
+      {% if evento_info.tipo_gestion_entrada == 'pagina' %}
+      <div style="background: #fffbf5; border: 1px solid #ffdbea; border-radius: 8px; padding: 18px; margin: 28px 0; text-align: center;">
+        <h2 style="color: #ff0093; margin-bottom: 12px;">Resumo das vendas</h2>
+        <p style="font-size: 1.05rem; color: #222; margin-bottom: 10px;">
+          <strong>Número de entradas vendidas:</strong> <span style="color: #ff0093; font-size: 1.1rem;">{{ evento_info.entradas_vendidas }}</span><br />
+          <strong>Número de invitacións reservadas:</strong> <span style="color: #ff0093; font-size: 1.1rem;">{{ evento_info.entradas_reservadas }}</span><br />
+        </p>
+        <p style="font-size: 1.1rem; color: #222; margin-bottom: 18px;">
+          <strong>Total recadado:</strong> <span style="color: #ff0093; font-size: 1.2rem;">{{ evento_info.importe_vendido }} €</span>
+        </p>
+      </div>
+      {% endif %}
+
+      {% if evento_info.tipo_gestion_entrada == 'manual' %}
+      <div style="background: #fffbf5; border: 1px solid #ffdbea; border-radius: 8px; padding: 18px; margin: 28px 0; text-align: center;">
+        <h2 style="color: #ff0093; margin-bottom: 12px;">Resumo das vendas</h2>
+        <p style="font-size: 1.1rem; color: #222; margin-bottom: 18px;">
+          <strong>Diñeiro a cobrar:</strong> <span style="color: #ff0093; font-size: 1.2rem;">{{ evento_info.importe_vendido }} €</span>
+        </p>
+        <p style="margin-top: 12px; color: #888; font-size: 0.95rem;">A xestión do cobro das entradas deste evento é a través do organizador. Consulta o panel para máis detalles.</p>
+      </div>
+      {% endif %}
+      <div class="footer">
+        &copy; 2026 brasinda.com<br />
+        <span style="font-size: 0.85rem;">Preguntas? <a href="mailto:info@brasinda.com">Contacta connosco</a></span>
+      </div>
+    </div>
+  </body>
+</html>

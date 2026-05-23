@@ -44,11 +44,14 @@ def xerar_pdf_contrato(evento, organizador):
     y -= 10
 
     # Texto do contrato (con saltos de liña)
-    # Data de sinatura do contrato (data de xeración do PDF)
     data_sinatura = datetime.datetime.now().strftime('%d/%m/%Y')
     email_organizador = (organizador.get('email', '') or '').strip() or 'non hai email'
     # Recoller datos extra do evento
     tipo_gestion = getattr(evento, 'tipo_gestion_entrada', '') or getattr(evento, 'tipo_gestion', '') or ''
+    procedemento_cobro_manual = getattr(evento, 'procedimiento_cobro_manual', None)
+    tipo_xestion_text = tipo_gestion
+    if procedemento_cobro_manual:
+        tipo_xestion_text = f"{tipo_xestion_text} ({procedemento_cobro_manual})"
     prezo_evento = getattr(evento, 'prezo_evento', '')
     prezo_pvp = getattr(evento, 'prezo_pvp', '')
     entradas_venta = getattr(evento, 'entradas_venta', '')
@@ -85,6 +88,10 @@ def xerar_pdf_contrato(evento, organizador):
             prezo_str = ', '.join(partes) if partes else "-"
             prezos_zonas_lines.append(f"    - {nome}: {prezo_str}")
 
+    nota_lugar = getattr(evento, 'nota_lugar', None)
+    lugar_text = getattr(evento, 'localizacion', '')
+    if nota_lugar:
+        lugar_text = f"{lugar_text} ({nota_lugar})"
     contrato_text = [
         "REUNIDOS",
         "Dunha parte, Eventos Brasinda, con NIF [●], titular da web brasinda.com, en adiante 'a Plataforma'.",
@@ -103,8 +110,8 @@ def xerar_pdf_contrato(evento, organizador):
         "O presente contrato regula a colaboración para a publicación, venda ou reserva de entradas do seguinte evento.",
             f"• Evento: {getattr(evento, 'nome_evento', '')}",
             f"• Data: {data_str}",
-            f"• Lugar: {getattr(evento, 'localizacion', '')}",
-            f"• Tipo xestión entrada: {tipo_gestion}",
+            f"• Lugar: {lugar_text}",
+            f"• Tipo xestión entrada: {tipo_xestion_text}",
     ]
     if prezos_zonas_lines:
         contrato_text.extend(prezos_zonas_lines)
@@ -230,7 +237,17 @@ def xerar_pdf_contrato(evento, organizador):
 
 
 
+
     # Bloque de sinaturas ao final do contrato con nomes e datas reais
+    # Reservar espazo suficiente, se non hai, crear nova páxina
+    sinaturas_height = 180  # px aproximado para todo o bloque de sinaturas
+    min_y = 80
+    if y - sinaturas_height < min_y:
+        draw_footer()
+        p.showPage()
+        draw_header()
+        y = height - 120
+
     y -= 10
     p.setFont("Helvetica-Bold", 12)
     p.drawString(60, y, "SINATURAS")
@@ -253,7 +270,6 @@ def xerar_pdf_contrato(evento, organizador):
     ip = getattr(evento, 'contrato_ip', None) or organizador.get('ip', '---.---.---.---')
     navegador = getattr(evento, 'contrato_navegador', None) or organizador.get('navegador', '---')
     id_aceptacion = getattr(evento, 'contrato_uid', None) or organizador.get('id_aceptacion', ''.join(random.choices(string.ascii_uppercase, k=3)) + ''.join(random.choices(string.digits, k=4)))
-
 
     p.setFont("Helvetica-Bold", 11)
     p.drawString(60, y, "A Plataforma")

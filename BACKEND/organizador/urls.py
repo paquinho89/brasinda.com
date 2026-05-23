@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from .views import crear_organizador, verificar_email, login_organizador, recuperar_contrasena, reset_contrasena, perfil_organizador, google_auth
+from .views import crear_organizador, verificar_email, login_organizador, recuperar_contrasena, reset_contrasena, perfil_organizador, google_auth, actualizar_iban
 
 urlpatterns = [
     path('crear-organizador/', crear_organizador, name="nuevo_organizador"),
@@ -25,4 +25,5 @@ urlpatterns = [
     path("reset-password/<uidb64>/<token>/", reset_contrasena, name="reset_contrasena"),
     path("perfil/", perfil_organizador, name="perfil_organizador"),
     path("auth/google/", google_auth, name="google_auth"),
+    path("actualizar-iban/", actualizar_iban, name="actualizar_iban"),
 ]

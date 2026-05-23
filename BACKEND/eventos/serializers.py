@@ -2,16 +2,22 @@ from rest_framework import serializers
 from .models import Evento, ReservaButaca, ZonaPrezo
 
 
+
 class EventoSerializer(serializers.ModelSerializer):
     entradas_vendidas = serializers.SerializerMethodField()
     entradas_reservadas = serializers.SerializerMethodField()
     contrato_pdf_url = serializers.SerializerMethodField()
+    email_organizador = serializers.SerializerMethodField()
+
 
     class Meta:
         model = Evento
         fields = '__all__'
         read_only_fields = ['organizador', 'entradas_vendidas', 'entradas_reservadas']
         # O campo contrato_pdf_url engádese automaticamente por SerializerMethodField
+
+    def get_email_organizador(self, obj):
+        return getattr(obj.organizador, 'email', None)
 
     def get_contrato_pdf_url(self, obj):
         request = self.context.get('request')

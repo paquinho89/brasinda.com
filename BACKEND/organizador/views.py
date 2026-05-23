@@ -350,4 +350,15 @@ def perfil_organizador(request):
         organizador.delete()
         return Response({"message": "Conta eliminada correctamente"}, status=200)
 
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def actualizar_iban(request):
+    iban = request.data.get("iban")
+    if not iban:
+        return Response({"error": "IBAN requerido"}, status=400)
+    organizador = request.user
+    organizador.numero_iban = iban
+    organizador.save()
+    return Response({"message": "IBAN actualizado correctamente"}, status=200)
+
 

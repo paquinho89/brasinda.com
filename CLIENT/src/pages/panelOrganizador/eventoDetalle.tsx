@@ -404,7 +404,7 @@ export default function EventoDetalle() {
                             </div>
                           )}
 
-                          {/* Reservadas - Rosa */}
+                          {/* Invitacións - Rosa */}
                           {pctReservadas > 0 && (
                             <div
                               style={{
@@ -493,7 +493,7 @@ export default function EventoDetalle() {
                                 }}
                               />
                               <div>
-                                <small className="text-muted d-block">Reservadas</small>
+                                <small className="text-muted d-block">Invitacións</small>
                                 <strong>{reservadas}</strong>
                               </div>
                             </div>

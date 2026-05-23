@@ -1,11 +1,61 @@
 from django.contrib import admin
 from .models import Evento, ZonaPrezo, ReservaButaca, SuscripcionNewsletter
+from .email_entradas import resend, settings, render_to_string
 
 # Register your models here.
 
+
+def enviar_email_agradecemento(modeladmin, request, queryset):
+	for evento in queryset:
+		if getattr(evento, 'tipo_gestion_entrada', None) == 'pagina':
+			subject = f"💵 Resumo e cobro do evento '{evento.nome_evento}'"
+		else:
+			subject = f"📊 Resumo do evento '{evento.nome_evento}'"
+		data = evento.data_evento
+		data_galego = data.strftime('%A, %d de %B de %Y').capitalize()
+		hora_galego = data.strftime('%H:%M')
+		data_completa = f"{data_galego} ás {hora_galego}"
+		importe_vendido = getattr(evento, 'total_a_pagar_ao_organizador', None)
+		url_cobro = f"https://brasinda.com/panel-organizador/evento/{evento.id}/cobro" if getattr(evento, 'tipo_gestion_entrada', None) == 'pagina' else None
+		entradas_vendidas = getattr(evento, 'entradas_vendidas', 0) or 0
+		entradas_reservadas = getattr(evento, 'entradas_reservadas', 0) or 0
+		entradas_venta = getattr(evento, 'entradas_venta', 0) or 0
+		entradas_sen_vender = entradas_venta - entradas_vendidas - entradas_reservadas
+		html_body = render_to_string(
+			'eventos/plantilla_email/agradecemento_cobro_evento.html',
+			{
+				'evento_info': {
+					'nome_evento': evento.nome_evento,
+					'data_evento': data_completa,
+					'lugar_evento': evento.localizacion,
+					'tipo_gestion_entrada': evento.tipo_gestion_entrada,
+					'importe_vendido': importe_vendido,
+					'url_cobro': url_cobro,
+					'entradas_vendidas': entradas_vendidas,
+					'entradas_reservadas': entradas_reservadas,
+					'entradas_sen_vender': entradas_sen_vender,
+				}
+			}
+		)
+		destinatario = 'paquinho89@gmail.com'
+		try:
+			resend.Emails.send({
+				"from": settings.DEFAULT_FROM_EMAIL,
+				"to": [destinatario],
+				"subject": subject,
+				"html": html_body,
+			})
+			evento.evento_envio_email_agradecemento_cobro = True
+			evento.save(update_fields=["evento_envio_email_agradecemento_cobro"])
+			modeladmin.message_user(request, f"Email de agradecemento enviado a {destinatario} para o evento '{evento.nome_evento}'")
+		except Exception as e:
+			modeladmin.message_user(request, f"Erro ao enviar email para {destinatario}: {e}", level='error')
+enviar_email_agradecemento.short_description = "Enviar email de agradecemento ao organizador"
+
 @admin.register(Evento)
 class EventoAdmin(admin.ModelAdmin):
-    list_display = ("id", "nome_evento", "data_evento", "localizacion", "organizador", "gastos_xestion", "evento_verificado")
+	list_display = ("id", "nome_evento", "data_evento", "localizacion", "organizador", "gastos_xestion", "evento_verificado")
+	actions = [enviar_email_agradecemento]
 
 @admin.register(ZonaPrezo)
 class ZonaPrezoAdmin(admin.ModelAdmin):
