@@ -51,6 +51,7 @@ import PrezoContaBancaria from './pages/crearEvento/8Prezo';
 import CondicionesLegales from './pages/crearEvento/9CondicionesLegales';
 import Resumen from './pages/crearEvento/10Resumen';
 import PublicacionExitosa from './pages/crearEvento/11PublicacionExitosa.tsx';
+import EscanearEntrada from './pages/lector_entradas';
 
 import AuditorioOurenseZonaCentral from './pages/planoAuditorios/Planos/auditorioOurense/zonaCentral';
 import AuditorioOurenseDereita from './pages/planoAuditorios/Planos/auditorioOurense/dereita';
@@ -161,6 +162,7 @@ function App() {
             <Route path="resumen" element={<Resumen />} />
           </Route>
           <Route path="publicacion-exitosa" element={<PublicacionExitosa />} />
+          <Route path="escanear-entradas" element={<EscanearEntrada />} />
         </Routes>
 
         <CookieFloatingButtonWrapper />

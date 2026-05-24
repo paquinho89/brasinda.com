@@ -157,7 +157,6 @@ class ReservaButaca(models.Model):
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default=ESTADO_TEMPORAL)
     codigo_validacion = models.CharField(max_length=20, blank=True, null=True)
     entrada_usada_validacion = models.BooleanField(default=False)
-
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=["evento", "zona", "fila", "butaca"], name="unique_reserva_butaca")

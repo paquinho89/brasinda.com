@@ -1,12 +1,13 @@
 # eventos/urls.py
 from rest_framework.routers import DefaultRouter
 from django.urls import path
-from .views import crear_evento_view, evento_detail_view, eliminar_evento_definitivo_view, eventos_list_public, evento_detail_public, reservar_entradas, reservas_butacas, reservas_vendidas, mis_reservas, eliminar_reserva, invitacions_sen_plano, listado_invitacions, eliminar_invitacion, eventos_activos_por_email, enviar_entradas_recuperadas, zonas_prezo_evento
+from .views import crear_evento_view, evento_detail_view, eliminar_evento_definitivo_view, eventos_list_public, evento_detail_public, reservar_entradas, reservas_butacas, reservas_vendidas, mis_reservas, eliminar_reserva, invitacions_sen_plano, listado_invitacions, eliminar_invitacion, eventos_activos_por_email, enviar_entradas_recuperadas, zonas_prezo_evento, validar_entrada_qr
 
 from .views import enviar_entradas, ver_pdf_entrada, pdf_entradas_multipaxina, enviar_invitacion_individual, descargar_pdf_invitacion, descargar_pdf_listado
 from .stripe_checkout import create_checkout_session
 
 urlpatterns = [
+    path('validar-entrada/', validar_entrada_qr, name='validar_entrada_qr'),
     path('descargar-pdf-invitacion/<int:reserva_id>/', descargar_pdf_invitacion, name='descargar_pdf_invitacion'),
     path('pdf-entrada/', ver_pdf_entrada, name='ver_pdf_entrada'),
     path('pdf-entradas-multipaxina/', pdf_entradas_multipaxina, name='pdf_entradas_multipaxina'),

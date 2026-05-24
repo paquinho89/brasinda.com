@@ -955,3 +955,45 @@ def enviar_entradas_recuperadas(request):
             "success": False,
             "error": f"Erro ao enviar entradas: {str(e)}"
         }, status=500)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def validar_entrada_qr(request):
+    """
+    Endpoint para validar entradas por código QR (codigo_validacion).
+    Recibe: {"codigo": "..."}
+    """
+    codigo = request.data.get("codigo")
+    if not codigo:
+        return Response({"valida": False, "motivo": "Falta o código"}, status=400)
+
+    # Soporta formato: evento:104;reserva:362;email:paquinho89@gmail.com
+    if codigo.startswith("evento:") and ";reserva:" in codigo:
+        try:
+            partes = codigo.split(';')
+            evento_id = int(partes[0].split(':')[1])
+            reserva_id = int(partes[1].split(':')[1])
+            email = None
+            if len(partes) > 2 and partes[2].startswith('email:'):
+                email = partes[2].split(':',1)[1]
+        except Exception:
+            return Response({"valida": False, "motivo": "Formato QR incorrecto"}, status=400)
+        try:
+            reserva = ReservaButaca.objects.get(id=reserva_id, evento_id=evento_id)
+            if email and reserva.email and reserva.email.lower() != email.lower():
+                return Response({"valida": False, "motivo": "O email non coincide"}, status=400)
+        except ReservaButaca.DoesNotExist:
+            return Response({"valida": False, "motivo": "Reserva non atopada"}, status=404)
+    else:
+        # Mantén compatibilidade co código_validacion
+        try:
+            reserva = ReservaButaca.objects.get(codigo_validacion=codigo)
+        except ReservaButaca.DoesNotExist:
+            return Response({"valida": False, "motivo": "Código non atopado"}, status=404)
+
+    if reserva.entrada_usada_validacion:
+        return Response({"valida": False, "motivo": "Entrada xa validada"}, status=200)
+    reserva.entrada_usada_validacion = True
+    reserva.save()
+    return Response({"valida": True, "motivo": "Entrada validada correctamente"}, status=200)

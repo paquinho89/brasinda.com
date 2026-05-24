@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button, Card, ListGroup } from "react-bootstrap";
-import { FaSignInAlt, FaTools, FaTicketAlt } from "react-icons/fa";
+import { FaSignInAlt, FaTools, FaTicketAlt, FaQrcode } from "react-icons/fa";
 import { useAuth } from "../AuthContext";
 import { useTranslations } from "../../i18n/useTranslations";
 import { useNavigate } from "react-router-dom";
@@ -44,6 +44,9 @@ export default function UserAvatarToggle({ hideLanguages = false }: { hideLangua
             </ListGroup.Item>
             <ListGroup.Item action onClick={() => { window.location.href = "/panel-organizador/settings"; setOpen(false); }}>
               <FaTools style={{ marginRight: "8px" }} /> Configuración conta
+            </ListGroup.Item>
+            <ListGroup.Item action onClick={() => { window.location.href = "/escanear-entradas"; setOpen(false); }}>
+              <FaQrcode style={{ marginRight: "8px" }} /> Escanear entradas
             </ListGroup.Item>
             {!hideLanguages && (
               <>

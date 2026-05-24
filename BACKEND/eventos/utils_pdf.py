@@ -730,7 +730,7 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
 
     # Xeración do QR no header, arriba á dereita
     from PIL import Image
-    qr_data = f"evento:{evento.id};reserva:{reserva.id};email:{reserva.email}"
+    qr_data = getattr(reserva, "codigo_validacion", None) or "-"
     qr_img = qrcode.make(qr_data)
     if not isinstance(qr_img, Image.Image):
         qr_img = qr_img.convert("RGB")
