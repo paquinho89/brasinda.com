@@ -83,7 +83,7 @@ const EscanearEntrada: React.FC = () => {
           setResultado('Erro de conexión');
         }
       },
-      (err: any) => {
+      () => {
         // Non mostrar erros de lectura de QR por defecto
       }
     );

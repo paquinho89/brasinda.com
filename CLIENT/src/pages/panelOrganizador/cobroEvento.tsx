@@ -28,7 +28,7 @@ export default function CobroEvento() {
   const navigate = useNavigate();
   const [evento, setEvento] = useState<Evento | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchEvento = async () => {
