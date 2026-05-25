@@ -278,12 +278,14 @@ def crear_evento_view(request):
         from django.core.files.base import ContentFile
         import uuid
         # Datos do organizador para PDF
+        print("DEBUG nome_organizador:", getattr(request.user, 'nome_organizador', None))
         organizador_dict = {
-            'nome_organizador': request.user.get_full_name() or request.user.username,
+            'nome_organizador': getattr(request.user, 'nome_organizador', 'VALOR_POR_DEFECTO'),
             'nif_cif': getattr(request.user, 'nif_cif', ''),
             'enderezo_fiscal': getattr(request.user, 'enderezo_fiscal', ''),
             'email': getattr(request.user, 'email', ''),
         }
+        print(f"[DEBUG] ORGANIZADOR_DICT: {organizador_dict}")
         print(f"[DEBUG] Email do organizador: {getattr(request.user, 'email', None)}")
         ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', ''))
         user_agent = request.META.get('HTTP_USER_AGENT', '')

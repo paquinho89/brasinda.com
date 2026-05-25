@@ -27,14 +27,14 @@ def enviar_publicacion_evento_email(email, evento, url_panel, url_publico):
     organizador = getattr(evento, 'organizador', None)
     if organizador:
         org_dict = {
-            'nome_razon_social_contrato': getattr(organizador, 'nome_razon_social_contrato', ''),
+            'nome_organizador': getattr(organizador, 'nome_organizador', ''),
             'nif_cif': getattr(organizador, 'nif_cif', ''),
             'enderezo_fiscal': getattr(organizador, 'enderezo_fiscal', ''),
             'telefono': getattr(organizador, 'telefono', ''),
             'email': getattr(organizador, 'email', ''),
         }
     else:
-        org_dict = {'nome_razon_social_contrato': '', 'nif_cif': '', 'enderezo_fiscal': '', 'telefono': ''}
+        org_dict = {'nome_organizador': '', 'nif_cif': '', 'enderezo_fiscal': '', 'telefono': '', 'email': ''}
     pdf_buffer, pdf_filename = xerar_pdf_contrato(evento, org_dict)
     pdf_buffer.seek(0)
     import base64
