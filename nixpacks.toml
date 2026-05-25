@@ -1,6 +1,0 @@
-[phases.setup]
-nixPkgs = ["python311", "gcc", "postgresql", "nodejs"]
-
-
-[start]
-cmd = "export PYTHONPATH=/app:/app/BACKEND && python BACKEND/manage.py migrate && python BACKEND/manage.py collectstatic --noinput && python BACKEND/create_superuser.py; gunicorn BACKEND.wsgi --bind 0.0.0.0:$PORT"
