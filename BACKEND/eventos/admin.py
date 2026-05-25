@@ -77,6 +77,7 @@ class ReservaButacaAdmin(admin.ModelAdmin):
 		"estado",
 		"data_creacion",
 		"codigo_validacion",
+		"entrada_usada_validacion",
 	)
 	list_filter = ("tipo_reserva", "estado", "zona")
 	search_fields = ("evento__nome_evento", "nome_titular", "email", "codigo_validacion")
