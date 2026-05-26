@@ -1,5 +1,5 @@
 import React from "react";
-import { useAuthModal } from "../context/AuthModalContext";
+import { useAuthModal } from "../../context/AuthModalContext";
 import LoginModalCrearEvento from "./InicioSesionCrearEventoCuadro";
 
 const GlobalLoginModal: React.FC = () => {
