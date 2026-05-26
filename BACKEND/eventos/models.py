@@ -1,6 +1,4 @@
 from django.db import models
-from django.db.models.signals import post_delete
-from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import timedelta
@@ -8,19 +6,6 @@ from datetime import timedelta
 User = get_user_model()
 # Create your models here.
 class Evento(models.Model):
-    # Signal para borrar arquivos en Supabase cando se elimina un Evento
-
-# Signal para borrar arquivos en Supabase cando se elimina un Evento
-@receiver(post_delete, sender=Evento)
-def delete_evento_files(sender, instance, **kwargs):
-    # Borrar contrato_pdf
-    if instance.contrato_pdf:
-        storage = instance.contrato_pdf.storage
-        storage.delete(instance.contrato_pdf.name)
-    # Borrar imaxe_evento
-    if instance.imaxe_evento:
-        storage = instance.imaxe_evento.storage
-        storage.delete(instance.imaxe_evento.name)
     contrato_uid = models.CharField(
         max_length=32,
         unique=True,
