@@ -85,10 +85,6 @@ function CreateAccountModal({ show, onClose }: {show: boolean; onClose: () => vo
   formData.append("mayor_edad", mayorEdad.toString());
   if (fotoOrganizador) {
     formData.append("foto_organizador", fotoOrganizador);
-  } else {
-    // Engadir a foto por defecto do backend
-    // O backend debe aceptar o nome do arquivo como referencia á foto por defecto
-    formData.append("foto_organizador", "fotos_organizador/fotos_por_defecto/foto_por_defecto.jpg");
   }
 
   const response = await fetch(`${API_BASE_URL}/organizador/crear-organizador/`, {
