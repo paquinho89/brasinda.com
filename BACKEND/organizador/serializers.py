@@ -8,7 +8,7 @@ class OrganizadorSerializer(serializers.ModelSerializer):
         model = Organizador
         fields = [
             'id', 'email', 'password', 'username', 'nome_organizador', 'fecha_creacion', 'foto_organizador', 'telefono', 'mayor_edad', 'numero_iban', 'idioma',
-            'nome_razon_social_contrato', 'nif_cif', 'enderezo_fiscal'
+            'nif_cif', 'enderezo_fiscal'
         ]
         
 
