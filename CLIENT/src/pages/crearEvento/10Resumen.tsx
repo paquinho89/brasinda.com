@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useApi } from "../../hooks/useApi";
 import LoginModalCrearEvento from "../componentes/InicioSesionCrearEventoCuadro";
 import { getDefaultImageFile } from "./3Imagen";
 import { useOutletContext, useNavigate } from "react-router-dom";
@@ -22,6 +23,7 @@ const Resumen: React.FC = () => {
     }
   }, [evento.precio, evento.precios_zona]);
 
+  const { apiFetch } = useApi();
   const handleConfirmCreate = async () => {
     setIsSubmitting(true);
     setError("");
@@ -84,24 +86,13 @@ const Resumen: React.FC = () => {
       "condiciones_confirmacion",
       evento.condicionesConfirmacion ? "true" : "false"
     );
-      // NON engadir nomeCompleto, nifCif, enderezoFiscal, telefono ao evento
+    // NON engadir nomeCompleto, nifCif, enderezoFiscal, telefono ao evento
 
     try {
-      const token = localStorage.getItem("access_token");
-      let response = await fetch(`${API_BASE_URL}/crear-eventos/`, {
+      let response = await apiFetch(`${API_BASE_URL}/crear-eventos/`, {
         method: "POST",
         body: formData,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
-
-      // Se a sesión caducou, mostra modal de login
-      if (response.status === 401) {
-        setShowLoginModal(true);
-        setIsSubmitting(false);
-        return;
-      }
 
       if (!response.ok) throw new Error("Erro ao crear o evento");
 
@@ -110,8 +101,7 @@ const Resumen: React.FC = () => {
       // Suponse que o backend devolve o id do evento como data.id
       navigate("/publicacion-exitosa", { state: { eventoId: data.id } });
     } catch (error) {
-      console.error(error);
-      setError("Erro ao crear o evento. Por favor, inténtao de novo.");
+      setError("Erro ao crear o evento. Por favor, inicia sesión de novo.");
       setIsSubmitting(false);
     }
   };

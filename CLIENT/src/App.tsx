@@ -1,4 +1,6 @@
 import { useEffect } from 'react';
+import { AuthModalProvider } from './context/AuthModalContext';
+import GlobalLoginModal from './pages/componentes/GlobalLoginModal';
 import { useLocation } from 'react-router-dom';
 // Limpa as seleccións de butacas cando se navega a páxinas non permitidas
 function useLimparSeleccionButacas() {
@@ -106,68 +108,71 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <LimparSeleccionButacasWrapper />
-      <>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="evento/:id" element={<DescripcionEvento />} />
-          <Route path="reservar-entrada/:id" element={<ReservarEntrada />} />
-          <Route path="reservar-entrada-auditorio/:id" element={<SeleccionZonaAuditorio />} />
-          <Route path="reservar-entrada-auditorio/:id/:zona" element={<SeleccionButacaAuditorio />} />
-          <Route path="reservar-entrada-sen-plano/:id" element={<ReservarEntradaSinPlano />} />
-          <Route path="reservar-entrada-con-plano/:id/:zona" element={<ReservarEntrada />} />
-          <Route path="pago/:eventoId/:zona" element={<InfoPagamento />} />
-          <Route path="info-pagamento/:eventoId/:zona" element={<InfoPagamento />} />
+    <AuthModalProvider>
+      <Router>
+        <LimparSeleccionButacasWrapper />
+        <GlobalLoginModal />
+        <>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="evento/:id" element={<DescripcionEvento />} />
+            <Route path="reservar-entrada/:id" element={<ReservarEntrada />} />
+            <Route path="reservar-entrada-auditorio/:id" element={<SeleccionZonaAuditorio />} />
+            <Route path="reservar-entrada-auditorio/:id/:zona" element={<SeleccionButacaAuditorio />} />
+            <Route path="reservar-entrada-sen-plano/:id" element={<ReservarEntradaSinPlano />} />
+            <Route path="reservar-entrada-con-plano/:id/:zona" element={<ReservarEntrada />} />
+            <Route path="pago/:eventoId/:zona" element={<InfoPagamento />} />
+            <Route path="info-pagamento/:eventoId/:zona" element={<InfoPagamento />} />
 
-          <Route path="reserva-exitosa" element={<ReservaExitosa />} />
+            <Route path="reserva-exitosa" element={<ReservaExitosa />} />
 
-          <Route path="auditorio-ourense-central" element={<AuditorioOurenseZonaCentral />}></Route>
-          <Route path="auditorio-ourense-dereita" element={<AuditorioOurenseDereita />}></Route>
-          <Route path="auditorio-ourense-esquerda" element={<AuditorioOurenseEsquerda />}></Route>
-          <Route path="auditorio-ourense-anfiteatro" element={<AuditorioOurenseAnfiteatro />}></Route>
+            <Route path="auditorio-ourense-central" element={<AuditorioOurenseZonaCentral />}></Route>
+            <Route path="auditorio-ourense-dereita" element={<AuditorioOurenseDereita />}></Route>
+            <Route path="auditorio-ourense-esquerda" element={<AuditorioOurenseEsquerda />}></Route>
+            <Route path="auditorio-ourense-anfiteatro" element={<AuditorioOurenseAnfiteatro />}></Route>
 
-          <Route path="auditorio-verin-central" element={<AuditorioVerinZonaCentral />}></Route>
-          <Route path="auditorio-verin-dereita" element={<AuditorioVerinLateralDereita />}></Route>
-          <Route path="auditorio-verin-esquerda" element={<AuditorioVerinLateralEsquerda />}></Route>
-          <Route path="auditorio-verin-anfiteatro" element={<AuditorioVerinAnfiteatro />}></Route>
-        
-          <Route path="auditorio-vigo-anfiteatro" element={<AuditorioVigoAnfiteatro />}></Route>
+            <Route path="auditorio-verin-central" element={<AuditorioVerinZonaCentral />}></Route>
+            <Route path="auditorio-verin-dereita" element={<AuditorioVerinLateralDereita />}></Route>
+            <Route path="auditorio-verin-esquerda" element={<AuditorioVerinLateralEsquerda />}></Route>
+            <Route path="auditorio-verin-anfiteatro" element={<AuditorioVerinAnfiteatro />}></Route>
+          
+            <Route path="auditorio-vigo-anfiteatro" element={<AuditorioVigoAnfiteatro />}></Route>
 
-          <Route path="panel-organizador" element={<PanelOrganizador />} />
-          <Route path="panel-organizador/evento/:id" element={<EventoDetalle />} />
-          <Route path="panel-organizador/evento/:id/resumo" element={<ResumoEvento />} />
-          <Route path="panel-organizador/evento/:id/entradas" element={<ListadoEntradas />} />
-          <Route path="panel-organizador/cobro/:id" element={<CobroEvento />} />
-          <Route path="/panelOrganizador/cobroExitoso" element={<CobroExitoso />} />
-          <Route path="panel-organizador/settings" element={<SettingsOrganizador />} />
-          <Route path="verificacion/:uid/:token" element={<VerificacionEmailPage />} />
-          <Route path="reset-password/:uid/:token" element={<IntroducirNuevaContraseñaWrapper />} />
-          <Route path="sobre-nos" element={<Nosotros />} />
-          <Route path="aviso-legal" element={<AvisoLegal />} />
-          <Route path="politica-privacidade" element={<PoliticaPrivacidad />} />
-          <Route path="condicions-uso" element={<TerminosCondiciones />} />
-          <Route path="cookies" element={<PoliticaCookies />} />
-  
-          <Route path="crear-evento" element={<CreateEventLayout />}>
-            <Route path="tipo" element={<TipoEvento />} />
-            <Route path="titulo" element={<TituloEvento />} />
-            <Route path="cartel" element={<Imagen />} />
-            <Route path="fecha" element={<Fecha />} />
-            <Route path="lugar" element={<Lugar />} />
-            <Route path="entradas" element={<Entradas />} />
-            <Route path="gestion-entradas" element={<GestionEntradas />} />
-            <Route path="prezo" element={<PrezoContaBancaria />} />
-            <Route path="condiciones-legales" element={<CondicionesLegales />} />
-            <Route path="resumen" element={<Resumen />} />
-          </Route>
-          <Route path="publicacion-exitosa" element={<PublicacionExitosa />} />
-          <Route path="escanear-entradas" element={<EscanearEntrada />} />
-        </Routes>
+            <Route path="panel-organizador" element={<PanelOrganizador />} />
+            <Route path="panel-organizador/evento/:id" element={<EventoDetalle />} />
+            <Route path="panel-organizador/evento/:id/resumo" element={<ResumoEvento />} />
+            <Route path="panel-organizador/evento/:id/entradas" element={<ListadoEntradas />} />
+            <Route path="panel-organizador/cobro/:id" element={<CobroEvento />} />
+            <Route path="/panelOrganizador/cobroExitoso" element={<CobroExitoso />} />
+            <Route path="panel-organizador/settings" element={<SettingsOrganizador />} />
+            <Route path="verificacion/:uid/:token" element={<VerificacionEmailPage />} />
+            <Route path="reset-password/:uid/:token" element={<IntroducirNuevaContraseñaWrapper />} />
+            <Route path="sobre-nos" element={<Nosotros />} />
+            <Route path="aviso-legal" element={<AvisoLegal />} />
+            <Route path="politica-privacidade" element={<PoliticaPrivacidad />} />
+            <Route path="condicions-uso" element={<TerminosCondiciones />} />
+            <Route path="cookies" element={<PoliticaCookies />} />
+    
+            <Route path="crear-evento" element={<CreateEventLayout />}>
+              <Route path="tipo" element={<TipoEvento />} />
+              <Route path="titulo" element={<TituloEvento />} />
+              <Route path="cartel" element={<Imagen />} />
+              <Route path="fecha" element={<Fecha />} />
+              <Route path="lugar" element={<Lugar />} />
+              <Route path="entradas" element={<Entradas />} />
+              <Route path="gestion-entradas" element={<GestionEntradas />} />
+              <Route path="prezo" element={<PrezoContaBancaria />} />
+              <Route path="condiciones-legales" element={<CondicionesLegales />} />
+              <Route path="resumen" element={<Resumen />} />
+            </Route>
+            <Route path="publicacion-exitosa" element={<PublicacionExitosa />} />
+            <Route path="escanear-entradas" element={<EscanearEntrada />} />
+          </Routes>
 
-        <CookieFloatingButtonWrapper />
-      </>
-    </Router>
+          <CookieFloatingButtonWrapper />
+        </>
+      </Router>
+    </AuthModalProvider>
   );
 }
 

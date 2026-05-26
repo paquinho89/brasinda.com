@@ -1,5 +1,6 @@
 ﻿import { Container, Button, Form, FormControl } from "react-bootstrap";
 import { useState, useEffect } from "react";
+import { useApi } from "../hooks/useApi";
 import MainNavbar from "./componentes/NavBar";
 import CrearEventoBoton from "./componentes/CrearEventoBoton";
 import ToggleHamburguer from "./componentes/Toggle";
@@ -32,44 +33,46 @@ function Home() {
   const [searchInput, setSearchInput] = useState("");
 
   useEffect(() => {
-    confetti({
-      particleCount: 150,
-      spread: 80,
-      origin: { y: 0.6 },
-    });
-  }, []);
+    const { apiFetch } = useApi();
+    useEffect(() => {
+      const fetchEventos = async () => {
+        try {
+          setLoading(true);
+          setError(null);
 
-  const normalizarTexto = (texto: string) => {
-    return texto
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .trim();
-  };
+          const resp = await apiFetch(`${API_BASE_URL}/crear-eventos/publicos/`);
+          if (!resp.ok) throw new Error(`Error al cargar eventos: ${resp.status}`);
+          const data: Evento[] = (await resp.json()).map((ev: any) => ({
+            ...ev,
+            localidade: ev.localidade || "",
+            evento_verificado: ev.evento_verificado ?? false,
+          }));
 
-  useEffect(() => {
-    const fetchEventos = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+          // Filtrar eventos activos (data_evento + 20min > agora)
+          const agora = new Date();
+          const eventosActivos = data.filter((ev: Evento) => {
+            const dataEvento = new Date(ev.data_evento);
+            // Sumar 20 minutos á data do evento
+            const dataEventoMais20 = new Date(dataEvento.getTime() + 20 * 60 * 1000);
+            return dataEventoMais20 > agora;
+          });
 
-        const resp = await fetch(`${API_BASE_URL}/crear-eventos/publicos/`);
-        if (!resp.ok) throw new Error(`Error al cargar eventos: ${resp.status}`);
+          const eventosOrdenados = [...eventosActivos].sort((a, b) => {
+            return new Date(a.data_evento).getTime() - new Date(b.data_evento).getTime();
+          });
 
+          setEventos(eventosOrdenados);
+        } catch (e: any) {
+          console.error("Error fetching eventos", e);
+          setError(e.message || "Error al cargar eventos");
+        } finally {
+          setLoading(false);
+        }
+      };
 
-
-        const data: Evento[] = (await resp.json()).map((ev: any) => ({
-          ...ev,
-          localidade: ev.localidade || "",
-          evento_verificado: ev.evento_verificado ?? false,
-        }));
-
-        // Filtrar eventos activos (data_evento + 20min > agora)
-        const agora = new Date();
-        const eventosActivos = data.filter((ev: Evento) => {
-          const dataEvento = new Date(ev.data_evento);
-          // Sumar 20 minutos á data do evento
-          const dataEventoMais20 = new Date(dataEvento.getTime() + 20 * 60 * 1000);
+      fetchEventos();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
           return dataEventoMais20 > agora;
         });
 

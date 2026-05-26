@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useApi } from "../../hooks/useApi";
 import { Container } from "react-bootstrap";
 import TarjetaEvento from "./componentes/tarjetaEvento";
 import MainNavbar from "../componentes/NavBar";
@@ -27,55 +28,14 @@ export default function PanelOrganizador() {
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   // Fetch eventos al montar
+  const { apiFetch } = useApi();
   useEffect(() => {
     const fetchEventos = async () => {
       try {
         setLoading(true);
         setError(null);
-
-        const attemptFetch = async () => {
-          const token = localStorage.getItem("access_token");
-          const resp = await fetch(`${API_BASE_URL}/crear-eventos/`, {
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-          });
-          return resp;
-        };
-
-        let resp = await attemptFetch();
-
-        if (resp.status === 401) {
-          try {
-            const refresh = localStorage.getItem('refresh_token');
-            if (!refresh) throw new Error('No refresh token');
-            
-            const r = await fetch(`${API_BASE_URL}/api/token/refresh/`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ refresh }),
-            });
-            if (!r.ok) throw new Error('Refresh failed');
-            const jr = await r.json();
-            
-            if (jr.access) {
-              localStorage.setItem('access_token', jr.access);
-            } else if (jr.access_token) {
-              localStorage.setItem('access_token', jr.access_token);
-            }
-            resp = await attemptFetch();
-            if (!resp.ok) throw new Error('Erro ao cargar eventos despois refresh');
-          } catch (refreshErr) {
-            console.error('Token refresh failed', refreshErr);
-            setShowLoginModal(true);
-            setLoading(false);
-            return;
-          }
-        }
-
-        if (!resp.ok) {
-          await resp.text().catch(() => null);
-          throw new Error(`Erro ao cargar eventos: ${resp.status}`);
-        }
-        
+        const resp = await apiFetch(`${API_BASE_URL}/crear-eventos/`);
+        if (!resp.ok) throw new Error(`Erro ao cargar eventos: ${resp.status}`);
         const data = await resp.json();
         setAllEventos(data);
       } catch (e: any) {
@@ -86,6 +46,7 @@ export default function PanelOrganizador() {
       }
     };
     fetchEventos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Separar eventos activos e pasados
