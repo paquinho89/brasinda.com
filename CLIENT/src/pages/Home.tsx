@@ -57,39 +57,7 @@ function Home() {
         });
 
         const eventosOrdenados = [...eventosActivos].sort((a, b) => {
-          return new Date(a.data_evento).getTime() - new Date(b.data_evento).getTime();
-        });
 
-        setEventos(eventosOrdenados);
-      } catch (e: any) {
-        console.error("Error fetching eventos", e);
-        setError(e.message || "Error al cargar eventos");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEventos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-          return dataEventoMais20 > agora;
-        });
-
-        const eventosOrdenados = [...eventosActivos].sort((a, b) => {
-          return new Date(a.data_evento).getTime() - new Date(b.data_evento).getTime();
-        });
-
-        setEventos(eventosOrdenados);
-      } catch (e: any) {
-        console.error("Error fetching eventos", e);
-        setError(e.message || "Error al cargar eventos");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEventos();
-  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
