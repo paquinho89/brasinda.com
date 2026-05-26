@@ -10,7 +10,9 @@ import TarjetaEventoHome from "./componentes/tarjetaEventoHome";
 import Footer from "./componentes/footer";
 import "../estilos/Botones.css";
 import { useAuth } from "./AuthContext";
+
 import confetti from "canvas-confetti";
+import { normalizarTexto } from "../utils/normalizarTexto";
 
 
 interface Evento {
@@ -26,6 +28,11 @@ interface Evento {
   evento_verificado: boolean;
 }
 function Home() {
+    // Engadir función handleSearch para o formulario de busca
+    const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      // O filtrado xa é reactivo, non fai falta máis acción
+    };
   const { organizador } = useAuth(); // ✅ sesión global
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +40,7 @@ function Home() {
   const [searchInput, setSearchInput] = useState("");
 
   const { apiFetch } = useApi();
+
   useEffect(() => {
     const fetchEventos = async () => {
       try {
@@ -57,12 +65,20 @@ function Home() {
         });
 
         const eventosOrdenados = [...eventosActivos].sort((a, b) => {
+          return new Date(a.data_evento).getTime() - new Date(b.data_evento).getTime();
+        });
+        setEventos(eventosOrdenados);
+      } catch (err: any) {
+        setError(err.message || "Erro ao cargar eventos");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEventos();
+    // eslint-disable-next-line
+  }, []);
 
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
-
+  // Filtrado de eventos
   const filteredEventos = eventos.filter((evento) => {
     const query = normalizarTexto(searchInput);
     if (!query) return true;
