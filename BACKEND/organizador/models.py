@@ -9,7 +9,7 @@ class Organizador(AbstractUser):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     mayor_edad = models.BooleanField(default=False)
     foto_organizador = models.ImageField(upload_to='fotos_organizador', blank=True, null=True)
-    telefono = models.CharField(max_length=20, validators=[RegexValidator(r'^\+?\d{5,20}$', message="Teléfono inválido")])
+    telefono = models.CharField(max_length=20, validators=[RegexValidator(r'^\+?\d{5,20}$', message="Teléfono inválido")], blank=True, null=True)
     numero_iban = models.CharField(max_length=34, blank=True, null=True)
     idioma = models.CharField(max_length=50, default='galego')
     nif_cif = models.CharField(max_length=20, blank=True, null=True)
