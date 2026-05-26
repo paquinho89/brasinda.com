@@ -28,6 +28,10 @@ interface Evento {
   evento_verificado: boolean;
 }
 function Home() {
+      // Mostrar confetti ao cargar a páxina
+      useEffect(() => {
+        confetti();
+      }, []);
     // Engadir función handleSearch para o formulario de busca
     const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
