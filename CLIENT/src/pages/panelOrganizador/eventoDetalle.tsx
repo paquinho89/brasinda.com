@@ -137,7 +137,7 @@ export default function EventoDetalle() {
       prezo_evento: evento.prezo_evento != null ? String(evento.prezo_evento) : "",
       imaxe_evento: evento.imaxe_evento || "",
       nota_lugar: evento.nota_lugar || "",
-      procedemento_cobro_manual: evento.procedemento_cobro_manual || "",
+      procedemento_cobro_manual: evento.procedemento_cobro_manual !== undefined && evento.procedemento_cobro_manual !== null ? evento.procedemento_cobro_manual : "",
     });
     setImageFileName(evento.imaxe_evento ? evento.imaxe_evento.split("/").pop() || "" : "");
     setImagePreviewUrl(null);
@@ -650,7 +650,7 @@ export default function EventoDetalle() {
                     placeholder="Nota adicional sobre o lugar (opcional)"
                   />
                 </div>
-                { (
+                {(evento?.tipo_gestion_entrada === "manual" && Number(evento?.prezo_evento) > 0) && (
                   <div className="mb-3">
                     <label className="form-label">Forma de pago:</label>
                     <input
