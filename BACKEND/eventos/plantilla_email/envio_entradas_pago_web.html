@@ -159,7 +159,7 @@
       
       <div class="ticket-icon">🎫</div>
       <h1>As túas Entradas</h1>
-      <p>Aquí tes as túas entradas. Os files PDF cos teus tickets están <strong>adjuntos neste correo</strong>.</p>
+      <p>Aquí tes as túas entradas. Os files PDF cos teus tickets están <strong>adxuntos neste correo</strong>.</p>
 
       {% for evento_info in eventos %}
       <div class="event-info">
@@ -173,13 +173,6 @@
         <span class="validation-code-label">Código de validación</span>
         <div class="validation-code-value">{{ reserva.codigo_validacion }}</div>
       </div>
-      
-      {% if reserva.qr_img %}
-      <div class="qr-section">
-        <img src="{{ reserva.qr_img }}" alt="QR ticket" class="qr-img" />
-        <div class="qr-text">Escanea este código QR na entrada do evento</div>
-      </div>
-      {% endif %}
 
       {% if reserva.nome_titular %}
       <div style="text-align: center; margin: 12px 0;">
@@ -192,7 +185,7 @@
       {% endfor %}
 
       <div class="tickets-info">
-        <strong>📎 Archivos adjuntos</strong>
+        <strong>📎 Archivos adxuntos</strong>
         <p class="tickets-list">
           ✓ PDFs das túas entradas
         </p>

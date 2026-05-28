@@ -485,45 +485,20 @@ def xerar_pdf_listado(evento, reservas):
 def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
     print(f"[DEBUG] xerar_pdf_entrada called for reserva id: {getattr(reserva, 'id', None)}, evento id: {getattr(evento, 'id', None)}, tipo_pdf: {tipo_pdf}")
     buffer = BytesIO()
-    p = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4
+    from reportlab.lib.pagesizes import A6
+    p = canvas.Canvas(buffer, pagesize=A6)
+    width, height = A6
 
     import os
 
-    # Logo á esquerda no alto
-    logo_path = os.path.join(settings.BASE_DIR, "BACKEND", "organizador", "formato_email", "branding", "logo.png")
-    if os.path.exists(logo_path):
-        p.drawInlineImage(logo_path, 40, height - 75, width=100, height=60)
 
-    # Zona, Fila, Butaca info above event name (hide all if any is None or zona is 'sen-plano')
-    y = height - 70
-    show_seat_info = (
-        reserva.zona and reserva.zona != 'sen-plano' and reserva.fila is not None and reserva.butaca is not None
-    )
-    if show_seat_info:
-        p.setFont("Helvetica-Bold", 28)
-        p.setFillColorRGB(0, 0, 0)
-        p.drawCentredString(width/2, y, f"Zona: {reserva.zona}")
-        y -= 32
-        p.drawCentredString(width/2, y, f"Fila: {reserva.fila}")
-        y -= 32
-        p.drawCentredString(width/2, y, f"Butaca: {reserva.butaca}")
-        y -= 44
-    else:
-        y -= 44
-    # Título do evento máis pequeno no header, debaixo do QR e info
-    p.setFont("Helvetica-Bold", 14)
-    p.setFillColorRGB(0, 0, 0)
-    p.drawCentredString(width/2, y, evento.nome_evento)
-    y -= 32
-
-    # Ruta dos iconos
+    # --- NOVO DESEÑO CENTRADO, QR ARRIBA, LOGO ESQUERDA, ICONOS, PREZO, ORGANIZADOR, CIF/NIF ---
+    from PIL import Image
+    import os
+    # Definir icon_path e draw_icon_with_white_bg antes de calquera uso
     icon_dir = os.path.join(settings.BASE_DIR, "BACKEND", "eventos", "plantilla_email", "icons")
     def icon_path(name):
         return os.path.join(icon_dir, name)
-
-    # Función para inserir icono PNG con fondo branco se ten transparencia
-    from PIL import Image
     def draw_icon_with_white_bg(p, icon_path, x, y, w, h):
         if os.path.exists(icon_path):
             img = Image.open(icon_path)
@@ -533,37 +508,133 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
                 img = bg.convert("RGB")
             p.drawInlineImage(img, x, y, w, h)
 
-    # Nome titular
-    user_icon = icon_path("user.png")
-    draw_icon_with_white_bg(p, user_icon, 60, y-4, 20, 20)
-    p.setFont("Helvetica", 13)
-    p.drawString(90, y, f"{reserva.nome_titular or reserva.email}")
-    y -= 28
-    email_icon = icon_path("envelope.png")
-    draw_icon_with_white_bg(p, email_icon, 60, y-6, 20, 20)
-    if tipo_pdf == "invitacion":
-        email_organizador = getattr(evento.organizador, 'email', None)
-        if email_organizador and reserva.email and reserva.email != email_organizador:
-            p.drawString(90, y, f"{reserva.email} / {email_organizador}")
-        elif email_organizador:
-            p.drawString(90, y, f"{email_organizador}")
-        else:
-            p.drawString(90, y, f"{reserva.email}")
-    else:
-        p.drawString(90, y, f"{reserva.email}")
-    y -= 28
-    # División
-    p.setStrokeColorRGB(0.7,0.7,0.7)
-    p.setLineWidth(0.5)
-    p.line(60, y, width-60, y)
-    y -= 28
+    # Logo brasinda pequeno arriba esquerda
+    logo_path = os.path.join(settings.BASE_DIR, "BACKEND", "organizador", "formato_email", "branding", "logo.png")
+    logo_w, logo_h = 48, 32  # Lixeiramente máis grande
+    if os.path.exists(logo_path):
+        p.drawInlineImage(logo_path, 8, height - logo_h - 8, width=logo_w, height=logo_h)
 
-    # Data e lugar
-    calendar_icon = icon_path("calendar.png")
-    draw_icon_with_white_bg(p, calendar_icon, 60, y-5, 20, 20)
+
+    # brasinda.com centrado arriba, xusto encima do QR code
+    p.setFont("Helvetica", 8)
+    p.setFillColorRGB(0.2, 0.2, 0.2)
+    p.drawCentredString(width/2, height - 12, "brasinda.com")
+    # Email do titular centrado xusto debaixo
+    email_header = reserva.email if hasattr(reserva, 'email') and reserva.email else None
+    if email_header:
+        p.setFont("Helvetica", 8)
+        p.setFillColorRGB(0.2, 0.2, 0.2)
+        p.drawCentredString(width/2, height - 22, email_header)
+        p.setFillColorRGB(0, 0, 0)
+    else:
+        p.setFillColorRGB(0, 0, 0)
+
+    # Reducir marxe superior para subir o texto
+    y = height - 24  # Máis preto do header
+
+    # QR arriba centrado
+    qr_data = getattr(reserva, "codigo_validacion", None) or "-"
+    qr_img = qrcode.make(qr_data)
+    if not isinstance(qr_img, Image.Image):
+        qr_img = qr_img.convert("RGB")
+    qr_size = 90
+    qr_x = (width - qr_size) / 2
+    qr_y = y - qr_size
+    p.drawInlineImage(qr_img, qr_x, qr_y, qr_size, qr_size)
+    y = qr_y - 18
+
+    # --- NOVO: centrado, maior tamaño, máis interlineado ---
+    center_x = width / 2
+    # Código de validación centrado
+    if getattr(reserva, "codigo_validacion", None):
+        p.setFont("Helvetica-Bold", 18)
+        p.setFillColorRGB(0.2, 0.2, 0.2)
+        p.drawCentredString(center_x, y, f"{reserva.codigo_validacion}")
+        y -= 26  # REDUCIR marxe para subir nome_evento
+
+    # Nome do evento centrado (máis pequeno)
+    p.setFont("Helvetica-Bold", 13)
+    p.setFillColorRGB(0, 0, 0)
+    p.drawCentredString(center_x, y, evento.nome_evento)
+    # Engadir unha liña horizontal lixeira entre nome_evento e Zona
+    line_y = y - 8
+    p.setStrokeColorRGB(0.85, 0.85, 0.85)
+    p.setLineWidth(1)
+    p.line(32, line_y, width - 32, line_y)
+    p.setStrokeColorRGB(0, 0, 0)
+    y -= 20  # máis espazo tras nome_evento para a liña horizontal
+
+    # Nome do titular/email arriba á dereita
+    p.setFont("Helvetica", 14)
+    nome_titular = reserva.nome_titular or reserva.email
+    fila = getattr(reserva, "fila", None)
+    butaca = getattr(reserva, "butaca", None)
+    zona = getattr(reserva, "zona", None)
+    evento_ten_plano = getattr(evento, "ten_plano", False)
+    nome_x = width - 12
+    nome_y = height - 14
+    p.setFont("Helvetica", 14)
+    p.setFillColorRGB(0.15, 0.15, 0.15)
+    p.drawRightString(nome_x, nome_y, nome_titular)
+    p.setFillColorRGB(0, 0, 0)
+    y -= 18  # menos espazo tras nome
+    # Zona, Fila, Butaca: centrados, valor en negrita, con iconos se existen
+    icon_size = 20
+    icon_gap = 12
+    text_gap = 28
+    y += 10  # SUBIR o bloque máis preto do nome do evento
+    def draw_centered_label_value(y, icon_filename, label, value):
+        # icon_filename: icono a mostrar á esquerda (ou None)
+        # label: string, value: string
+        total_text = f"{label}: "
+        # Medidas para centrar
+        icon_w = icon_size if icon_filename else 0
+        icon_margin = icon_gap if icon_filename else 0
+        font_size = 15
+        p.setFont("Helvetica", font_size)
+        label_width = p.stringWidth(total_text, "Helvetica", font_size)
+        value_width = p.stringWidth(str(value), "Helvetica-Bold", font_size)
+        total_width = icon_w + icon_margin + label_width + value_width
+        x_start = (width - total_width) / 2
+        # Icono
+        if icon_filename and os.path.exists(icon_filename):
+            draw_icon_with_white_bg(p, icon_filename, x_start, y, icon_size, icon_size)
+            x_text = x_start + icon_size + icon_gap
+        else:
+            x_text = x_start
+        # Label
+        p.setFont("Helvetica", font_size)
+        p.drawString(x_text, y, f"{label}: ")
+        # Valor en negrita
+        p.setFont("Helvetica-Bold", font_size)
+        p.drawString(x_text + label_width, y, str(value) if value else "-")
+
+    # Mostrar Zona, Fila, Butaca só se zona != 'sen-plano'
+    if zona and zona != 'sen-plano':
+        icon_zona = icon_path("zona.png")
+        draw_centered_label_value(y, icon_zona, "Zona", zona)
+        y -= text_gap
+        icon_fila = icon_path("fila.png")
+        draw_centered_label_value(y, icon_fila, "Fila", fila)
+        y -= text_gap
+        icon_butaca = icon_path("seat.png")
+        draw_centered_label_value(y, icon_butaca, "Butaca", butaca)
+        y -= text_gap
+        # Liña horizontal lixeira
+        x_icon = 18
+        p.setStrokeColorRGB(0.8, 0.8, 0.8)
+        p.setLineWidth(0.7)
+        p.line(x_icon, y + text_gap // 2, width - x_icon, y + text_gap // 2)
+        p.setStrokeColorRGB(0, 0, 0)
+        y -= 6
+
+    # Datos principais centrados con iconos, organizador abaixo esquerda sen icono
+    # ...existing code...
+
+    # Data e lugar centrados con iconos
+    import datetime
     dias = ["luns", "martes", "mércores", "xoves", "venres", "sábado", "domingo"]
     meses = ["xaneiro", "febreiro", "marzo", "abril", "maio", "xuño", "xullo", "agosto", "setembro", "outubro", "novembro", "decembro"]
-    import datetime
     data_evento_val = getattr(evento, "data_evento", None)
     data = None
     if isinstance(data_evento_val, str):
@@ -576,182 +647,233 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
                 data = None
     elif isinstance(data_evento_val, datetime.datetime):
         data = data_evento_val
+    icon_size = 18
+    icon_gap = 10
+    text_gap = 26
+    def draw_icon_and_text_left(icon_filename, text, y, font_size=13):
+        icon = icon_path(icon_filename)
+        x_icon = 18
+        draw_icon_with_white_bg(p, icon, x_icon, y - 2, icon_size, icon_size)
+        p.setFont("Helvetica", font_size)
+        p.drawString(x_icon + icon_size + icon_gap, y, text)
+
     if data:
         dia_semana = dias[data.weekday()]
         mes = meses[data.month - 1]
         data_galego = f"{dia_semana.capitalize()}, {data.day:02d} de {mes} de {data.year}"
-        p.drawString(90, y, data_galego)
-        y -= 28
-        clock_icon = icon_path("clock.png")
-        draw_icon_with_white_bg(p, clock_icon, 60, y-4, 20, 20)
+        draw_icon_and_text_left("calendar.png", data_galego, y, font_size=12)
+        y -= text_gap
         hora_galego = data.strftime('%H:%M')
-        # Engadir duración se existe e é > 0
-        duracion = getattr(evento, "duracion", None)
-        duracion_str = ""
-        try:
-            duracion_min = int(duracion) if duracion is not None else 0
-        except Exception:
-            duracion_min = 0
-        if duracion_min > 0:
-            duracion_str = f" (Duración: {duracion_min} min)"
-        p.drawString(90, y, f"{hora_galego} h{duracion_str}")
-        y -= 28
+        draw_icon_and_text_left("clock.png", f"{hora_galego} h", y, font_size=12)
+        y -= text_gap
     else:
-        p.drawString(90, y, "Data descoñecida")
-        y -= 28
-        clock_icon = icon_path("clock.png")
-        draw_icon_with_white_bg(p, clock_icon, 60, y-4, 20, 20)
-        p.drawString(90, y, "--:-- h")
-        y -= 28
-    location_icon = icon_path("location.png")
-    draw_icon_with_white_bg(p, location_icon, 60, y-4, 20, 20)
+        draw_icon_and_text_left("calendar.png", "Data descoñecida", y, font_size=12)
+        y -= text_gap
+
+    # Lugar
     lugar_text = f"{evento.localizacion}"
-    if getattr(evento, "nota_lugar", None):
-        lugar_text += f" ({evento.nota_lugar})"
-    p.drawString(90, y, lugar_text)
-    y -= 28
-    # División
-    p.setStrokeColorRGB(0.7,0.7,0.7)
-    p.setLineWidth(0.5)
-    p.line(60, y, width-60, y)
-    y -= 18
-
-    if tipo_pdf == "invitacion":
-        p.drawString(60, y, "INVITACIÓN")
-        y -= 36
-    else:
-        euro_icon = icon_path("euro.png")
-        draw_icon_with_white_bg(p, euro_icon, 60, y-4, 20, 20)
-        # Mostrar sempre o prezo PVP e o desglose
-        prezo_evento = getattr(evento, "prezo_evento", None)
-        gastos_xestion = getattr(evento, "gastos_xestion", None)
-        prezo_pvp = getattr(evento, "prezo_pvp", None)
-        if prezo_pvp is not None and prezo_pvp > 0:
-            p.setFont("Helvetica-Bold", 15)
-            p.drawString(90, y, f"{prezo_pvp}")
-            y -= 22
-            p.setFont("Helvetica", 11)
-            if prezo_evento is not None and gastos_xestion is not None:
-                # Non mostrar desglose se gratis ou xestión organizador
-                tipo_gestion = getattr(evento, "tipo_gestion_entrada", None)
-                try:
-                    base = float(prezo_evento)
-                    pct = float(gastos_xestion)
-                    if base == 0 or pct == 0 or tipo_gestion == "a través do organizador":
-                        def fmt(val):
-                            return str(int(val)) if float(val) == int(val) else (f"{val:.2f}".rstrip("0").rstrip("."))
-                        base_str = fmt(base)
-                        #p.drawString(90, y, f"{base_str} payaso_1")
-                    else:
-                        importe_gastos = base * pct / 100
-                        def fmt(val):
-                            return str(int(val)) if float(val) == int(val) else (f"{val:.2f}".rstrip("0").rstrip("."))
-                        base_str = fmt(base)
-                        gastos_str = fmt(importe_gastos)
-                        pct_str = fmt(pct)
-                        p.drawString(90, y, f"{base_str} € + {gastos_str} € de gastos de xestión ({pct_str}%)")
-                except Exception:
-                    p.drawString(90, y, f"{prezo_evento} payaso_2")
-            else:
-                p.drawString(90, y, "Desglose non dispoñible")
-            y -= 18
+    nota_lugar = getattr(evento, "nota_lugar", None)
+    if nota_lugar:
+        from reportlab.pdfbase.pdfmetrics import stringWidth
+        import textwrap
+        main_font = "Helvetica"
+        main_size = 10
+        nota_font = "Helvetica"
+        nota_bold_font = "Helvetica-Bold"
+        nota_size = 10  # Igual que Forma de pago
+        x_icon = 18
+        icon_size = 18
+        icon_gap = 10
+        x_text = x_icon  # Aliñar á esquerda de todo, xusto baixo o icono
+        max_width = width - x_text - 18
+        localizacion_str = lugar_text
+        nota_str = f"Nota: {nota_lugar}"
+        # Intentar meter todo na primeira liña
+        first_line = localizacion_str + " (" + nota_str + ")"
+        if stringWidth(first_line, main_font, main_size) <= max_width:
+            # Debuxar todo na mesma liña, pero 'Nota:' en negrita
+            draw_icon_and_text_left("location.png", localizacion_str + " (", y, font_size=main_size)
+            y -= main_size + 1
+            p.setFillColorRGB(0.2, 0.2, 0.2)
+            p.setFont(nota_bold_font, nota_size)
+            p.drawString(x_text, y, "Nota:")
+            nota_offset = stringWidth("Nota:", nota_bold_font, nota_size)
+            p.setFont(nota_font, nota_size)
+            p.drawString(x_text + nota_offset + 2, y, str(nota_lugar))
+            p.setFillColorRGB(0, 0, 0)
+            y -= nota_size + 2
         else:
-            p.setFont("Helvetica-Bold", 15)
-            p.drawString(90, y, "Gratis")
-            y -= 22
-        p.setFont("Helvetica", 13)
-        y -= 14
+            # Debuxar localización na primeira liña, logo 'Nota:' en negrita e o resto wrap pequeno
+            draw_icon_and_text_left("location.png", localizacion_str, y, font_size=main_size)
+            y -= main_size + 1
+            p.setFillColorRGB(0.2, 0.2, 0.2)
+            nota_lines = textwrap.wrap(nota_str, width=round(max_width // (nota_size * 0.6)))
+            for i, nline in enumerate(nota_lines):
+                if nline.startswith("Nota:"):
+                    p.setFont(nota_bold_font, nota_size)
+                    p.drawString(x_text, y, "Nota:")
+                    nota_offset = stringWidth("Nota:", nota_bold_font, nota_size)
+                    p.setFont(nota_font, nota_size)
+                    p.drawString(x_text + nota_offset + 2, y, nline[5:].lstrip())
+                else:
+                    p.setFont(nota_font, nota_size)
+                    p.drawString(x_text, y, nline)
+                y -= nota_size + 1
+            p.setFillColorRGB(0, 0, 0)
+            y -= 2
+    else:
+        draw_icon_and_text_left("location.png", lugar_text, y, font_size=12)
+        y -= text_gap
 
-    # Condicións de uso (terms of use) section
-    # Draw a divider line before the section
-    p.setStrokeColorRGB(0.7,0.7,0.7)
-    p.setLineWidth(0.5)
-    p.line(60, y, width-60, y)
-    y -= 18
+    # Prezo
+    prezo_evento = getattr(evento, "prezo_evento", None)
+    gastos_xestion = getattr(evento, "gastos_xestion", None)
+    prezo_pvp = getattr(evento, "prezo_pvp", None)
+    tipo_gestion = getattr(evento, "tipo_gestion_entrada", None)
+    forma_pago = getattr(evento, "forma_pago", None)
+    # Preferir o procedemento_cobro_manual da reserva se existe, senón do evento
+    procedemento_cobro_manual = getattr(reserva, "procedemento_cobro_manual", None)
+    if procedemento_cobro_manual is None:
+        procedemento_cobro_manual = getattr(evento, "procedimiento_cobro_manual", None)
+    if prezo_pvp is not None and prezo_pvp > 0:
+        # Engadir máis espazo antes do prezo
+        y -= 18  # Espazo extra visual
+        # Calcular desglose se corresponde
+        desglose_str = None
+        if prezo_evento is not None and gastos_xestion is not None:
+            try:
+                base = float(prezo_evento)
+                pct = float(gastos_xestion)
+                if base == 0 or pct == 0 or tipo_gestion == "a través do organizador":
+                    desglose_str = None
+                else:
+                    importe_gastos = base * pct / 100
+                    base_str = str(int(base)) if float(base) == int(base) else (f"{base:.2f}".rstrip("0").rstrip("."))
+                    gastos_str = str(int(importe_gastos)) if float(importe_gastos) == int(importe_gastos) else (f"{importe_gastos:.2f}".rstrip("0").rstrip("."))
+                    pct_str = str(int(pct)) if float(pct) == int(pct) else (f"{pct:.2f}".rstrip("0").rstrip("."))
+                    desglose_str = f"→ {base_str} € + {gastos_str} € xestión ({pct_str}%)"
+            except Exception:
+                desglose_str = "→ Desglose non dispoñible"
+        # Construír a liña de prezo e desglose xuntos
+        # Debuxar prezo_pvp en negrita e desglose normal, na mesma liña
+        x_prezo = 18
+        p.setFont("Helvetica-Bold", 12)
+        p.setFillColorRGB(0.15, 0.15, 0.15)
+        prezo_text = f"{prezo_pvp} €"
+        p.drawString(x_prezo, y, prezo_text)
+        x_actual = x_prezo + p.stringWidth(prezo_text, "Helvetica-Bold", 12)
+        if desglose_str:
+            p.setFont("Helvetica", 12)
+            p.drawString(x_actual + 8, y, desglose_str)
+        p.setFillColorRGB(0, 0, 0)
+        y -= text_gap - 4
+        # Mostrar 'Forma de pago:' en negrita antes do procedemento_cobro_manual se existe
+        if procedemento_cobro_manual:
+            y += 10  # Sube máis cerca do texto anterior
+            x_pago = 18
+            p.setFont("Helvetica-Bold", 10)
+            p.setFillColorRGB(0.2, 0.2, 0.2)
+            pago_label = "Forma de pago:"
+            p.drawString(x_pago, y, pago_label)
+            x_pago += p.stringWidth(pago_label, "Helvetica-Bold", 10) + 3
+            p.setFont("Helvetica", 10)
+            p.drawString(x_pago, y, str(procedemento_cobro_manual))
+            p.setFillColorRGB(0, 0, 0)
+            y -= text_gap - 5
+    else:
+        # Só texto, sen icono euro
+        p.setFont("Helvetica-Bold", 12)
+        p.setFillColorRGB(0.15, 0.15, 0.15)
+        p.drawString(18, y, "Gratis")
+        p.setFillColorRGB(0, 0, 0)
+        y -= text_gap - 4
+        # Mostrar forma de pago e procedemento cobro manual se xestión polo organizador e existen
+        if tipo_gestion == "a través do organizador":
+            if forma_pago:
+                y += 10  # Sube máis cerca do texto anterior
+                p.setFont("Helvetica", 11)
+                p.setFillColorRGB(0.2, 0.2, 0.2)
+                p.drawString(18, y, f"Forma de pago: {forma_pago}")
+                y -= text_gap - 8
+            if procedemento_cobro_manual:
+                y += 10  # Sube máis cerca do texto anterior
+                p.setFont("Helvetica", 10)
+                p.setFillColorRGB(0.2, 0.2, 0.2)
+                p.drawString(18, y, f"Procedemento cobro manual: {procedemento_cobro_manual}")
+                y -= text_gap - 10
 
-    # Engadir datos do organizador despois da liña divisoria
-    nome_organizador = None
-    nif_organizador = None
-    if hasattr(evento, "organizador") and evento.organizador:
-        org = evento.organizador
-        nome_organizador = getattr(org, "nome", None) or getattr(org, "nome_organizador", None) or ""
-        nif_organizador = getattr(org, "nif_cif", None) or getattr(org, "cif", None) or getattr(org, "nif", None) or ""
+    # Footer: Organizador e CIF/NIF centrado abaixo
+    org = getattr(evento, "organizador", None)
+    nome_organizador = getattr(org, "nome", None) or getattr(org, "nome_organizador", None) or "-"
+    nif_organizador = getattr(org, "nif_cif", None) or getattr(org, "cif", None) or getattr(org, "nif", None) or "-"
+    footer_text = f"Organizador: {nome_organizador} | CIF/NIF: {nif_organizador}"
+    p.setFont("Helvetica", 8)
+    p.setFillColorRGB(0.4, 0.4, 0.4)
+    p.drawCentredString(width/2, 15, footer_text)
+    p.setFillColorRGB(0, 0, 0)
 
-    # Texto: etiqueta normal, valor en negrita, tamaño lixeiramente maior
-    font_size = 12
-    p.setFont("Helvetica", font_size)
+
+    # --- Páxina 2: termos de uso ---
+    p.showPage()
+    # Header igual que na primeira páxina
+    # brasinda.com centrado arriba
+    p.setFont("Helvetica", 8)
     p.setFillColorRGB(0.2, 0.2, 0.2)
-    # Organizador
-    label = "Organizador: "
-    valor = nome_organizador if nome_organizador else '-'
-    p.drawString(60, y, label)
-    p.setFont("Helvetica-Bold", font_size)
-    p.drawString(60 + p.stringWidth(label, "Helvetica", font_size), y, valor)
-    y -= 16
-    # CIF/NIF
-    p.setFont("Helvetica", font_size)
-    label2 = "CIF/NIF Organizador: "
-    valor2 = nif_organizador if nif_organizador else '-'
-    p.drawString(60, y, label2)
-    p.setFont("Helvetica-Bold", font_size)
-    p.drawString(60 + p.stringWidth(label2, "Helvetica", font_size), y, valor2)
-    y -= 26  # Máis espazo despois de CIF/NIF
-
-    p.setFont("Helvetica-Bold", 11)
+    p.drawCentredString(width/2, height - 12, "brasinda.com")
+    # Email do titular centrado xusto debaixo
+    email_header = reserva.email if hasattr(reserva, 'email') and reserva.email else None
+    if email_header:
+        p.setFont("Helvetica", 8)
+        p.setFillColorRGB(0.2, 0.2, 0.2)
+        p.drawCentredString(width/2, height - 22, email_header)
+        p.setFillColorRGB(0, 0, 0)
+    else:
+        p.setFillColorRGB(0, 0, 0)
+    y = height - 52  # Máis espazo baixo o header (antes era -30)
+    p.setFont("Helvetica-Bold", 13)
     p.setFillColorRGB(0.2, 0.2, 0.2)
-    p.drawString(60, y, "Condicións de uso:")
-    y -= 16
-    p.setFont("Helvetica", 9)
+    p.drawString(18, y, "Condicións de uso:")
+    y -= 22
+    p.setFont("Helvetica", 10)
     p.setFillColorRGB(0.2, 0.2, 0.2)
     import textwrap
     terms = [
         "1. O uso desta entrada implica a aceptación das condicións de compra dispoñibles en brasinda.com.",
-        "2. Puntualidade xa que non se garantiza a entrada ao evento unha vez comezado.",
+        "2. Puntualidade xa que ao mellor despois non te deixan entrar.",
         "3. Queda prohibida a súa reventa ou duplicidade.",
-        "4. Ao entrar ó recinto pode estar suxeito a un rexistro co fin de evitar a entrada de obxetos que podan se considerados perigosos polo organizador",
+        "4. Ao entrar ó recinto pode estar suxeito a un rexistro, así que lembra deixar os obxetos perigosos na casa",
         "5. A organización resérvase o dereito de admisión.",
-        "6. Nos eventos teatrais ou musicais, non se pode gravar, fotografiar ou filmar sen autorización do Organizador, quedando así reservados todos os dereitos de imaxe e propiedade intelectual.",
+        "6. Nos eventos teatrais ou musicais, non se pode gravar, fotografiar ou filmar sen autorización do Organizador.",
         "7. Non se admiten cambios nin devolucións salvo cancelación do evento.",
-        "8. É obrigatorio conservar a entrada durante todo o evento.",
+        "8. Conserva a entrada durante todo o evento.",
         "9. A perda ou deterioro da entrada non será responsabilidade da organización.",
-        # Engade aquí máis puntos se o desexas
     ]
-    # Aproveitar máis o ancho da folla para os terms
-    max_width_chars = 120  # máis caracteres por liña
-    left_margin = 60
-    right_margin = 60
-    available_width = width - left_margin - right_margin
+    max_width_chars = 60
     for t in terms:
-        # Wrap manual usando available_width en puntos
         wrapped_lines = textwrap.wrap(t, width=max_width_chars)
         for wline in wrapped_lines:
-            p.drawString(left_margin, y, wline)
-            y -= 13
+            if y < 30:
+                p.showPage()
+                # Header en cada nova páxina
+                p.setFont("Helvetica", 8)
+                p.setFillColorRGB(0.2, 0.2, 0.2)
+                p.drawCentredString(width/2, height - 12, "brasinda.com")
+                if email_header:
+                    p.setFont("Helvetica", 8)
+                    p.setFillColorRGB(0.2, 0.2, 0.2)
+                    p.drawCentredString(width/2, height - 22, email_header)
+                    p.setFillColorRGB(0, 0, 0)
+                else:
+                    p.setFillColorRGB(0, 0, 0)
+                y = height - 52  # Máis espazo baixo o header
+            p.drawString(18, y, wline)
+            y -= 15
 
-    # Xeración do QR no header, arriba á dereita
-    from PIL import Image
-    qr_data = getattr(reserva, "codigo_validacion", None) or "-"
-    qr_img = qrcode.make(qr_data)
-    if not isinstance(qr_img, Image.Image):
-        qr_img = qr_img.convert("RGB")
-    qr_size = 90
-    qr_x = width - qr_size - 40
-    qr_y = height - qr_size - 20
-
-    p.drawInlineImage(qr_img, qr_x, qr_y, qr_size, qr_size)
-    # Código de validación debaixo do QR
-    if getattr(reserva, "codigo_validacion", None):
-        p.setFont("Helvetica-Bold", 11)
-        p.setFillColorRGB(0.2, 0.2, 0.2)
-        p.drawCentredString(qr_x + qr_size/2, qr_y - 12, f"{reserva.codigo_validacion}")
-
-    # Footer: brasinda.com and terms of use
-    footer_text = "brasinda.com   |   Eventos únicos para xente única."
+    # Footer na páxina de termos centrado
     p.setFont("Helvetica", 8)
     p.setFillColorRGB(0.4, 0.4, 0.4)
-    p.drawCentredString(width/2, 25, footer_text)
+    p.drawCentredString(width/2, 15, footer_text)
 
-    p.showPage()
     p.save()
     buffer.seek(0)
     return buffer
