@@ -30,6 +30,7 @@ interface evento {
   nome_evento: string;
   data_evento: string;
   localizacion: string;
+  localidade: string;
   nota_lugar?: string;
   entradas_venta: number;
   prezo_evento?: number;
@@ -268,7 +269,22 @@ export default function DescripcionEvento() {
               </p>
               <p className="mb-2">
                 <FaMapMarkerAlt className="me-1" />
-                <strong>{evento.localizacion}</strong>
+                <strong>{(() => {
+              if (!evento.localizacion) return "";
+              // Eliminar só 'GA' e 'España' e posibles comas/espazos antes/despois, pero nunca eliminar a localidade
+              let loc = evento.localizacion
+                .replace(/,?\s*GA\b(?![a-zA-Z])/gi, "")
+                .replace(/,?\s*España\b(?![a-zA-Z])/gi, "")
+                .replace(/\s+,/g, ",")
+                .replace(/,+/g, ",")
+                .replace(/^,|,$/g, "")
+                .trim();
+              return loc;
+            })()}
+            {evento.localidade &&
+              !["ga", "españa"].includes(evento.localidade.trim().toLowerCase())
+              ? ` | ${evento.localidade}`
+              : ""}</strong>
               </p>
               {evento.nota_lugar && (
                 <p className="mb-2 text-muted" style={{ fontSize: "0.95rem" }}>
