@@ -6,7 +6,7 @@ import AuditorioSelectorOurense from "../planoAuditorios/auditorioBotones/audito
 import ReservaSinPlano from "./componentes/reservaSinPlano";
 import MainNavbar from "../componentes/NavBar";
 import TablaPrezosZonas from "./TablaPrezosZonas";
-import { FaCalendarAlt, FaUsers, FaEuroSign, FaImage, FaRegFileAlt, FaExclamationTriangle, FaMoneyBill, FaArrowLeft, FaTicketAlt, FaMapMarkerAlt, FaCreditCard, FaCoins } from "react-icons/fa";
+import { FaCalendarAlt, FaUsers, FaEuroSign, FaImage, FaRegFileAlt, FaExclamationTriangle, FaArrowLeft, FaTicketAlt, FaMapMarkerAlt, FaCreditCard, FaCoins } from "react-icons/fa";
 import API_BASE_URL from "../../utils/api";
 
 
