@@ -21,6 +21,7 @@ import {
   FaGuitar,
   FaStore,
   FaStar,
+  FaMoneyBill,
 } from "react-icons/fa";
 
 interface evento {
@@ -258,7 +259,7 @@ export default function DescripcionEvento() {
                 <strong className="text-success fs-5">
                   {prezoAreas
                     ? (prezoPVP > 0
-                        ? <span style={{ color: '#000', fontWeight: 'normal' }}>Prezo dende: {prezoFormatado} €</span>
+                        ? <span style={{ color: '#000', fontWeight: 700, fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: 4 }}><FaMoneyBill className="me-1" style={{ color: '#000', fontSize: '1.1em', verticalAlign: 'middle' }} />Desde: {prezoFormatado} €</span>
                         : "Evento de Balde")
                     : (prezoPVP > 0
                         ? `Prezo: ${prezoFormatado} €`

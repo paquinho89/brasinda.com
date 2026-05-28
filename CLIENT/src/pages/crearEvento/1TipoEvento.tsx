@@ -13,11 +13,15 @@ const TIPOS_EVENTO = [
   "Musical",
   "Monólogo",
   "Coloquio",
-  "Xantar/Cea Popular",
+  "Comida Popular",
   "Foliada",
   "Festival",
   "Feira",
-  "Charla",
+  "Cine",
+  "Andaina",
+  "Partido",
+  "Andaina",
+  "Carreira",
   "Outros",
 ];
 
