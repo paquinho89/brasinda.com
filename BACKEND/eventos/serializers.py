@@ -4,10 +4,12 @@ from .models import Evento, ReservaButaca, ZonaPrezo
 
 
 class EventoSerializer(serializers.ModelSerializer):
+    procedemento_cobro_manual = serializers.CharField(source='procedimiento_cobro_manual', allow_blank=True, allow_null=True, required=False)
     entradas_vendidas = serializers.SerializerMethodField()
     entradas_reservadas = serializers.SerializerMethodField()
     contrato_pdf_url = serializers.SerializerMethodField()
     email_organizador = serializers.SerializerMethodField()
+
 
 
     class Meta:

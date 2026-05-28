@@ -692,7 +692,7 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
         first_line = localizacion_str + " (" + nota_str + ")"
         if stringWidth(first_line, main_font, main_size) <= max_width:
             # Debuxar todo na mesma liña, pero 'Nota:' en negrita
-            draw_icon_and_text_left("location.png", localizacion_str + " (", y, font_size=main_size)
+            draw_icon_and_text_left("location.png", localizacion_str + y, font_size=main_size)
             y -= main_size + 1
             p.setFillColorRGB(0.2, 0.2, 0.2)
             p.setFont(nota_bold_font, nota_size)
@@ -707,7 +707,7 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
             draw_icon_and_text_left("location.png", localizacion_str, y, font_size=main_size)
             y -= main_size + 1
             p.setFillColorRGB(0.2, 0.2, 0.2)
-            nota_lines = textwrap.wrap(nota_str, width=round(max_width // (nota_size * 0.6)))
+            nota_lines = textwrap.wrap(nota_str, width=round(max_width // (nota_size * 0.5)))
             for i, nline in enumerate(nota_lines):
                 if nline.startswith("Nota:"):
                     p.setFont(nota_bold_font, nota_size)
@@ -721,9 +721,10 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
                 y -= nota_size + 1
             p.setFillColorRGB(0, 0, 0)
             y -= 2
+
     else:
         draw_icon_and_text_left("location.png", lugar_text, y, font_size=12)
-        y -= text_gap
+        y -= 2  # Espazo moi pequeno entre Lugar e Prezo
 
     # Prezo
     prezo_evento = getattr(evento, "prezo_evento", None)
@@ -736,8 +737,8 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
     if procedemento_cobro_manual is None:
         procedemento_cobro_manual = getattr(evento, "procedimiento_cobro_manual", None)
     if prezo_pvp is not None and prezo_pvp > 0:
-        # Engadir máis espazo antes do prezo
-        y -= 18  # Espazo extra visual
+        # Engadir só un pequeno espazo antes do prezo
+        y -= 2  # Subir o prezo e o pago máis arriba
         # Calcular desglose se corresponde
         desglose_str = None
         if prezo_evento is not None and gastos_xestion is not None:
@@ -760,24 +761,44 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
         p.setFont("Helvetica-Bold", 12)
         p.setFillColorRGB(0.15, 0.15, 0.15)
         prezo_text = f"{prezo_pvp} €"
+        y -= 2  # Baixar o prezo para pegalo ao texto de procedemento de cobro manual
         p.drawString(x_prezo, y, prezo_text)
         x_actual = x_prezo + p.stringWidth(prezo_text, "Helvetica-Bold", 12)
         if desglose_str:
             p.setFont("Helvetica", 12)
             p.drawString(x_actual + 8, y, desglose_str)
         p.setFillColorRGB(0, 0, 0)
-        y -= text_gap - 4
+        y -= 2  # Espazo mínimo tras prezo antes de 'Pago'
         # Mostrar 'Forma de pago:' en negrita antes do procedemento_cobro_manual se existe
         if procedemento_cobro_manual:
-            y += 10  # Sube máis cerca do texto anterior
+            y -= 10  # Baixa o texto de pago para separalo do prezo
             x_pago = 18
             p.setFont("Helvetica-Bold", 10)
             p.setFillColorRGB(0.2, 0.2, 0.2)
-            pago_label = "Forma de pago:"
+            pago_label = "Pago:"
             p.drawString(x_pago, y, pago_label)
-            x_pago += p.stringWidth(pago_label, "Helvetica-Bold", 10) + 3
+            x_valor = x_pago + p.stringWidth(pago_label, "Helvetica-Bold", 10) + 3
             p.setFont("Helvetica", 10)
-            p.drawString(x_pago, y, str(procedemento_cobro_manual))
+            from reportlab.pdfbase.pdfmetrics import stringWidth
+            import textwrap
+            # Primeira liña: ao lado de 'Forma de pago:'
+            max_width_valor = width - x_valor - 18
+            proc_text = str(procedemento_cobro_manual)
+            chars_per_line_valor = max(int(max_width_valor // 4), 10)
+            proc_lines = textwrap.wrap(proc_text, width=chars_per_line_valor)
+            if proc_lines:
+                p.drawString(x_valor, y, proc_lines[0])
+                # Se hai máis liñas, debuxar cada unha máis abaixo, sen baixar o bloque enteiro
+                if len(proc_lines) > 1:
+                    x_left = 18
+                    max_width_left = width - x_left - 18
+                    chars_per_line_left = max(int(max_width_left // 4), 10)
+                    resto = ' '.join(proc_lines[1:])
+                    resto_lines = textwrap.wrap(resto, width=chars_per_line_left)
+                    y_proc = y  # gardar a posición actual
+                    for line in resto_lines:
+                        y_proc -= 12
+                        p.drawString(x_left, y_proc, line)
             p.setFillColorRGB(0, 0, 0)
             y -= text_gap - 5
     else:

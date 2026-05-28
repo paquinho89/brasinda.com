@@ -6,7 +6,7 @@ import AuditorioSelectorOurense from "../planoAuditorios/auditorioBotones/audito
 import ReservaSinPlano from "./componentes/reservaSinPlano";
 import MainNavbar from "../componentes/NavBar";
 import TablaPrezosZonas from "./TablaPrezosZonas";
-import { FaCalendarAlt, FaUsers, FaEuroSign, FaImage, FaRegFileAlt, FaExclamationTriangle, FaMoneyBill, FaArrowLeft, FaTicketAlt, FaMapMarkerAlt } from "react-icons/fa";
+import { FaCalendarAlt, FaUsers, FaEuroSign, FaImage, FaRegFileAlt, FaExclamationTriangle, FaMoneyBill, FaArrowLeft, FaTicketAlt, FaMapMarkerAlt, FaCreditCard, FaCoins } from "react-icons/fa";
 import API_BASE_URL from "../../utils/api";
 
 
@@ -29,6 +29,7 @@ interface Evento {
   evento_cancelado?: boolean;
   xustificacion_cancelacion?: string | null;
   contrato_pdf_url?: string | null;
+  procedemento_cobro_manual?: string | null;
 }
 
 export default function EventoDetalle() {
@@ -55,6 +56,7 @@ export default function EventoDetalle() {
     prezo_evento: "",
     imaxe_evento: "",
     nota_lugar: "",
+    procedemento_cobro_manual: "",
   });
   const navigate = useNavigate();
 
@@ -135,6 +137,7 @@ export default function EventoDetalle() {
       prezo_evento: evento.prezo_evento != null ? String(evento.prezo_evento) : "",
       imaxe_evento: evento.imaxe_evento || "",
       nota_lugar: evento.nota_lugar || "",
+      procedemento_cobro_manual: evento.procedemento_cobro_manual || "",
     });
     setImageFileName(evento.imaxe_evento ? evento.imaxe_evento.split("/").pop() || "" : "");
     setImagePreviewUrl(null);
@@ -203,6 +206,7 @@ export default function EventoDetalle() {
         const payload: any = {
           descripcion_evento: form.descripcion_evento,
           nota_lugar: form.nota_lugar || "",
+          procedemento_cobro_manual: form.procedemento_cobro_manual || "",
         };
 
         resp = await fetch(`${API_BASE_URL}/crear-eventos/${id}/`, {
@@ -270,6 +274,8 @@ export default function EventoDetalle() {
       ? "Xestionado polo organizador"
       : null;
 
+  // Eliminar variable innecesaria mostrarProcedementoCobroManual
+
   return (
     <>
     <MainNavbar />
@@ -294,7 +300,7 @@ export default function EventoDetalle() {
                 </p>
                 <p className="text-center mb-0 mt-0">
                   <FaMapMarkerAlt className="me-2"/>
-                  <strong>{evento.localizacion}</strong> ({evento.nota_lugar})
+                  <strong>{evento.localizacion}</strong>
                 </p>
               </div>
               {/* Espaciador para equilibrar o botón */}
@@ -553,7 +559,7 @@ export default function EventoDetalle() {
                 </button>
                 <hr style={{ width: '100%', border: 0, borderTop: '4px solid #bdbdbd', margin: '22px 0 24px 0' }} />
 
-                {evento.prezo_evento != null && Number(evento.prezo_evento) > 0 && <p><FaMoneyBill className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} /><strong>Diñeiro recadado:</strong> {formatImporteEuro(Number(evento.prezo_evento) * (evento.entradas_vendidas ?? 0))} €</p>}
+                {evento.prezo_evento != null && Number(evento.prezo_evento) > 0 && <p><FaCoins className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} /><strong>Diñeiro recadado:</strong> {formatImporteEuro(Number(evento.prezo_evento) * (evento.entradas_vendidas ?? 0))} €</p>}
                 {/* Mostrar título, icono e valor de prezo na mesma liña */}
                 <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.08rem', margin: '10px 0 18px 0' }}>
                   <FaEuroSign className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} />
@@ -570,7 +576,26 @@ export default function EventoDetalle() {
                 {evento.prezo_areas === true && (
                   <TablaPrezosZonas eventoId={evento.id} mostrarPVP={evento.tipo_gestion_entrada !== 'manual'} />
                 )}
-                {textoXestionImporte && <p><FaTicketAlt className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} /><strong>Xestión do cobro:</strong> {textoXestionImporte}</p>}
+
+                {textoXestionImporte && (
+                  <p>
+                    <FaTicketAlt className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} />
+                    <strong>Xestión do cobro:</strong> {textoXestionImporte}
+                  </p>
+                )}
+                {evento.procedemento_cobro_manual && (
+                  <p>
+                    <FaCreditCard className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} />
+                    <strong>Forma de pago:</strong> {evento.procedemento_cobro_manual}
+                  </p>
+                )}
+
+                {evento.nota_lugar && (
+                  <p>
+                    <FaMapMarkerAlt className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} />
+                    <strong>Nota sobre o lugar:</strong> {evento.nota_lugar}
+                  </p>
+                )}
 
                 {/* Campo para descargar contrato en PDF, só se existe a propiedade evento.contrato_pdf_url */}
                 {evento.contrato_pdf_url && (
@@ -625,6 +650,19 @@ export default function EventoDetalle() {
                     placeholder="Nota adicional sobre o lugar (opcional)"
                   />
                 </div>
+                { (
+                  <div className="mb-3">
+                    <label className="form-label">Forma de pago:</label>
+                    <input
+                      type="text"
+                      name="procedemento_cobro_manual"
+                      value={form.procedemento_cobro_manual || ""}
+                      onChange={handleChange}
+                      className="form-control"
+                      placeholder="Procedemento de cobro manual (opcional)"
+                    />
+                  </div>
+                )}
                 <div className="mb-3">
                   <label className="form-label">Descripción</label>
                   <textarea name="descripcion_evento" value={form.descripcion_evento} onChange={handleChange} className="form-control" />
