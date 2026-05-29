@@ -296,7 +296,7 @@ export default function DescripcionEvento() {
 
             {evento.descripcion_evento && (
               <div className="mb-4">
-                <p>{evento.descripcion_evento}</p>
+                <p style={{ whiteSpace: 'pre-line' }}>{evento.descripcion_evento}</p>
               </div>
             )}
 
