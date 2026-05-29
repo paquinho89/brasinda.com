@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, Modal } from "react-bootstrap";
-import { FaCalendarAlt, FaTicketAlt, FaCreditCard, FaArrowLeft, FaExclamationTriangle, FaEnvelope, FaUser } from "react-icons/fa";
+import { FaCalendarAlt, FaTicketAlt, FaCreditCard, FaArrowLeft, FaExclamationTriangle, FaEnvelope, FaUser, FaCoins } from "react-icons/fa";
 import MainNavbar from "../componentes/NavBar";
 import LoginModalCrearEvento from "../componentes/InicioSesionCrearEventoCuadro";
 
@@ -415,7 +415,7 @@ export default function ReservarEntradaSinPlano() {
 
 						{evento.prezo_evento != null && (
 							<p className="mt-3 mb-4">
-								<FaTicketAlt className="me-1" />
+								<FaCoins style={{ color: '#ff0093', marginRight: 8, fontSize: '1.2em' }} />
 								{prezoEvento > 0 ? (
 									<strong>{prezoFormatado} €</strong>
 								) : (
@@ -426,7 +426,7 @@ export default function ReservarEntradaSinPlano() {
 
 						{evento.procedimiento_cobro_manual && (
 							<div className="mt-3">
-								<FaCreditCard className="me-1" style={{ color: "#155724" }} />
+								<FaCreditCard className="me-1" style={{ color: "#ff0093" }} />
 								<strong>Xestión do pago: </strong>
 								{evento.procedimiento_cobro_manual}
 							</div>

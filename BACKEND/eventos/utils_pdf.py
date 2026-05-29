@@ -647,6 +647,13 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
                 data = None
     elif isinstance(data_evento_val, datetime.datetime):
         data = data_evento_val
+    # Converter a hora local se é aware
+    try:
+        from django.utils import timezone
+        if data and timezone.is_aware(data):
+            data = timezone.localtime(data)
+    except ImportError:
+        pass
     icon_size = 18
     icon_gap = 10
     text_gap = 26
@@ -721,10 +728,10 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
             y_lugar -= 2
     else:
         draw_icon_and_text_left("location.png", lugar_text, y_lugar, font_size=12)
-        y_lugar -= 2
+        y_lugar -= 18  # Mantén o mesmo interliñado que entre data, hora, etc.
 
     # Fixar y para o prezo sempre a unha distancia constante debaixo do bloque de lugar/nota
-    MARXE_EXTRA_PREZO = 15  # px extra de separación visual
+    MARXE_EXTRA_PREZO = 22  # px extra de separación visual (máis espazo vertical)
     y = y_lugar - MARXE_EXTRA_PREZO
 
     # Prezo
@@ -757,14 +764,23 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
             except Exception:
                 desglose_str = "→ Desglose non dispoñible"
         # Construír a liña de prezo e desglose xuntos
-        # Debuxar prezo_pvp en negrita e desglose normal, na mesma liña
-        x_prezo = 18
+        # Debuxar icono coin.png diante do prezo
+        icon_coin = icon_path("coin.png")
+        icon_coin_size = 18
+        x_icon = 18
+        # Subimos ambos: icono e texto 10px máis arriba do valor actual
+        y_icon = y + 10
+        # Aliñar á mesma vertical que lugar, data e hora
+        x_prezo = x_icon + icon_coin_size + 10  # Só 10px de separación, igual que outros campos
+        y_prezo = y_icon + (icon_coin_size // 2) - 6  # 6 é axuste visual para fonte 12
+        if os.path.exists(icon_coin):
+            draw_icon_with_white_bg(p, icon_coin, x_icon, y_icon, icon_coin_size, icon_coin_size)
         p.setFont("Helvetica-Bold", 12)
         p.setFillColorRGB(0.15, 0.15, 0.15)
         prezo_text = f"{prezo_pvp} €"
-        y -= 2  # Baixar o prezo para pegalo ao texto de procedemento de cobro manual
-        p.drawString(x_prezo, y, prezo_text)
+        p.drawString(x_prezo, y_prezo, prezo_text)
         x_actual = x_prezo + p.stringWidth(prezo_text, "Helvetica-Bold", 12)
+        y = y_icon  # Manter y para o resto do layout
         if desglose_str:
             p.setFont("Helvetica", 12)
             p.drawString(x_actual + 8, y, desglose_str)
