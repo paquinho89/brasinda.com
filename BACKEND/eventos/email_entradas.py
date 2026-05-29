@@ -113,7 +113,8 @@ def enviar_entrada_email_multi(email, pdf_buffers, evento, reservas):
     try:
         resend.Emails.send({
             "from": settings.DEFAULT_FROM_EMAIL,
-            "to": ["paquinho89@gmail.com"],  # TODO: cambiar a [email] en produción
+            #"to": ["paquinho89@gmail.com"],  # TODO: cambiar a [email] en produción
+            "to": [email],
             "subject": subject,
             "html": html_body,
             "attachments": attachments,
@@ -162,7 +163,8 @@ def enviar_entrada_email(email, pdf_buffer, evento, reserva):
     try:
         resend.Emails.send({
             "from": settings.DEFAULT_FROM_EMAIL,
-            "to": ["paquinho89@gmail.com"],  # TODO: cambiar a [email] en produción
+            #"to": ["paquinho89@gmail.com"],  # TODO: cambiar a [email] en produción
+            "to": [email],
             "subject": subject,
             "html": html_body,
             "attachments": [{"filename": nome_pdf, "content": pdf_b64, "contentType": "application/pdf"}],
@@ -248,7 +250,8 @@ def enviar_entradas_recuperadas_email(email, reservas_por_evento_data, pdf_buffe
     try:
         resend.Emails.send({
             "from": settings.DEFAULT_FROM_EMAIL,
-            "to": ["paquinho89@gmail.com"],  # TODO: cambiar a [email] en produción
+            #"to": ["paquinho89@gmail.com"],  # TODO: cambiar a [email] en produción
+            "to": [email],
             "subject": subject,
             "html": html_body,
             "attachments": attachments,
