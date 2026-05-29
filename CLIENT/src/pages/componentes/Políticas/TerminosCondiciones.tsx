@@ -16,7 +16,7 @@ const termsSections = [
 		paragraphs: [
 			"Titular: Brasinda S.L.",
 			"Enderezo: Avenida de Castela Nº 151, Verín (Ourense).",
-			"Correo electrónico: info@brasinda.com.",
+			"Correo electrónico: eventos@brasinda.com.",
 			"Dominios: brasinda.com, brasinda.es e brasinda.pt.",
 		],
 	},

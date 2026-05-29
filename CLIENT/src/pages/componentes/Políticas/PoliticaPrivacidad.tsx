@@ -9,7 +9,7 @@ const sections = [
 		paragraphs: [
 			"Titular: Brasinda S.L.",
             "Enderezo: Avenida de Castela Nº151 Verín (Ourense)",
-            "Correo electrónico: info@brasinda.com",
+            "Correo electrónico: eventos@brasinda.com",
             "Sitio web: brasinda.com brasinda.es brasinda.pt ",
 		],
 	},
@@ -56,7 +56,7 @@ const sections = [
 	{
 		title: "7. Dereitos das persoas usuarias",
 		paragraphs: [
-			"As persoas interesadas poden exercer os dereitos de acceso, rectificación, supresión, limitación do tratamento, oposición e portabilidade dos seus datos, dirixíndose ao responsable mediante correo electrónico a info@brasinda.com.",
+			"As persoas interesadas poden exercer os dereitos de acceso, rectificación, supresión, limitación do tratamento, oposición e portabilidade dos seus datos, dirixíndose ao responsable mediante correo electrónico a eventos@brasinda.com.",
             "Así mesmo, teñen dereito a presentar unha reclamación ante a Axencia Española de Protección de Datos (AEPD) se consideran que o tratamento non se axusta á normativa vixente."
 		],
 	},

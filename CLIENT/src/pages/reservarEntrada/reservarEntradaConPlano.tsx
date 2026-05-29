@@ -440,7 +440,7 @@ export default function ReservarEntrada() {
                         // Enviar email ao usuario
                         const enviarPayload = {
                           entradas: reservasIds.map((id: any) => ({ id })),
-                          email: email || "paquinho89@gmail.com"
+                          email: email
                         };
                         await fetch(`${API_BASE_URL}/crear-eventos/${evento.id}/enviar-entradas/`, {
                           method: "POST",

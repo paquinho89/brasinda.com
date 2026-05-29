@@ -43,7 +43,7 @@ const aboutSections = [
 		title: "Contacto",
 		paragraphs: [
 			"Se queres colaborar, publicar eventos ou resolver dúbidas, estamos dispoñibles en:",
-			"info@brasinda.com",
+			"eventos@brasinda.com",
 		],
 	},
 ];

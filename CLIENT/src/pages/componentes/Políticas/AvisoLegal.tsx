@@ -11,7 +11,7 @@ const legalSections = [
 			"Enderezo: Avenida de Castela Nº 151, Verín (Ourense).",
             "NIF: XXXXXXXXX",
             "Datos de inscripción en el Registro Mercantil (tomo, folio, sección, hoja, inscripción): XXXXXXX",
-			"Correo electrónico: info@brasinda.com.",
+			"Correo electrónico: eventos@brasinda.com.",
 			"Sitios web asociados: brasinda.com, brasinda.es e brasinda.pt.",
 		],
 	},

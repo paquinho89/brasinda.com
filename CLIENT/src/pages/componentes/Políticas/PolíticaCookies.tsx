@@ -52,7 +52,7 @@ const cookiesSections = [
 		title: "2. Quen é o responsable?",
 		paragraphs: [
 			"O responsable das cookies propias desta web é Brasinda S.L., titular de brasinda.com, brasinda.es e brasinda.pt.",
-			"Se tes dúbidas sobre esta política, podes contactar en info@brasinda.com.",
+			"Se tes dúbidas sobre esta política, podes contactar en eventos@brasinda.com.",
 		],
 	},
 	{
