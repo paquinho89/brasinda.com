@@ -724,7 +724,7 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
         y_lugar -= 2
 
     # Fixar y para o prezo sempre a unha distancia constante debaixo do bloque de lugar/nota
-    MARXE_EXTRA_PREZO = 28  # px extra de separación visual
+    MARXE_EXTRA_PREZO = 15  # px extra de separación visual
     y = y_lugar - MARXE_EXTRA_PREZO
 
     # Prezo
