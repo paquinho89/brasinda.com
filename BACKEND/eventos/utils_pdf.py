@@ -670,61 +670,62 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
         draw_icon_and_text_left("calendar.png", "Data descoñecida", y, font_size=12)
         y -= text_gap
 
-    # Lugar
+    # Lugar e nota_lugar: calcular canto ocupa e logo fixar y_prezo sempre xusto debaixo
     lugar_text = f"{evento.localizacion}"
     nota_lugar = getattr(evento, "nota_lugar", None)
+    from reportlab.pdfbase.pdfmetrics import stringWidth
+    import textwrap
+    main_font = "Helvetica"
+    main_size = 10
+    nota_font = "Helvetica"
+    nota_bold_font = "Helvetica-Bold"
+    nota_size = 10
+    x_icon = 18
+    icon_size = 18
+    icon_gap = 10
+    x_text = x_icon
+    max_width = width - x_text - 18
+    y_lugar = y
     if nota_lugar:
-        from reportlab.pdfbase.pdfmetrics import stringWidth
-        import textwrap
-        main_font = "Helvetica"
-        main_size = 10
-        nota_font = "Helvetica"
-        nota_bold_font = "Helvetica-Bold"
-        nota_size = 10  # Igual que Forma de pago
-        x_icon = 18
-        icon_size = 18
-        icon_gap = 10
-        x_text = x_icon  # Aliñar á esquerda de todo, xusto baixo o icono
-        max_width = width - x_text - 18
         localizacion_str = lugar_text
         nota_str = f"Nota: {nota_lugar}"
-        # Intentar meter todo na primeira liña
         first_line = localizacion_str + " (" + nota_str + ")"
         if stringWidth(first_line, main_font, main_size) <= max_width:
-            # Debuxar todo na mesma liña, pero 'Nota:' en negrita
-            draw_icon_and_text_left("location.png", localizacion_str + y, font_size=main_size)
-            y -= main_size + 1
+            draw_icon_and_text_left("location.png", localizacion_str, y_lugar, font_size=main_size)
+            y_lugar -= main_size + 1
             p.setFillColorRGB(0.2, 0.2, 0.2)
             p.setFont(nota_bold_font, nota_size)
-            p.drawString(x_text, y, "Nota:")
+            p.drawString(x_text, y_lugar, "Nota:")
             nota_offset = stringWidth("Nota:", nota_bold_font, nota_size)
             p.setFont(nota_font, nota_size)
-            p.drawString(x_text + nota_offset + 2, y, str(nota_lugar))
+            p.drawString(x_text + nota_offset + 2, y_lugar, str(nota_lugar))
             p.setFillColorRGB(0, 0, 0)
-            y -= nota_size + 2
+            y_lugar -= nota_size + 2
         else:
-            # Debuxar localización na primeira liña, logo 'Nota:' en negrita e o resto wrap pequeno
-            draw_icon_and_text_left("location.png", localizacion_str, y, font_size=main_size)
-            y -= main_size + 1
+            draw_icon_and_text_left("location.png", localizacion_str, y_lugar, font_size=main_size)
+            y_lugar -= main_size + 1
             p.setFillColorRGB(0.2, 0.2, 0.2)
             nota_lines = textwrap.wrap(nota_str, width=round(max_width // (nota_size * 0.5)))
             for i, nline in enumerate(nota_lines):
                 if nline.startswith("Nota:"):
                     p.setFont(nota_bold_font, nota_size)
-                    p.drawString(x_text, y, "Nota:")
+                    p.drawString(x_text, y_lugar, "Nota:")
                     nota_offset = stringWidth("Nota:", nota_bold_font, nota_size)
                     p.setFont(nota_font, nota_size)
-                    p.drawString(x_text + nota_offset + 2, y, nline[5:].lstrip())
+                    p.drawString(x_text + nota_offset + 2, y_lugar, nline[5:].lstrip())
                 else:
                     p.setFont(nota_font, nota_size)
-                    p.drawString(x_text, y, nline)
-                y -= nota_size + 1
+                    p.drawString(x_text, y_lugar, nline)
+                y_lugar -= nota_size + 1
             p.setFillColorRGB(0, 0, 0)
-            y -= 2
-
+            y_lugar -= 2
     else:
-        draw_icon_and_text_left("location.png", lugar_text, y, font_size=12)
-        y -= 2  # Espazo moi pequeno entre Lugar e Prezo
+        draw_icon_and_text_left("location.png", lugar_text, y_lugar, font_size=12)
+        y_lugar -= 2
+
+    # Fixar y para o prezo sempre a unha distancia constante debaixo do bloque de lugar/nota
+    MARXE_EXTRA_PREZO = 28  # px extra de separación visual
+    y = y_lugar - MARXE_EXTRA_PREZO
 
     # Prezo
     prezo_evento = getattr(evento, "prezo_evento", None)
