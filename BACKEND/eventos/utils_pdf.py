@@ -1,3 +1,6 @@
+from reportlab.platypus import Table, TableStyle
+from reportlab.lib import colors
+
 def xerar_pdf_contrato(evento, organizador):
     """
     Xera un PDF co contrato de colaboración, cos datos personalizados do evento e organizador.
