@@ -306,8 +306,9 @@ def crear_evento_view(request):
         from .email_entradas import enviar_publicacion_evento_email
         url_panel = f"https://brasinda.com/panel-organizador/evento/{evento.id}" if not settings.DEBUG else f"http://localhost:5173/panel-organizador/evento/{evento.id}"
         url_publico = f"https://brasinda.com/evento/{evento.id}" if not settings.DEBUG else f"http://localhost:5173/evento/{evento.id}"
-        email = "paquinho89@gmail.com"  # Forzar destinatario para probas
-        enviar_publicacion_evento_email(email, evento, url_panel, url_publico)
+        #email = "paquinho89@gmail.com"  # Forzar destinatario para probas
+        email_usuario = getattr(request.user, 'email')
+        enviar_publicacion_evento_email(email_usuario, evento, url_panel, url_publico)
         return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
 
@@ -940,11 +941,12 @@ def enviar_entradas_recuperadas(request):
                 total_entradas += 1
         
         # Enviar UN ONLY email con todos los eventos y PDFs
-        enviar_entradas_recuperadas_email("paquinho89@gmail.com", reservas_por_evento, pdf_buffers_all)
+        #enviar_entradas_recuperadas_email("paquinho89@gmail.com", reservas_por_evento, pdf_buffers_all)
+        enviar_entradas_recuperadas_email(email_usuario, reservas_por_evento, pdf_buffers_all)
         
         return Response({
             "success": True,
-            "message": f"Entradas enviadas correctamente a paquinho89@gmail.com",
+            "message": f"Entradas enviadas correctamente a {email_usuario}",
             "total_entradas": total_entradas,
             "total_eventos": len(reservas_por_evento)
         })

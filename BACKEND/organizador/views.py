@@ -109,7 +109,8 @@ def crear_organizador (request):
         try:
             resend.Emails.send({
                 "from": settings.DEFAULT_FROM_EMAIL,
-                "to": ["paquinho89@gmail.com"],  # TODO: cambiar a [organizador.email] en produción
+                #"to": ["paquinho89@gmail.com"],  # TODO: cambiar a [organizador.email] en produción
+                "to": [organizador.email],
                 "subject": "brasinda.com - Verificación Cuenta",
                 "html": html_message,
             })
@@ -231,7 +232,8 @@ def recuperar_contrasena(request):
     try:
         resend.Emails.send({
             "from": settings.DEFAULT_FROM_EMAIL,
-            "to": ["paquinho89@gmail.com"],  # TODO: cambiar a [organizador.email] en produción
+            #"to": ["paquinho89@gmail.com"],  # TODO: cambiar a [organizador.email] en produción
+            "to": [organizador.email],
             "subject": "brasinda.com - Recuperar Contraseña",
             "html": html_message,
         })
