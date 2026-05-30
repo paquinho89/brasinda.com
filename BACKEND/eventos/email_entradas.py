@@ -63,14 +63,30 @@ from io import BytesIO
 from django.conf import settings
 from django.template.loader import render_to_string
 
+
 resend.api_key = settings.RESEND_API_KEY
 
 
 def enviar_entrada_email_multi(email, pdf_buffers, evento, reservas):
     subject = f"🍿 {evento.nome_evento}"
     data = evento.data_evento
-    data_galego = data.strftime('%A, %d de %B de %Y').capitalize()
-    data_completa = f"{data_galego} ás {data.strftime('%H:%M')}"
+    # Formato galego manual
+    dias = ["luns", "martes", "mércores", "xoves", "venres", "sábado", "domingo"]
+    meses = ["xaneiro", "febreiro", "marzo", "abril", "maio", "xuño", "xullo", "agosto", "setembro", "outubro", "novembro", "decembro"]
+    tz = None
+    try:
+        import pytz
+        tz = pytz.timezone('Europe/Madrid')
+    except ImportError:
+        pass
+    if tz:
+        if data.tzinfo is None:
+            data = tz.localize(data)
+        else:
+            data = data.astimezone(tz)
+    dia_semana = dias[data.weekday()]
+    mes = meses[data.month-1]
+    data_completa = f"{dia_semana.capitalize()}, {data.day} de {mes} de {data.year} ás {data.strftime('%H:%M')}"
 
     # Xerar QR e datos por cada reserva
     reservas_info = []
@@ -127,10 +143,22 @@ def enviar_entrada_email(email, pdf_buffer, evento, reserva):
     subject = f"🍿 {evento.nome_evento}"
     # Formato galego longo, capitalizado, igual que na web
     data = evento.data_evento
-    data_galego = data.strftime('%A, %d de %B de %Y')
-    hora_galego = data.strftime('%H:%M')
-    data_galego = data_galego.capitalize()
-    data_completa = f"{data_galego} ás {hora_galego}"
+    dias = ["luns", "martes", "mércores", "xoves", "venres", "sábado", "domingo"]
+    meses = ["xaneiro", "febreiro", "marzo", "abril", "maio", "xuño", "xullo", "agosto", "setembro", "outubro", "novembro", "decembro"]
+    tz = None
+    try:
+        import pytz
+        tz = pytz.timezone('Europe/Madrid')
+    except ImportError:
+        pass
+    if tz:
+        if data.tzinfo is None:
+            data = tz.localize(data)
+        else:
+            data = data.astimezone(tz)
+    dia_semana = dias[data.weekday()]
+    mes = meses[data.month-1]
+    data_completa = f"{dia_semana.capitalize()}, {data.day} de {mes} de {data.year} ás {data.strftime('%H:%M')}"
     # Xeración do QR como base64
     qr_data = f"evento:{evento.id};reserva:{reserva.id};email:{reserva.email}"
     qr_img = qrcode.make(qr_data)
@@ -200,10 +228,22 @@ def enviar_entradas_recuperadas_email(email, reservas_por_evento_data, pdf_buffe
         
         # Formatear fecha del evento
         data_evento = evento.data_evento
-        data_galego = data_evento.strftime('%A, %d de %B de %Y')
-        hora_galego = data_evento.strftime('%H:%M')
-        data_galego = data_galego.capitalize()
-        data_completa = f"{data_galego} ás {hora_galego}"
+        dias = ["luns", "martes", "mércores", "xoves", "venres", "sábado", "domingo"]
+        meses = ["xaneiro", "febreiro", "marzo", "abril", "maio", "xuño", "xullo", "agosto", "setembro", "outubro", "novembro", "decembro"]
+        tz = None
+        try:
+            import pytz
+            tz = pytz.timezone('Europe/Madrid')
+        except ImportError:
+            pass
+        if tz:
+            if data_evento.tzinfo is None:
+                data_evento = tz.localize(data_evento)
+            else:
+                data_evento = data_evento.astimezone(tz)
+        dia_semana = dias[data_evento.weekday()]
+        mes = meses[data_evento.month-1]
+        data_completa = f"{dia_semana.capitalize()}, {data_evento.day} de {mes} de {data_evento.year} ás {data_evento.strftime('%H:%M')}"
         
         # Preparar datos de reservas con QR
         reservas_info = []
