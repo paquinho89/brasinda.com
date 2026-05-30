@@ -22,7 +22,9 @@ import { useState } from "react";
 
 export default function TarjetaEvento({ evento, isPast = false }: EventoProps) {
   const [copied, setCopied] = useState(false);
-    const eventUrl = `${window.location.origin}/evento/${evento.id}`;
+    // Usar slug se está dispoñible
+    const slug = (evento as any).slug;
+    const eventUrl = slug ? `${window.location.origin}/evento/${slug}/${evento.id}` : `${window.location.origin}/evento/${evento.id}`;
 
     const handleCopy = async () => {
       try {
@@ -194,7 +196,7 @@ export default function TarjetaEvento({ evento, isPast = false }: EventoProps) {
                 {copied && <span style={{ marginLeft: 6, color: '#ff0093', fontSize: 13 }}>Copiada!</span>}
               </button>
               <a
-                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${window.location.origin}/evento/${evento.id}`)}`}
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(eventUrl)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Compartir en Facebook"
@@ -203,7 +205,7 @@ export default function TarjetaEvento({ evento, isPast = false }: EventoProps) {
                 <FaFacebookF />
               </a>
               <a
-                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Consulta este evento: ${evento.nome_evento} - ${window.location.origin}/evento/${evento.id}`)}`}
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Consulta este evento: ${evento.nome_evento} - ${eventUrl}`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Compartir en X"
@@ -212,7 +214,7 @@ export default function TarjetaEvento({ evento, isPast = false }: EventoProps) {
                 <FaXTwitter />
               </a>
               <a
-                href={`https://wa.me/?text=${encodeURIComponent(`${window.location.origin}/evento/${evento.id}`)}`}
+                href={`https://wa.me/?text=${encodeURIComponent(eventUrl)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Compartir en WhatsApp"
