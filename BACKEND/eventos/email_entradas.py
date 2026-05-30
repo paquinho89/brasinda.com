@@ -1,13 +1,17 @@
+from django.utils.timezone import localtime
+
 def enviar_publicacion_evento_email(email, evento, url_panel, url_publico):
     """
     Envía un email ao organizador cando se publica un evento, usando a plantilla envio_publicacionEventos.html
     """
     from django.template.loader import render_to_string
     subject = f"🍿 Publicación do evento '{evento.nome_evento}' recibida"
-    data = evento.data_evento
-    data_galego = data.strftime('%A, %d de %B de %Y').capitalize()
-    hora_galego = data.strftime('%H:%M')
-    data_completa = f"{data_galego} ás {hora_galego}"
+    data = localtime(evento.data_evento)
+    dias = ["luns", "martes", "mércores", "xoves", "venres", "sábado", "domingo"]
+    meses = ["xaneiro", "febreiro", "marzo", "abril", "maio", "xuño", "xullo", "agosto", "setembro", "outubro", "novembro", "decembro"]
+    dia_semana = dias[data.weekday()]
+    mes = meses[data.month-1]
+    data_completa = f"{dia_semana.capitalize()}, {data.day} de {mes} de {data.year} ás {data.strftime('%H:%M')}"
     html_body = render_to_string(
         'eventos/plantilla_email/envio_publicacionEventos.html',
         {
@@ -69,25 +73,13 @@ resend.api_key = settings.RESEND_API_KEY
 
 def enviar_entrada_email_multi(email, pdf_buffers, evento, reservas):
     subject = f"🍿 {evento.nome_evento}"
-    data = evento.data_evento
-    # Formato galego manual
+    data = localtime(evento.data_evento)
     dias = ["luns", "martes", "mércores", "xoves", "venres", "sábado", "domingo"]
     meses = ["xaneiro", "febreiro", "marzo", "abril", "maio", "xuño", "xullo", "agosto", "setembro", "outubro", "novembro", "decembro"]
-    tz = None
-    try:
-        import pytz
-        tz = pytz.timezone('Europe/Madrid')
-    except ImportError:
-        pass
-    if tz:
-        if data.tzinfo is None:
-            data = tz.localize(data)
-        else:
-            data = data.astimezone(tz)
     dia_semana = dias[data.weekday()]
     mes = meses[data.month-1]
     data_completa = f"{dia_semana.capitalize()}, {data.day} de {mes} de {data.year} ás {data.strftime('%H:%M')}"
-
+    # Formato galego manual
     # Xerar QR e datos por cada reserva
     reservas_info = []
     for reserva in reservas:
@@ -141,21 +133,9 @@ def enviar_entrada_email_multi(email, pdf_buffers, evento, reservas):
 
 def enviar_entrada_email(email, pdf_buffer, evento, reserva):
     subject = f"🍿 {evento.nome_evento}"
-    # Formato galego longo, capitalizado, igual que na web
-    data = evento.data_evento
+    data = localtime(evento.data_evento)
     dias = ["luns", "martes", "mércores", "xoves", "venres", "sábado", "domingo"]
     meses = ["xaneiro", "febreiro", "marzo", "abril", "maio", "xuño", "xullo", "agosto", "setembro", "outubro", "novembro", "decembro"]
-    tz = None
-    try:
-        import pytz
-        tz = pytz.timezone('Europe/Madrid')
-    except ImportError:
-        pass
-    if tz:
-        if data.tzinfo is None:
-            data = tz.localize(data)
-        else:
-            data = data.astimezone(tz)
     dia_semana = dias[data.weekday()]
     mes = meses[data.month-1]
     data_completa = f"{dia_semana.capitalize()}, {data.day} de {mes} de {data.year} ás {data.strftime('%H:%M')}"
@@ -221,30 +201,15 @@ def enviar_entradas_recuperadas_email(email, reservas_por_evento_data, pdf_buffe
     # Preparar datos para la plantilla
     eventos_data = []
     total_entradas = 0
-    
     for evento_id, data in reservas_por_evento_data.items():
         evento = data['evento']
         reservas = data['reservas']
-        
-        # Formatear fecha del evento
-        data_evento = evento.data_evento
+        data_evento = localtime(evento.data_evento)
         dias = ["luns", "martes", "mércores", "xoves", "venres", "sábado", "domingo"]
         meses = ["xaneiro", "febreiro", "marzo", "abril", "maio", "xuño", "xullo", "agosto", "setembro", "outubro", "novembro", "decembro"]
-        tz = None
-        try:
-            import pytz
-            tz = pytz.timezone('Europe/Madrid')
-        except ImportError:
-            pass
-        if tz:
-            if data_evento.tzinfo is None:
-                data_evento = tz.localize(data_evento)
-            else:
-                data_evento = data_evento.astimezone(tz)
         dia_semana = dias[data_evento.weekday()]
         mes = meses[data_evento.month-1]
         data_completa = f"{dia_semana.capitalize()}, {data_evento.day} de {mes} de {data_evento.year} ás {data_evento.strftime('%H:%M')}"
-        
         # Preparar datos de reservas con QR
         reservas_info = []
         for reserva in reservas:
