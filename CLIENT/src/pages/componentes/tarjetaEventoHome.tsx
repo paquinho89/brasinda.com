@@ -43,10 +43,13 @@ export default function TarjetaEventoHome({ evento, modoPublicacionExitosa }: Ev
 
   const handleReservation = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
+    // Usar slug se está dispoñible
+    const slug = (evento as any).slug;
+    const url = slug ? `/evento/${slug}/${evento.id}` : `/evento/${evento.id}`;
     if (modoPublicacionExitosa) {
-      window.open(`/evento/${evento.id}`, '_blank');
+      window.open(url, '_blank');
     } else {
-      navigate(`/evento/${evento.id}`);
+      navigate(url);
     }
   };
 

@@ -4,6 +4,7 @@ from .models import Evento, ReservaButaca, ZonaPrezo
 
 
 class EventoSerializer(serializers.ModelSerializer):
+    slug = serializers.SerializerMethodField()
     procedemento_cobro_manual = serializers.CharField(source='procedimiento_cobro_manual', allow_blank=True, allow_null=True, required=False)
     entradas_vendidas = serializers.SerializerMethodField()
     entradas_reservadas = serializers.SerializerMethodField()
@@ -16,6 +17,12 @@ class EventoSerializer(serializers.ModelSerializer):
         model = Evento
         fields = '__all__'
         read_only_fields = ['organizador', 'entradas_vendidas', 'entradas_reservadas']
+        extra_fields = ['slug']
+
+    def get_slug(self, obj):
+        import re
+        nome_slug = re.sub(r'[^a-z0-9]+', '_', obj.nome_evento.lower())
+        return nome_slug.strip('_')
         # O campo contrato_pdf_url engádese automaticamente por SerializerMethodField
 
     def get_email_organizador(self, obj):

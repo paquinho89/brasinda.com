@@ -304,12 +304,19 @@ def crear_evento_view(request):
 
         # Enviar email de publicación ao organizador
         from .email_entradas import enviar_publicacion_evento_email
-        url_panel = f"https://brasinda.com/panel-organizador/evento/{evento.id}" if not settings.DEBUG else f"http://localhost:5173/panel-organizador/evento/{evento.id}"
-        url_publico = f"https://brasinda.com/evento/{evento.id}" if not settings.DEBUG else f"http://localhost:5173/evento/{evento.id}"
+        # Crear slug do nome do evento: minúsculas, guións baixos, sen caracteres especiais
+        import re
+        nome_slug = re.sub(r'[^a-z0-9]+', '_', evento.nome_evento.lower())
+        nome_slug = nome_slug.strip('_')
+        url_panel = f"https://brasinda.com/panel-organizador/evento/{nome_slug}/{evento.id}" if not settings.DEBUG else f"http://localhost:5173/panel-organizador/evento/{nome_slug}/{evento.id}"
+        url_publico = f"https://brasinda.com/evento/{nome_slug}/{evento.id}" if not settings.DEBUG else f"http://localhost:5173/evento/{nome_slug}/{evento.id}"
         #email = "paquinho89@gmail.com"  # Forzar destinatario para probas
         email_usuario = getattr(request.user, 'email')
         enviar_publicacion_evento_email(email_usuario, evento, url_panel, url_publico)
-        return Response(serializer.data, status=201)
+        # Incluír a url_publico na resposta da API
+        response_data = serializer.data.copy()
+        response_data["url_publico"] = url_publico
+        return Response(response_data, status=201)
     return Response(serializer.errors, status=400)
 
 

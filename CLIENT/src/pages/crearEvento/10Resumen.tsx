@@ -98,8 +98,8 @@ const Resumen: React.FC = () => {
 
       const data = await response.json();
       localStorage.removeItem("eventoDraft");
-      // Suponse que o backend devolve o id do evento como data.id
-      navigate("/publicacion-exitosa", { state: { eventoId: data.id } });
+      // Usar url_publico se está dispoñible
+      navigate("/publicacion-exitosa", { state: { eventoId: data.id, urlPublica: data.url_publico } });
     } catch (error) {
       setError("Erro ao crear o evento. Por favor, inicia sesión de novo.");
       setIsSubmitting(false);

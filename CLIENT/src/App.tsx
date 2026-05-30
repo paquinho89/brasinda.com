@@ -116,6 +116,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="evento/:id" element={<DescripcionEvento />} />
+            <Route path="evento/:slug/:id" element={<DescripcionEvento />} />
             <Route path="reservar-entrada/:id" element={<ReservarEntrada />} />
             <Route path="reservar-entrada-auditorio/:id" element={<SeleccionZonaAuditorio />} />
             <Route path="reservar-entrada-auditorio/:id/:zona" element={<SeleccionButacaAuditorio />} />
