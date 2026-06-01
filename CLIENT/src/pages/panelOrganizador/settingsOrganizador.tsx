@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import MainNavbar from "../componentes/NavBar";
-import { FaUser, FaEnvelope, FaUniversity, FaGlobe, FaLock, FaExclamationTriangle, FaArrowLeft, FaSave, FaPhone, FaEye, FaEyeSlash, FaIdCard, FaMapMarkerAlt } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaUniversity, FaGlobe, FaLock, FaExclamationTriangle, FaArrowLeft, FaSave, FaPhone, FaEye, FaEyeSlash, FaIdCard, FaMapMarkerAlt, FaTag, FaBriefcase } from "react-icons/fa";
 import API_BASE_URL from "../../utils/api";
 import "../../estilos/Botones.css";
 import { Modal } from "react-bootstrap";
@@ -11,6 +11,10 @@ interface OrganizadorData {
   id: number;
   email: string;
   nome_organizador: string;
+  apelidos_organizador?: string;
+  tipo_organizador?: string;
+  nome_empresa?: string;
+  web_empresa?: string;
   telefono: string;
   numero_iban?: string;
   idioma?: string;
@@ -36,6 +40,10 @@ export default function SettingsOrganizador() {
     id: 0,
     email: "",
     nome_organizador: "",
+    apelidos_organizador: "",
+    tipo_organizador: "",
+    nome_empresa: "",
+    web_empresa: "",
     telefono: "",
     numero_iban: "",
     idioma: "galego",
@@ -47,6 +55,10 @@ export default function SettingsOrganizador() {
     id: 0,
     email: "",
     nome_organizador: "",
+    apelidos_organizador: "",
+    tipo_organizador: "",
+    nome_empresa: "",
+    web_empresa: "",
     telefono: "",
     numero_iban: "",
     idioma: "galego",
@@ -90,6 +102,10 @@ export default function SettingsOrganizador() {
     try {
       const payload: any = {
         nome_organizador: form.nome_organizador,
+        apelidos_organizador: form.apelidos_organizador,
+        tipo_organizador: form.tipo_organizador,
+        nome_empresa: form.nome_empresa,
+        web_empresa: form.web_empresa,
         email: form.email,
         telefono: form.telefono,
         numero_iban: form.numero_iban,
@@ -243,6 +259,99 @@ export default function SettingsOrganizador() {
               <p style={{ fontSize: "1rem", color: "#666", marginBottom: 0 }}>{form.nome_organizador}</p>
             )}
           </div>
+
+          {/* Apelidos */}
+          <div className="mb-4">
+            <label style={{ fontWeight: 600, marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <FaIdCard style={{ color: "#000" }} />
+              Apelidos
+            </label>
+            {isEditing ? (
+              <input
+                type="text"
+                name="apelidos_organizador"
+                value={form.apelidos_organizador || ""}
+                onChange={handleChange}
+                className="form-control"
+                style={{ borderRadius: "8px" }}
+              />
+            ) : (
+              <p style={{ fontSize: "1rem", color: "#666", marginBottom: 0 }}>{form.apelidos_organizador || ""}</p>
+            )}
+          </div>
+
+          {/* Tipo organizador */}
+          <div className="mb-4">
+            <label style={{ fontWeight: 600, marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <FaTag style={{ color: "#000" }} />
+              Tipo de organizador
+            </label>
+            {isEditing ? (
+              <select
+                name="tipo_organizador"
+                value={form.tipo_organizador || ""}
+                onChange={handleChange}
+                className="form-control"
+                style={{ borderRadius: "8px" }}
+              >
+                <option value="">Selecciona unha opción</option>
+                <option value="Particular">Particular</option>
+                <option value="Autónomo">Autónomo</option>
+                <option value="Empresa">Empresa</option>
+                <option value="Asociación">Asociación</option>
+              </select>
+            ) : (
+              <p style={{ fontSize: "1rem", color: "#666", marginBottom: 0 }}>{form.tipo_organizador || ""}</p>
+            )}
+          </div>
+
+          {/* Nome empresa/comercial/asociación e web */}
+          {(["Autónomo", "Empresa", "Asociación"].includes(form.tipo_organizador || "")) && (
+            <>
+              <div className="mb-4">
+                <label style={{ fontWeight: 600, marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <FaBriefcase style={{ color: "#000" }} />
+                  {form.tipo_organizador === "Autónomo"
+                    ? "Nome comercial"
+                    : form.tipo_organizador === "Empresa"
+                      ? "Nome da empresa"
+                      : "Nome da asociación"}
+                </label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    name="nome_empresa"
+                    value={form.nome_empresa || ""}
+                    onChange={handleChange}
+                    className="form-control"
+                    style={{ borderRadius: "8px" }}
+                  />
+                ) : (
+                  <p style={{ fontSize: "1rem", color: "#666", marginBottom: 0 }}>{form.nome_empresa || ""}</p>
+                )}
+              </div>
+
+              <div className="mb-4">
+                <label style={{ fontWeight: 600, marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <FaGlobe style={{ color: "#000" }} />
+                  Sitio web
+                </label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    name="web_empresa"
+                    value={form.web_empresa || ""}
+                    onChange={handleChange}
+                    className="form-control"
+                    placeholder="https://..."
+                    style={{ borderRadius: "8px" }}
+                  />
+                ) : (
+                  <p style={{ fontSize: "1rem", color: "#666", marginBottom: 0 }}>{form.web_empresa || ""}</p>
+                )}
+              </div>
+            </>
+          )}
 
           {/* Email */}
           <div className="mb-4">

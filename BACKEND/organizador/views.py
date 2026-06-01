@@ -287,6 +287,10 @@ def perfil_organizador(request):
             "id": organizador.id,
             "email": organizador.email,
             "nome_organizador": organizador.nome_organizador,
+            "apelidos_organizador": getattr(organizador, 'apelidos_organizador', None),
+            "tipo_organizador": getattr(organizador, 'tipo_organizador', None),
+            "nome_empresa": getattr(organizador, 'nome_empresa', None),
+            "web_empresa": getattr(organizador, 'web_empresa', None),
             "telefono": organizador.telefono,
             "numero_iban": getattr(organizador, 'numero_iban', None),
             "idioma": getattr(organizador, 'idioma', 'galego'),
@@ -297,6 +301,10 @@ def perfil_organizador(request):
     elif request.method == 'PATCH':
         # Actualizar datos
         nome_organizador = request.data.get('nome_organizador')
+        apelidos_organizador = request.data.get('apelidos_organizador')
+        tipo_organizador = request.data.get('tipo_organizador')
+        nome_empresa = request.data.get('nome_empresa')
+        web_empresa = request.data.get('web_empresa')
         email = request.data.get('email')
         telefono = request.data.get('telefono')
         numero_iban = request.data.get('numero_iban')
@@ -310,6 +318,14 @@ def perfil_organizador(request):
         # Actualizar campos básicos
         if nome_organizador:
             organizador.nome_organizador = nome_organizador
+        if apelidos_organizador is not None:
+            organizador.apelidos_organizador = apelidos_organizador
+        if tipo_organizador is not None:
+            organizador.tipo_organizador = tipo_organizador
+        if nome_empresa is not None:
+            organizador.nome_empresa = nome_empresa
+        if web_empresa is not None:
+            organizador.web_empresa = web_empresa
         if email and email != organizador.email:
             # Verificar que el email no esté en uso
             if Organizador.objects.filter(email=email).exclude(id=organizador.id).exists():
@@ -340,6 +356,10 @@ def perfil_organizador(request):
             "id": organizador.id,
             "email": organizador.email,
             "nome_organizador": organizador.nome_organizador,
+            "apelidos_organizador": getattr(organizador, 'apelidos_organizador', None),
+            "tipo_organizador": getattr(organizador, 'tipo_organizador', None),
+            "nome_empresa": getattr(organizador, 'nome_empresa', None),
+            "web_empresa": getattr(organizador, 'web_empresa', None),
             "telefono": organizador.telefono,
             "numero_iban": getattr(organizador, 'numero_iban', None),
             "idioma": getattr(organizador, 'idioma', 'galego'),

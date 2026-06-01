@@ -2,7 +2,7 @@ import { Modal, Button, Form, InputGroup } from "react-bootstrap";
 import { useState } from "react";
 import EmailVerificationModal from "./1VerificacionEmailCreacionCuenta"
 import "../../estilos/Botones.css";
-import { FaEnvelope, FaLock, FaUser, FaCamera } from "react-icons/fa";
+import { FaEnvelope, FaLock, FaUser, FaCamera, FaTag, FaBriefcase, FaIdCard, FaGlobe } from "react-icons/fa";
 import API_BASE_URL from "../../utils/api";
 import { GoogleLogin } from '@react-oauth/google';
 import type { CredentialResponse } from '@react-oauth/google';
@@ -30,6 +30,13 @@ function CreateAccountModal({ show, onClose }: {show: boolean; onClose: () => vo
   }
   const [nombreOrganizador, setNombreOrganizador] = useState("");
   const [erroNomeOrganizador, setErroNomeOrganizador] = useState("");
+  const [apelidosOrganizador, setApelidosOrganizador] = useState("");
+  const [erroApelidosOrganizador, setErroApelidosOrganizador] = useState("");
+  const [tipoOrganizador, setTipoOrganizador] = useState("");
+  const [erroTipoOrganizador, setErroTipoOrganizador] = useState("");
+  const [nomeEmpresa, setNomeEmpresa] = useState("");
+  const [erroNomeEmpresa, setErroNomeEmpresa] = useState("");
+  const [webEmpresa, setWebEmpresa] = useState("");
 
   const [contraseña, setContraseña] = useState("");
   const [contraseñaError, setContraseñaError] = useState("");
@@ -46,9 +53,6 @@ function CreateAccountModal({ show, onClose }: {show: boolean; onClose: () => vo
 
   const [fotoOrganizador, setFotoOrganizador] = useState<File | null>(null);
 
-  const [mayorEdad, setMayorEdad] = useState(false);
-  const [errorMayorEdad, setErrorMayorEdad] = useState(false);
-  
   const [loading, setLoading] = useState(false);
  
   const enviarDatosBackend = async (): Promise<boolean> => {
@@ -72,17 +76,29 @@ function CreateAccountModal({ show, onClose }: {show: boolean; onClose: () => vo
     setErroNomeOrganizador("invalidoNomeOrganizador");
     return false;
   }
-  if (!mayorEdad){
-    setErrorMayorEdad(true); 
-    return false; // ⛔ aquí a función para, NON se executa nada máis
+  if (!apelidosOrganizador.trim()) {
+    setErroApelidosOrganizador("invalidoApelidosOrganizador");
+    return false;
   }
-  
+  if (!tipoOrganizador){
+    setErroTipoOrganizador("invalidoTipoOrganizador");
+    return false;
+  }
+  const requireNomeEmpresa = ["Autónomo", "Empresa", "Asociación"].includes(tipoOrganizador);
+  if (requireNomeEmpresa && !nomeEmpresa.trim()) {
+    setErroNomeEmpresa("invalidoNomeEmpresa");
+    return false;
+  }
+
   const formData = new FormData();
   formData.append("email", email);
   formData.append("username", email.split("@")[0]);
   formData.append("nome_organizador", nombreOrganizador);
+  formData.append("apelidos_organizador", apelidosOrganizador);
+  formData.append("tipo_organizador", tipoOrganizador);
+  formData.append("nome_empresa", nomeEmpresa);
+  formData.append("web_empresa", webEmpresa);
   formData.append("password", contraseña);
-  formData.append("mayor_edad", mayorEdad.toString());
   if (fotoOrganizador) {
     formData.append("foto_organizador", fotoOrganizador);
   }
@@ -175,28 +191,135 @@ function CreateAccountModal({ show, onClose }: {show: boolean; onClose: () => vo
             </div>
           ) : null}
 
+          <div className="row mb-3">
+            <div className="col-12 col-md-6">
+              <Form.Group>
+                <FaUser style={{ marginRight: "6px", color: "#ff0093" }} />
+                <Form.Label>Nome</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Nome"
+                  value={nombreOrganizador}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setNombreOrganizador(value);
+                    if (value === "") {
+                      setErroNomeOrganizador("invalidoNomeOrganizador");
+                    } else {
+                      setErroNomeOrganizador("");
+                    }
+                  }}
+                />
+              </Form.Group>
+            </div>
+            <div className="col-12 col-md-6 mt-3 mt-md-0">
+              <Form.Group>
+                <FaIdCard style={{ marginRight: "6px", color: "#ff0093" }} />
+                <Form.Label>Apelidos</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Apelidos"
+                  value={apelidosOrganizador}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setApelidosOrganizador(value);
+                    if (value === "") {
+                      setErroApelidosOrganizador("invalidoApelidosOrganizador");
+                    } else {
+                      setErroApelidosOrganizador("");
+                    }
+                  }}
+                />
+              </Form.Group>
+            </div>
+          </div>
 
           <Form.Group className="mb-3">
-            <FaUser style={{ marginRight: "6px", color: "#ff0093" }} />
-            <Form.Label>Nome ou Empresa organizadora</Form.Label>
-            <Form.Control 
-              type="text" 
-              placeholder="Organizador ou Empresa" 
-              value={nombreOrganizador}
+              <FaTag style={{ marginRight: "6px", color: "#ff0093" }} />
+            <Form.Label>Tipo de organizador</Form.Label>
+            <Form.Select
+              value={tipoOrganizador}
               onChange={(e) => {
-                const value = e.target.value;
-                setNombreOrganizador(value);
-                if (value==="") {
-                  setErroNomeOrganizador("invalidoNomeOrganizador");}
-                else {
-                  setErroNomeOrganizador("");
+                setTipoOrganizador(e.target.value);
+                setErroTipoOrganizador("");
+                setErroNomeEmpresa("");
+                if (!["Autónomo", "Empresa", "Asociación"].includes(e.target.value)) {
+                  setWebEmpresa("");
                 }
-                }} />
+              }}
+            >
+              <option value="">Selecciona unha opción</option>
+              <option value="Particular">Particular</option>
+              <option value="Autónomo">Autónomo</option>
+              <option value="Empresa">Empresa</option>
+              <option value="Asociación">Asociación</option>
+            </Form.Select>
           </Form.Group>
+
+          {(["Autónomo", "Empresa", "Asociación"].includes(tipoOrganizador)) && (
+            <>
+              <Form.Group className="mb-3">
+                <FaBriefcase style={{ marginRight: "6px", color: "#ff0093" }} />
+                <Form.Label>
+                  {tipoOrganizador === "Autónomo"
+                    ? "Nome comercial"
+                    : tipoOrganizador === "Empresa"
+                      ? "Nome da empresa"
+                      : "Nome da asociación"}
+                </Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder={
+                    tipoOrganizador === "Autónomo"
+                      ? "Introduce o nome comercial"
+                      : tipoOrganizador === "Empresa"
+                        ? "Introduce o nome da empresa"
+                        : "Introduce o nome da asociación"
+                  }
+                  value={nomeEmpresa}
+                  onChange={(e) => {
+                    setNomeEmpresa(e.target.value);
+                    if (e.target.value.trim()) {
+                      setErroNomeEmpresa("");
+                    }
+                  }}
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <FaGlobe style={{ marginRight: "6px", color: "#ff0093" }} />
+                <Form.Label>Sitio web (opcional)</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="https://..."
+                  value={webEmpresa}
+                  onChange={(e) => setWebEmpresa(e.target.value)}
+                />
+              </Form.Group>
+            </>
+          )}
 
           {erroNomeOrganizador === "invalidoNomeOrganizador" && (
             <div className="alert alert-danger">
               Por favor, introduce tú nombre de organizador
+            </div>
+          )}
+
+          {erroApelidosOrganizador === "invalidoApelidosOrganizador" && (
+            <div className="alert alert-danger">
+              Por favor, introduce os apelidos do organizador
+            </div>
+          )}
+
+          {erroTipoOrganizador === "invalidoTipoOrganizador" && (
+            <div className="alert alert-danger">
+              Por favor, escolle o tipo de organizador
+            </div>
+          )}
+
+          {erroNomeEmpresa === "invalidoNomeEmpresa" && (
+            <div className="alert alert-danger">
+              Por favor, introduce o nome correspondente
             </div>
           )}
 
@@ -243,23 +366,6 @@ function CreateAccountModal({ show, onClose }: {show: boolean; onClose: () => vo
             />
           </Form.Group>
           
-          <Form.Group className="mb-3">
-            <Form.Check 
-              type="checkbox"
-              label="¿Eres mayor de edad?"
-              checked={mayorEdad}
-              onChange={(e) => {setMayorEdad(e.target.checked);
-                if (e.target.checked) {
-                  setErrorMayorEdad(false);
-                }
-              }}
-            />
-          </Form.Group>
-          {errorMayorEdad ? (
-            <div className="alert alert-danger">
-              Para crear una cuenta como organizador debes de ser mayor de edad
-            </div>
-          ) : null}
           <div style={{ display: "flex", justifyContent: "center", marginTop: 20 }}>
               <GoogleLogin
                   onSuccess={handleGoogleRegister}
@@ -282,7 +388,9 @@ function CreateAccountModal({ show, onClose }: {show: boolean; onClose: () => vo
                 setErrorEmailBackend("");
                 setContraseñaError("");
                 setErroNomeOrganizador("");
-                setErrorMayorEdad(false);
+                setErroApelidosOrganizador("");
+                setErroTipoOrganizador("");
+                setErroNomeEmpresa("");
                 onClose();
               }}
             >
