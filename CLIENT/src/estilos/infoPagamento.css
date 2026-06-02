@@ -173,6 +173,21 @@
   color: #999;
 }
 
+.stripe-card-element-wrapper {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  box-sizing: border-box;
+  background: #fff;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stripe-card-element-wrapper:focus-within {
+  border-color: #e75480;
+  box-shadow: 0 0 0 3px rgba(231, 84, 128, 0.1);
+}
+
 .entradas-listado {
   background: #f9f9f9;
   border: 1px solid #e0e0e0;

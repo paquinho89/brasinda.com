@@ -27,6 +27,7 @@ export interface Evento {
   precios_zona?: { [zona: string]: string };
   nomeCompleto?: string; // Para contrato
   nifCif?: string; // Para contrato
+  dataNacemento?: string; // Para contrato
   enderezoFiscal?: string; // Para contrato
   telefono?: string; // Para contrato
 }
@@ -59,6 +60,7 @@ export function CreateEventLayout() {
     condicionesConfirmacion: false,
     nomeCompleto: "",
     nifCif: "",
+    dataNacemento: "",
     enderezoFiscal: "",
     telefono: "",
   };

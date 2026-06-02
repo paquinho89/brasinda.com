@@ -3,6 +3,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from decimal import Decimal
 from .utils_pdf import xerar_pdf_listado
 import random
 import string
@@ -11,6 +12,7 @@ from io import BytesIO
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
+import stripe
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from django.contrib.auth.models import AnonymousUser
@@ -535,6 +537,91 @@ def reservar_entradas(request, evento_id):
         "success": True,
         "entradas_dispoñibles": evento.entradas_venta - entradas_ocupadas_total,
         "reservas": reservas_response
+    })
+
+
+def _calcular_total_evento(evento, zona, entradas):
+    zona_qs = ZonaPrezo.objects.filter(evento=evento, nome__iexact=zona).first() if zona else None
+    if zona_qs and zona_qs.prezo_pvp is not None:
+        prezo_unitario = zona_qs.prezo_pvp
+    elif zona_qs and zona_qs.prezo is not None:
+        prezo_unitario = zona_qs.prezo
+    elif evento.prezo_pvp is not None:
+        prezo_unitario = evento.prezo_pvp
+    else:
+        prezo_unitario = evento.prezo_evento
+
+    if prezo_unitario is None:
+        return None, len(entradas)
+
+    cantidade = len(entradas)
+    total = Decimal(prezo_unitario) * Decimal(cantidade)
+    return total, cantidade
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def crear_payment_intent_stripe(request, evento_id):
+    evento = get_object_or_404(Evento, id=evento_id)
+    entradas = request.data.get("entradas") or []
+    zona = (request.data.get("zona") or "").strip()
+    email = (request.data.get("email") or "").strip()
+
+    if not isinstance(entradas, list) or len(entradas) == 0:
+        return Response({"error": "Debes indicar polo menos unha entrada"}, status=400)
+
+    stripe_secret = getattr(settings, "STRIPE_SECRET_KEY", None)
+    if not stripe_secret:
+        return Response({"error": "Stripe non está configurado"}, status=500)
+
+    total, cantidade = _calcular_total_evento(evento, zona, entradas)
+    if total is None:
+        return Response({"error": "O evento non ten prezo configurado"}, status=400)
+
+    amount_cents = int((total * Decimal("100")).quantize(Decimal("1")))
+
+    try:
+        stripe.api_key = stripe_secret
+        payment_intent = stripe.PaymentIntent.create(
+            amount=amount_cents,
+            currency="eur",
+            automatic_payment_methods={"enabled": True},
+            receipt_email=email or None,
+            metadata={
+                "evento_id": str(evento.id),
+                "zona": zona,
+                "cantidade": str(cantidade),
+            },
+        )
+    except Exception as e:
+        return Response({"error": f"Erro ao crear PaymentIntent: {str(e)}"}, status=500)
+
+    return Response({
+        "client_secret": payment_intent.client_secret,
+        "payment_intent_id": payment_intent.id,
+        "amount_total": float(total),
+        "currency": "eur",
+    })
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def estado_payment_intent_stripe(request, payment_intent_id):
+    stripe_secret = getattr(settings, "STRIPE_SECRET_KEY", None)
+    if not stripe_secret:
+        return Response({"error": "Stripe non está configurado"}, status=500)
+
+    try:
+        stripe.api_key = stripe_secret
+        payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+    except Exception as e:
+        return Response({"error": f"Non se puido verificar o pago: {str(e)}"}, status=400)
+
+    paid = payment_intent.get("status") == "succeeded"
+    return Response({
+        "paid": paid,
+        "status": payment_intent.get("status"),
+        "payment_intent_id": payment_intent.get("id"),
     })
 
 

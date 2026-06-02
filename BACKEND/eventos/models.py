@@ -76,7 +76,6 @@ class Evento(models.Model):
     prezo_areas = models.BooleanField(default=False)
     prezo_evento = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     prezo_pvp = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
-    numero_iban = models.CharField(max_length=34, null=True, blank=True)
     tipo_gestion_entrada = models.CharField(max_length=20, choices=TIPO_ENTRADA_CHOICES, null=True, blank=True)
     procedimiento_cobro_manual = models.TextField(blank=True, null=True)
     condiciones_confirmacion = models.BooleanField(default=False)

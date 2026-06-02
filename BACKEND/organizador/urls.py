@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from .views import crear_organizador, verificar_email, login_organizador, recuperar_contrasena, reset_contrasena, perfil_organizador, google_auth, actualizar_iban
+from .views import crear_organizador, verificar_email, login_organizador, recuperar_contrasena, reset_contrasena, perfil_organizador, google_auth, stripe_onboarding_status, stripe_onboarding_link, stripe_dashboard_link, stripe_onboarding_prefill_debug
 
 urlpatterns = [
     path('crear-organizador/', crear_organizador, name="nuevo_organizador"),
@@ -25,5 +25,8 @@ urlpatterns = [
     path("reset-password/<uidb64>/<token>/", reset_contrasena, name="reset_contrasena"),
     path("perfil/", perfil_organizador, name="perfil_organizador"),
     path("auth/google/", google_auth, name="google_auth"),
-    path("actualizar-iban/", actualizar_iban, name="actualizar_iban"),
+    path("stripe/onboarding-status/", stripe_onboarding_status, name="stripe_onboarding_status"),
+    path("stripe/onboarding-link/", stripe_onboarding_link, name="stripe_onboarding_link"),
+    path("stripe/dashboard-link/", stripe_dashboard_link, name="stripe_dashboard_link"),
+    path("stripe/onboarding-debug/", stripe_onboarding_prefill_debug, name="stripe_onboarding_prefill_debug"),
 ]

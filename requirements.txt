@@ -15,3 +15,4 @@ qrcode
 PyPDF2
 supabase
 resend
+stripe

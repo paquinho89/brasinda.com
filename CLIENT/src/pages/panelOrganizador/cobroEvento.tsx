@@ -1,6 +1,6 @@
 import { Button } from "react-bootstrap";
 import MainNavbar from "../componentes/NavBar";
-import { FaCalendarAlt, FaMapMarkerAlt, FaEuroSign } from "react-icons/fa";
+import { FaCalendarAlt, FaMapMarkerAlt, FaEuroSign, FaExclamationTriangle } from "react-icons/fa";
 import API_BASE_URL from "../../utils/api";
 interface Evento {
   id: number;
@@ -11,19 +11,24 @@ interface Evento {
   entradas_vendidas?: number;
   entradas_reservadas?: number;
   prezo_evento?: number;
-  numero_iban?: string | null;
   gastos_xestion?: number;
   email_organizador?: string;
 }
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 
 
 export default function CobroEvento() {
-  const ibanInputRef = useRef<HTMLInputElement>(null);
-  const [ibanError, setIbanError] = useState(false);
+  const [stripeOnboardingCompleted, setStripeOnboardingCompleted] = useState(false);
+  const [stripeStatusLoading, setStripeStatusLoading] = useState(true);
+  const [stripeStatusError, setStripeStatusError] = useState<string | null>(null);
+  const [stripeOnboardingLoading, setStripeOnboardingLoading] = useState(false);
+  const [stripeRecreateLoading, setStripeRecreateLoading] = useState(false);
+  const [stripeDashboardLoading, setStripeDashboardLoading] = useState(false);
+  const [stripeBankLast4, setStripeBankLast4] = useState<string | null>(null);
+  const [stripeBankBrand, setStripeBankBrand] = useState<string | null>(null);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [evento, setEvento] = useState<Evento | null>(null);
@@ -47,6 +52,32 @@ export default function CobroEvento() {
 
     if (id) fetchEvento();
   }, [id]);
+
+  useEffect(() => {
+    const fetchStripeStatus = async () => {
+      try {
+        setStripeStatusLoading(true);
+        setStripeStatusError(null);
+        const token = localStorage.getItem("access_token");
+        const resp = await fetch(`${API_BASE_URL}/organizador/stripe/onboarding-status/`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) {
+          throw new Error(data?.error || "Non se puido comprobar o estado de Stripe");
+        }
+        setStripeOnboardingCompleted(Boolean(data?.onboarding_completed));
+        setStripeBankLast4(data?.bank_last4 ? String(data.bank_last4) : null);
+        setStripeBankBrand(data?.bank_brand ? String(data.bank_brand) : null);
+      } catch (e: any) {
+        setStripeStatusError(e?.message || "Erro comprobando Stripe");
+      } finally {
+        setStripeStatusLoading(false);
+      }
+    };
+
+    fetchStripeStatus();
+  }, []);
 
   if (loading) return <div className="container py-4">Cargando evento…</div>;
   if (error) return <div className="container py-4 text-danger">{error}</div>;
@@ -86,6 +117,28 @@ export default function CobroEvento() {
   const comisionPorEntrada = (evento.prezo_evento || 0) * comisionPct;
   const comisionTotal = (evento.entradas_vendidas || 0) * comisionPorEntrada;
   const importeTotal = importeRecaudadoBruto - comisionTotal;
+
+  const crearLinkOnboarding = async (forceRecreate = false) => {
+    const token = localStorage.getItem("access_token");
+    const resp = await fetch(`${API_BASE_URL}/organizador/stripe/onboarding-link/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        evento_id: evento.id,
+        return_path: `/panel-organizador/cobro/${evento.id}`,
+        ...(forceRecreate ? { force_recreate: true } : {}),
+      }),
+    });
+
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      throw new Error(data?.error || "Non se puido xerar o link de onboarding de Stripe");
+    }
+    return data;
+  };
 
   return (
     <>
@@ -251,8 +304,6 @@ export default function CobroEvento() {
               </div>
             </div>
 
-            <hr />
-
             <div className="row">
               <div className="col-md-12">
                 <label className="fw-bold h4">Importe Total a Cobrar:</label>
@@ -270,65 +321,158 @@ export default function CobroEvento() {
               </div>
             </div>
 
-
-            {/* Input para introducir IBAN sempre visible */}
-            <div className="row mt-4">
+            <div className="row mb-3 mt-4">
               <div className="col-md-12">
-                <label htmlFor="iban-input" className="fw-bold">Número de conta (IBAN):</label>
-                <input
-                  id="iban-input"
-                  ref={ibanInputRef}
-                  type="text"
-                  className={`form-control font-monospace p-2 rounded${ibanError ? ' is-invalid' : ''}`}
-                  placeholder="ES00 0000 0000 00 0000000000"
-                  defaultValue={evento.numero_iban ? formatIBANParts(evento.numero_iban) : ""}
-                  onInput={e => {
-                    const input = e.target as HTMLInputElement;
-                    const raw = input.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
-                    input.value = formatIBANParts(raw);
-                    if (ibanError) setIbanError(false);
-                  }}
-                  style={{ fontFamily: 'monospace', fontSize: '1.1em', marginTop: 4, backgroundColor: 'transparent', border: '1px solid #ddd' }}
-                />
-                {ibanError && (
-                  <div className="invalid-feedback" style={{ display: 'block' }}>
-                    Introduce un número de conta (IBAN) válido.
+                {stripeStatusLoading ? (
+                  <div className="p-3" style={{ border: "1px solid #ddd", borderRadius: "6px" }}>
+                    <small className="text-muted">Comprobando estado de Stripe...</small>
+                  </div>
+                ) : stripeOnboardingCompleted ? (
+                  <>
+                    <label className="fw-bold h5">Conta para ingresar o diñeiro</label>
+                    <div className="p-3" style={{ border: "1px solid #ddd", borderRadius: "6px" }}>
+                      {stripeBankLast4 ? (
+                        <>
+                          <div className="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                            <div>
+                              <small className="text-muted d-block">IBAN en Stripe</small>
+                              <strong>**** **** **** {stripeBankLast4}</strong>
+                            </div>
+                            <Button
+                              variant="outline-primary"
+                              onClick={async () => {
+                                try {
+                                  setStripeDashboardLoading(true);
+                                  setStripeStatusError(null);
+                                  const token = localStorage.getItem("access_token");
+                                  const resp = await fetch(`${API_BASE_URL}/organizador/stripe/dashboard-link/`, {
+                                    method: "POST",
+                                    headers: {
+                                      "Content-Type": "application/json",
+                                      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                                    },
+                                  });
+                                  const data = await resp.json().catch(() => ({}));
+                                  if (!resp.ok) {
+                                    throw new Error(data?.error || "Non se puido abrir Stripe para cambiar o IBAN");
+                                  }
+                                  if (!data?.url) {
+                                    throw new Error("Stripe non devolveu URL de acceso ao dashboard");
+                                  }
+                                  const tab = window.open(data.url, "_blank", "noopener,noreferrer");
+                                  if (!tab) {
+                                    throw new Error("O navegador bloqueou a apertura da nova pestaña");
+                                  }
+                                } catch (e: any) {
+                                  setStripeStatusError(e?.message || "Erro abrindo Stripe para cambiar o IBAN");
+                                } finally {
+                                  setStripeDashboardLoading(false);
+                                }
+                              }}
+                              disabled={stripeDashboardLoading}
+                            >
+                              {stripeDashboardLoading ? "Abrindo Stripe..." : "Cambiar IBAN en Stripe"}
+                            </Button>
+                          </div>
+                          {stripeBankBrand && <small className="text-muted d-block mt-2">{stripeBankBrand}</small>}
+                        </>
+                      ) : (
+                        <small className="text-muted">Conta para ingresar o diñeiro</small>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className="p-3" style={{ border: "1px solid #ddd", borderRadius: "6px" }}>
+                    <div className="d-flex align-items-start gap-2 mb-2" style={{ color: "#ff0093" }}>
+                      <FaExclamationTriangle className="mt-1" style={{ fontSize: "1.35rem" }} />
+                      <span className="fw-bold" style={{ fontSize: "1.25rem", fontWeight: 900, color: "#000" }}>Importante</span>
+                    </div>
+                    <p className="mb-3">
+                      Para proceder ao cobro as entradas necesitamos que configures a túa conta co noso proveedor financeiro.
+                    </p>
+                    <Button
+                      variant="outline-secondary"
+                      className="ms-0"
+                      onClick={async () => {
+                        const pendingTab = window.open("", "_blank", "noopener,noreferrer");
+                        let navigated = false;
+                        try {
+                          setStripeRecreateLoading(true);
+                          setStripeStatusError(null);
+                          const data = await crearLinkOnboarding(true);
+                          if (data?.onboarding_completed) {
+                            setStripeOnboardingCompleted(true);
+                            return;
+                          }
+                          if (!data?.url) {
+                            throw new Error("Stripe non devolveu URL de onboarding");
+                          }
+                          if (pendingTab) {
+                            pendingTab.location.href = data.url;
+                            navigated = true;
+                          } else {
+                            const newTab = window.open(data.url, "_blank", "noopener,noreferrer");
+                            if (!newTab) {
+                              window.location.assign(data.url);
+                            }
+                          }
+                        } catch (e: any) {
+                          if (pendingTab && !navigated) {
+                            pendingTab.close();
+                          }
+                          setStripeStatusError(e?.message || "Erro recreando conta de Stripe");
+                        } finally {
+                          setStripeRecreateLoading(false);
+                        }
+                      }}
+                      disabled={stripeRecreateLoading || stripeOnboardingLoading}
+                    >
+                      {stripeRecreateLoading ? "Recreando conta test..." : "Recrear conta test"}
+                    </Button>
+
+                    {stripeStatusError && <small className="text-danger d-block mt-2">{stripeStatusError}</small>}
                   </div>
                 )}
               </div>
             </div>
 
+
             <div className="d-flex gap-2 justify-content-between mt-4">
               <Button
                 className="reserva-entrada-btn"
                 onClick={async () => {
-                  const iban = ibanInputRef.current?.value || "";
-                  if (!validarIBAN(iban)) {
-                    setIbanError(true);
-                    ibanInputRef.current?.focus();
-                    return;
-                  }
-                  // Gardar IBAN no backend
                   try {
-                    const token = localStorage.getItem("access_token");
-                    const resp = await fetch(`${API_BASE_URL}/organizador/actualizar-iban/`, {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                      },
-                      body: JSON.stringify({ evento_id: evento.id, iban: iban.replace(/[^A-Za-z0-9]/g, "").toUpperCase() }),
-                    });
-                    if (!resp.ok) throw new Error("Erro ao gardar IBAN");
-                    setIbanError(false);
-                    navigate("/panelOrganizador/cobroExitoso", { state: { email: evento.email_organizador } });
-                  } catch (e) {
-                    setIbanError(true);
+                    const pendingTab = window.open("about:blank", "_blank");
+                    let navigated = false;
+                    setStripeOnboardingLoading(true);
+                    setStripeStatusError(null);
+                    const data = await crearLinkOnboarding(false);
+                    if (data?.onboarding_completed) {
+                      if (pendingTab && !navigated) {
+                        pendingTab.close();
+                      }
+                      setStripeOnboardingCompleted(true);
+                      return;
+                    }
+                    if (!data?.url) {
+                      throw new Error("Stripe non devolveu URL de onboarding");
+                    }
+                    if (pendingTab) {
+                      pendingTab.opener = null;
+                      pendingTab.location.href = data.url;
+                      navigated = true;
+                    } else {
+                      throw new Error("O navegador bloqueou a apertura da nova pestaña de Stripe");
+                    }
+                  } catch (e: any) {
+                    setStripeStatusError(e?.message || "Erro conectando con Stripe");
+                  } finally {
+                    setStripeOnboardingLoading(false);
                   }
                 }}
-                disabled={importeTotal === 0}
+                disabled={stripeOnboardingLoading}
               >
-                Cobrar importe
+                {stripeOnboardingLoading ? "Abrindo Stripe..." : "Configurar Conta"}
               </Button>
               <Button
                 className="cancelar-evento-btn"
@@ -342,52 +486,4 @@ export default function CobroEvento() {
       </div>
     </>
   );
-}
-
-// Formato IBAN español: ESkk BBBB BBBB BBBB BBBB BBBB
-function formatIBANParts(iban: string) {
-  const limpio = iban.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
-  // ESkk BBBB BBBB BBBB BBBB BBBB
-  const cc = limpio.slice(0, 2); // ES
-  const kk = limpio.slice(2, 4); // díxitos de control
-  const bloques = [
-    limpio.slice(4, 8),
-    limpio.slice(8, 12),
-    limpio.slice(12, 16),
-    limpio.slice(16, 20),
-    limpio.slice(20, 24)
-  ];
-  let out = cc;
-  if (kk) out += " " + kk;
-  for (const b of bloques) {
-    if (b) out += " " + b;
-  }
-  return out.trim();
-}
-
-// Validación IBAN español (formato e módulo 97)
-function validarIBAN(iban: string) {
-  // Limpar espazos e caracteres non válidos, pasar a maiúsculas
-  const limpio = iban.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
-  // Debe comezar por ES e ter 24 caracteres (letras e díxitos)
-  if (!/^ES\d{2}[0-9A-Z]{20}$/.test(limpio)) return false;
-  // Algoritmo de validación IBAN (módulo 97)
-  // 1. Mover os 4 primeiros caracteres ao final
-  const rearr = limpio.slice(4) + limpio.slice(0, 4);
-  // 2. Substituír letras por números (A=10, B=11, ..., Z=35)
-  let expanded = "";
-  for (let i = 0; i < rearr.length; i++) {
-    const c = rearr[i];
-    if (c >= "A" && c <= "Z") {
-      expanded += (c.charCodeAt(0) - 55).toString();
-    } else {
-      expanded += c;
-    }
-  }
-  // 3. Calcular o módulo 97 de forma segura para números longos (carácter a carácter)
-  let remainder = 0;
-  for (let i = 0; i < expanded.length; i++) {
-    remainder = (remainder * 10 + parseInt(expanded[i], 10)) % 97;
-  }
-  return remainder === 1;
 }

@@ -7,8 +7,8 @@ class OrganizadorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organizador
         fields = [
-            'id', 'email', 'password', 'username', 'nome_organizador', 'fecha_creacion', 'foto_organizador', 'telefono', 'mayor_edad', 'numero_iban', 'idioma',
-            'nif_cif', 'enderezo_fiscal', 'tipo_organizador', 'nome_empresa', 'web_empresa', 'apelidos_organizador'
+            'id', 'email', 'password', 'username', 'nome_organizador', 'fecha_creacion', 'foto_organizador', 'telefono', 'mayor_edad', 'idioma',
+            'nif_cif', 'data_nacemento', 'enderezo_fiscal', 'tipo_organizador', 'nome_empresa', 'web_empresa', 'apelidos_organizador'
         ]
         
 

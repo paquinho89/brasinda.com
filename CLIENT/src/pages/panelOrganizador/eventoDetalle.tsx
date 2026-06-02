@@ -24,7 +24,6 @@ interface Evento {
   prezo_evento?: number;
   prezo_pvp?: number;
   prezo_areas?: boolean;
-  numero_iban?: string | null;
   tipo_gestion_entrada?: "pagina" | "manual" | "gratis" | null;
   evento_cancelado?: boolean;
   xustificacion_cancelacion?: string | null;

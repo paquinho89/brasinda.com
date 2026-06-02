@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import MainNavbar from "../componentes/NavBar";
-import { FaUser, FaEnvelope, FaUniversity, FaGlobe, FaLock, FaExclamationTriangle, FaArrowLeft, FaSave, FaPhone, FaEye, FaEyeSlash, FaIdCard, FaMapMarkerAlt, FaTag, FaBriefcase } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaGlobe, FaLock, FaExclamationTriangle, FaArrowLeft, FaSave, FaPhone, FaEye, FaEyeSlash, FaIdCard, FaMapMarkerAlt, FaTag, FaBriefcase } from "react-icons/fa";
 import API_BASE_URL from "../../utils/api";
 import "../../estilos/Botones.css";
 import { Modal } from "react-bootstrap";
@@ -16,7 +16,6 @@ interface OrganizadorData {
   nome_empresa?: string;
   web_empresa?: string;
   telefono: string;
-  numero_iban?: string;
   idioma?: string;
   nif_cif?: string;
   enderezo_fiscal?: string;
@@ -45,7 +44,6 @@ export default function SettingsOrganizador() {
     nome_empresa: "",
     web_empresa: "",
     telefono: "",
-    numero_iban: "",
     idioma: "galego",
     nif_cif: "",
     enderezo_fiscal: "",
@@ -60,7 +58,6 @@ export default function SettingsOrganizador() {
     nome_empresa: "",
     web_empresa: "",
     telefono: "",
-    numero_iban: "",
     idioma: "galego",
     nif_cif: "",
     enderezo_fiscal: "",
@@ -108,7 +105,6 @@ export default function SettingsOrganizador() {
         web_empresa: form.web_empresa,
         email: form.email,
         telefono: form.telefono,
-        numero_iban: form.numero_iban,
         idioma: form.idioma,
         nif_cif: form.nif_cif,
         enderezo_fiscal: form.enderezo_fiscal,
@@ -429,29 +425,6 @@ export default function SettingsOrganizador() {
               />
             ) : (
               <p style={{ fontSize: "1rem", color: "#666", marginBottom: 0 }}>{form.enderezo_fiscal || ""}</p>
-            )}
-          </div>
-
-          {/* Cuenta bancaria (IBAN) */}
-          <div className="mb-4">
-            <label style={{ fontWeight: 600, marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
-              <FaUniversity style={{ color: "#000" }} />
-              Conta Bancaria (IBAN)
-            </label>
-            {isEditing ? (
-              <input
-                type="text"
-                name="numero_iban"
-                value={form.numero_iban || ""}
-                onChange={handleChange}
-                className="form-control"
-                placeholder="ES00 0000 0000 0000 0000 0000"
-                style={{ borderRadius: "8px" }}
-              />
-            ) : (
-              <p style={{ fontSize: "1rem", color: "#666", marginBottom: 0 }}>
-                {form.numero_iban || "Non establecida"}
-              </p>
             )}
           </div>
 

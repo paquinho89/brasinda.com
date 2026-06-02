@@ -15,10 +15,11 @@ class Organizador(AbstractUser):
     mayor_edad = models.BooleanField(default=False)
     foto_organizador = models.ImageField(upload_to='fotos_organizador', blank=True, null=True)
     telefono = models.CharField(max_length=20, validators=[RegexValidator(r'^\+?\d{5,20}$', message="Teléfono inválido")], blank=True, null=True)
-    numero_iban = models.CharField(max_length=34, blank=True, null=True)
     idioma = models.CharField(max_length=50, default='galego')
     nif_cif = models.CharField(max_length=20, blank=True, null=True)
     enderezo_fiscal = models.CharField(max_length=255, blank=True, null=True)  # ex: "particular", "empresa", etc.
+    stripe_connect_account_id = models.CharField(max_length=64, blank=True, null=True)
+    stripe_onboarding_completado = models.BooleanField(default=False)
 
     # Evita conflitos con auth.User
     groups = models.ManyToManyField(
