@@ -118,6 +118,29 @@ export default function CobroEvento() {
   const comisionTotal = (evento.entradas_vendidas || 0) * comisionPorEntrada;
   const importeTotal = importeRecaudadoBruto - comisionTotal;
 
+  const abrirStripeDashboard = async () => {
+    const token = localStorage.getItem("access_token");
+    try {
+      setStripeDashboardLoading(true);
+      const resp = await fetch(`${API_BASE_URL}/organizador/stripe/dashboard-link/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(data?.error || "Non se puido abrir o dashboard de Stripe");
+      if (data?.url) {
+        window.open(data.url, "_blank", "noopener,noreferrer");
+      }
+    } catch (e: any) {
+      setStripeStatusError(e?.message || "Erro abrindo o dashboard de Stripe");
+    } finally {
+      setStripeDashboardLoading(false);
+    }
+  };
+
   const crearLinkOnboarding = async (forceRecreate = false) => {
     const token = localStorage.getItem("access_token");
     const resp = await fetch(`${API_BASE_URL}/organizador/stripe/onboarding-link/`, {
@@ -152,15 +175,15 @@ export default function CobroEvento() {
 
             <div className="row mb-3">
               <div className="col-md-6">
-                <label className="fw-bold">
-                  <FaCalendarAlt className="me-2" />
+                <label className="fw-bold" >
+                  <FaCalendarAlt className="me-2" style={{ color: "#ff0093" }}/>
                   Data do evento:
                 </label>
                 <p>{dataFormato}</p>
               </div>
               <div className="col-md-6">
                 <label className="fw-bold">
-                  <FaMapMarkerAlt className="me-2" />
+                  <FaMapMarkerAlt className="me-2" style={{ color: "#ff0093" }}/>
                   Localización:
                 </label>
                 <p>{evento.localizacion}</p>
@@ -170,7 +193,7 @@ export default function CobroEvento() {
             <div className="row mb-3">
               <div className="col-md-12">
                 <label className="fw-bold">
-                  <FaEuroSign className="me-2" />
+                  <FaEuroSign className="me-2" style={{ color: "#ff0093" }}/>
                   Precio por entrada:
                 </label>
                 <p>{evento.prezo_evento || 0} €</p>
@@ -180,7 +203,7 @@ export default function CobroEvento() {
 
             {/* Barra visual de estado das entradas (idéntica a eventoDetalle.tsx salvo "Sen vender" en vez de "Disponibles") */}
             <div className="mb-3 mt-2">
-              <label className="fw-bold d-block mb-2">Estado das entradas:</label>
+              <label className="fw-bold d-block mb-2">Resumo:</label>
               <div
                 className="d-flex w-100 mb-3"
                 style={{
@@ -333,48 +356,30 @@ export default function CobroEvento() {
                     <div className="p-3" style={{ border: "1px solid #ddd", borderRadius: "6px" }}>
                       {stripeBankLast4 ? (
                         <>
-                          <div className="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                          <div>
                             <div>
-                              <small className="text-muted d-block">IBAN en Stripe</small>
-                              <strong>**** **** **** {stripeBankLast4}</strong>
+                              <strong className="d-block mt-2">**** **** **** {stripeBankLast4}</strong>
+                              <small className="text-muted d-block">O IBAN é xestionado polo noso proveedor financieiro.</small>
+                              <small className="text-muted d-block">
+                                No caso de querer modificalo vaia a{" "}
+                                <a
+                                  href="#"
+                                  onClick={async (e) => {
+                                    e.preventDefault();
+                                    if (!stripeDashboardLoading) {
+                                      await abrirStripeDashboard();
+                                    }
+                                  }}
+                                  aria-disabled={stripeDashboardLoading}
+                                  style={{
+                                    pointerEvents: stripeDashboardLoading ? "none" : "auto",
+                                  }}
+                                >
+                                  <strong>Consulta los detalles &gt; Actualizar la configuración de transferencias</strong>
+                                </a>
+                              </small>
                             </div>
-                            <Button
-                              variant="outline-primary"
-                              onClick={async () => {
-                                try {
-                                  setStripeDashboardLoading(true);
-                                  setStripeStatusError(null);
-                                  const token = localStorage.getItem("access_token");
-                                  const resp = await fetch(`${API_BASE_URL}/organizador/stripe/dashboard-link/`, {
-                                    method: "POST",
-                                    headers: {
-                                      "Content-Type": "application/json",
-                                      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                                    },
-                                  });
-                                  const data = await resp.json().catch(() => ({}));
-                                  if (!resp.ok) {
-                                    throw new Error(data?.error || "Non se puido abrir Stripe para cambiar o IBAN");
-                                  }
-                                  if (!data?.url) {
-                                    throw new Error("Stripe non devolveu URL de acceso ao dashboard");
-                                  }
-                                  const tab = window.open(data.url, "_blank", "noopener,noreferrer");
-                                  if (!tab) {
-                                    throw new Error("O navegador bloqueou a apertura da nova pestaña");
-                                  }
-                                } catch (e: any) {
-                                  setStripeStatusError(e?.message || "Erro abrindo Stripe para cambiar o IBAN");
-                                } finally {
-                                  setStripeDashboardLoading(false);
-                                }
-                              }}
-                              disabled={stripeDashboardLoading}
-                            >
-                              {stripeDashboardLoading ? "Abrindo Stripe..." : "Cambiar IBAN en Stripe"}
-                            </Button>
                           </div>
-                          {stripeBankBrand && <small className="text-muted d-block mt-2">{stripeBankBrand}</small>}
                         </>
                       ) : (
                         <small className="text-muted">Conta para ingresar o diñeiro</small>
@@ -388,7 +393,10 @@ export default function CobroEvento() {
                       <span className="fw-bold" style={{ fontSize: "1.25rem", fontWeight: 900, color: "#000" }}>Importante</span>
                     </div>
                     <p className="mb-3">
-                      Para proceder ao cobro as entradas necesitamos que configures a túa conta co noso proveedor financeiro.
+                      Para proceder ao cobro das entradas necesitamos que configures a túa conta co noso proveedor financieiro.
+                    </p>
+                    <p className="mb-3">
+                      Se precisas axuda, contacta con nós en <strong>eventos@brasinda.com</strong> ou a través do <strong>6xxxxxx</strong>
                     </p>
                     <Button
                       variant="outline-secondary"
@@ -441,6 +449,10 @@ export default function CobroEvento() {
               <Button
                 className="reserva-entrada-btn"
                 onClick={async () => {
+                  if (stripeOnboardingCompleted) {
+                    navigate("/panelOrganizador/cobroExitoso");
+                    return;
+                  }
                   try {
                     const pendingTab = window.open("about:blank", "_blank");
                     let navigated = false;
@@ -452,6 +464,7 @@ export default function CobroEvento() {
                         pendingTab.close();
                       }
                       setStripeOnboardingCompleted(true);
+                      navigate("/panelOrganizador/cobroExitoso");
                       return;
                     }
                     if (!data?.url) {
@@ -472,7 +485,11 @@ export default function CobroEvento() {
                 }}
                 disabled={stripeOnboardingLoading}
               >
-                {stripeOnboardingLoading ? "Abrindo Stripe..." : "Configurar Conta"}
+                {stripeOnboardingLoading
+                  ? "Abrindo Stripe..."
+                  : stripeOnboardingCompleted
+                  ? "Cobrar diñeiro"
+                  : "Configurar Conta"}
               </Button>
               <Button
                 className="cancelar-evento-btn"

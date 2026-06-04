@@ -317,6 +317,7 @@ def perfil_organizador(request):
         nif_cif = request.data.get('nif_cif')
         data_nacemento = request.data.get('data_nacemento')
         enderezo_fiscal = request.data.get('enderezo_fiscal')
+        maior_idade = request.data.get('maior_idade')
         
 
         # Actualizar campos básicos
@@ -349,6 +350,8 @@ def perfil_organizador(request):
             organizador.data_nacemento = data_nacemento
         if enderezo_fiscal is not None:
             organizador.enderezo_fiscal = enderezo_fiscal
+        if maior_idade is not None:
+            organizador.mayor_edad = maior_idade
 
         # Cambiar contraseña si se proporciona
         if new_password:
@@ -545,10 +548,7 @@ def _sanitize_url(url):
 def _build_stripe_prefill_payload(organizador, mode="create"):
     tipo = (getattr(organizador, "tipo_organizador", "") or "").strip().lower()
     is_company = tipo in {"empresa", "asociación", "asociacion"}
-    address = _parse_enderezo_fiscal(getattr(organizador, "enderezo_fiscal", None))
-    phone = _sanitize_phone(getattr(organizador, "telefono", None))
     web_url = _sanitize_url(getattr(organizador, "web_empresa", None))
-    nif_cif = _sanitize_nif_cif(getattr(organizador, "nif_cif", None))
 
     payload = {
         "metadata": {
@@ -563,14 +563,11 @@ def _build_stripe_prefill_payload(organizador, mode="create"):
     if mode == "create":
         # Estes campos son válidos para prefill na creación da conta Connect.
         payload["email"] = getattr(organizador, "email", None)
-        payload["business_type"] = "company" if is_company else "individual"
+        payload["business_type"] = "individual"
 
         if is_company:
             payload["company"] = {
                 "name": getattr(organizador, "nome_empresa", None) or getattr(organizador, "nome_organizador", None),
-                "phone": phone,
-                "address": address,
-                "tax_id": nif_cif,
             }
         else:
             first_name = (getattr(organizador, "nome_organizador", "") or "").strip() or None
@@ -578,17 +575,7 @@ def _build_stripe_prefill_payload(organizador, mode="create"):
             individual_payload = {
                 "first_name": first_name,
                 "last_name": last_name,
-                "phone": phone,
-                "address": address,
-                "id_number": nif_cif,
             }
-            data_nacemento = getattr(organizador, "data_nacemento", None)
-            if data_nacemento:
-                individual_payload["dob"] = {
-                    "day": data_nacemento.day,
-                    "month": data_nacemento.month,
-                    "year": data_nacemento.year,
-                }
             payload["individual"] = individual_payload
 
     return _remove_empty_values(payload)
@@ -602,19 +589,11 @@ def _build_stripe_representative_payload(organizador):
 
     first_name = (getattr(organizador, "nome_organizador", "") or "").strip() or None
     last_name = (getattr(organizador, "apelidos_organizador", "") or "").strip() or None
-    address = _parse_enderezo_fiscal(getattr(organizador, "enderezo_fiscal", None))
-    phone = _sanitize_phone(getattr(organizador, "telefono", None))
-    nif_cif = _sanitize_nif_cif(getattr(organizador, "nif_cif", None))
-    data_nacemento = getattr(organizador, "data_nacemento", None)
 
     payload = {
         "first_name": first_name,
         "last_name": last_name,
         "email": getattr(organizador, "email", None),
-        "phone": phone,
-        "address": address,
-        "registered_address": address,
-        "id_number": nif_cif,
         "relationship": {
             "representative": True,
             "owner": True,
@@ -622,13 +601,6 @@ def _build_stripe_representative_payload(organizador):
             "executive": True,
         },
     }
-
-    if data_nacemento:
-        payload["dob"] = {
-            "day": data_nacemento.day,
-            "month": data_nacemento.month,
-            "year": data_nacemento.year,
-        }
 
     return _remove_empty_values(payload)
 

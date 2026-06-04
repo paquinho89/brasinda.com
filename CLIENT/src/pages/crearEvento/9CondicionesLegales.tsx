@@ -4,8 +4,12 @@ import { useAuth } from "../AuthContext";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import { Button, Form, Container, Card } from "react-bootstrap";
 import type { OutletContext } from "./0ElementoPadre";
-import { FaArrowLeft, FaIdCard, FaPhone, FaMapMarkerAlt, FaBirthdayCake } from "react-icons/fa";
+import { FaArrowLeft, FaIdCard, FaPhone, FaMapMarkerAlt } from "react-icons/fa";
 import API_BASE_URL from "../../utils/api";
+import "react-datepicker/dist/react-datepicker.css";
+import "../../estilos/datepicker-custom.css";
+
+
 
 
 const CondicionesLegales: React.FC = () => {
@@ -14,7 +18,7 @@ const CondicionesLegales: React.FC = () => {
   const [aceptacionCondiciones, setAceptacionCondiciones] =
     useState<boolean>(evento.condicionesConfirmacion || false);
   const [nifCif, setNifCif] = useState(evento.nifCif || "");
-  const [dataNacemento, setDataNacemento] = useState(evento.dataNacemento || "");
+  const [maiorIdade, setMaiorIdade] = useState(false);
   // Recuperar enderezo fiscal descomposto se existe
   let estradaDefault = "", numeroDefault = "", portaPisoDefault = "", localidadeDefault = "", codigoPostalDefault = "";
   if (evento.enderezoFiscal) {
@@ -77,7 +81,7 @@ const CondicionesLegales: React.FC = () => {
     // Validación campo a campo
     if (
       nifCif.trim() === "" ||
-      dataNacemento.trim() === "" ||
+      !maiorIdade  ||
       telefono.trim() === "" ||
       estrada.trim() === "" ||
       numero.trim() === "" ||
@@ -105,7 +109,7 @@ const CondicionesLegales: React.FC = () => {
         },
         body: JSON.stringify({
           nif_cif: nifCif,
-          data_nacemento: dataNacemento,
+          maior_idade: maiorIdade,
           enderezo_fiscal: enderezoFiscal,
           telefono,
         }),
@@ -120,7 +124,7 @@ const CondicionesLegales: React.FC = () => {
       ...evento,
       condicionesConfirmacion: aceptacionCondiciones,
       nifCif,
-      dataNacemento,
+      maiorIdade,
       enderezoFiscal: `${estrada}, ${numero}${portaPiso ? ", " + portaPiso : ""}, ${localidade}, ${codigoPostal}`,
       telefono,
     };
@@ -262,17 +266,12 @@ const CondicionesLegales: React.FC = () => {
                   )}
                 </Form.Group>
                 <Form.Group className="mb-3">
-                  <FaBirthdayCake style={{ marginRight: "6px", color: "#ff0093" }} />
-                  <Form.Label><strong>Data de nacemento</strong></Form.Label>
-                  <Form.Control
-                    type="date"
-                    value={dataNacemento}
-                    onChange={e => setDataNacemento(e.target.value)}
-                    onBlur={() => setTouched(t => ({ ...t, dataNacemento: true }))}
+                  <Form.Check
+                    type="checkbox"
+                    label="Declaro baixo a miña responsabilidade que son maior de idade"
+                    checked={maiorIdade}
+                    onChange={(e) => setMaiorIdade(e.target.checked)}
                   />
-                  {touched.dataNacemento && dataNacemento.trim() === "" && (
-                    <div className="text-danger small">Este campo é obrigatorio</div>
-                  )}
                 </Form.Group>
                 <div className="mb-3 d-flex gap-2 align-items-end">
                   <Form.Group style={{maxWidth: "110px"}}>
@@ -400,7 +399,7 @@ const CondicionesLegales: React.FC = () => {
                 disabled={
                   !aceptacionCondiciones ||
                   nifCif.trim() === "" ||
-                  dataNacemento.trim() === "" ||
+                  !maiorIdade ||
                   telefono.trim() === "" ||
                   estrada.trim() === "" ||
                   numero.trim() === "" ||

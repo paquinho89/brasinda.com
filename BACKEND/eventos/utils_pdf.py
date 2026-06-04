@@ -915,3 +915,122 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
     p.save()
     buffer.seek(0)
     return buffer
+
+
+from io import BytesIO
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from django.conf import settings
+import os
+from datetime import date
+
+
+def xerar_pdf_factura(evento, organizador, comision, numero_factura="FAC-0001"):
+    """
+    Xera unha factura PDF simple para comisión de ticketing.
+    """
+
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    y = height - 60
+
+    # ======================
+    # LOGO
+    # ======================
+    logo_path = os.path.join(
+        settings.BASE_DIR,
+        "BACKEND",
+        "organizador",
+        "formato_email",
+        "branding",
+        "logo.png"
+    )
+
+    if os.path.exists(logo_path):
+        p.drawInlineImage(logo_path, 10, height - 75, width=100, height=60)
+
+    # ======================
+    # TÍTULO FACTURA
+    # ======================
+    p.setFont("Helvetica-Bold", 18)
+    p.drawCentredString(width / 2, y, "FACTURA")
+    y -= 30
+
+    p.setFont("Helvetica", 10)
+    p.drawCentredString(width / 2, y, f"Nº factura: {numero_factura}")
+    y -= 20
+
+    p.drawCentredString(width / 2, y, f"Data: {date.today().strftime('%d/%m/%Y')}")
+    y -= 40
+
+    # ======================
+    # DATOS EMISOR (TI)
+    # ======================
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(40, y, "EMISOR:")
+    y -= 15
+
+    p.setFont("Helvetica", 10)
+    p.drawString(40, y, "Nome: O TEU NOME / EMPRESA")
+    y -= 15
+    p.drawString(40, y, "NIF: 12345678A")
+    y -= 15
+    p.drawString(40, y, "Enderezo: O teu enderezo fiscal")
+    y -= 30
+
+    # ======================
+    # DATOS RECEPTOR (ORGANIZADOR)
+    # ======================
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(40, y, "RECEPTOR:")
+    y -= 15
+
+    p.setFont("Helvetica", 10)
+    p.drawString(40, y, f"Nome: {organizador.nome}")
+    y -= 15
+    p.drawString(40, y, f"NIF: {organizador.nif}")
+    y -= 15
+    p.drawString(40, y, f"Enderezo: {organizador.enderezo}")
+    y -= 30
+
+    # ======================
+    # DESCRICIÓN
+    # ======================
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(40, y, "CONCEPTO:")
+    y -= 15
+
+    p.setFont("Helvetica", 10)
+    p.drawString(40, y, f"Servizo de plataforma de venda de entradas - {evento.nome_evento}")
+    y -= 30
+
+    # ======================
+    # IMPORTES
+    # ======================
+    base = comision
+    iva = round(base * 0.21, 2)
+    total = round(base + iva, 2)
+
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(40, y, "IMPORTES:")
+    y -= 20
+
+    p.setFont("Helvetica", 10)
+    p.drawString(40, y, f"Base impoñible: {base:.2f} €")
+    y -= 15
+    p.drawString(40, y, f"IVE (21%): {iva:.2f} €")
+    y -= 15
+
+    p.setFont("Helvetica-Bold", 10)
+    p.drawString(40, y, f"TOTAL: {total:.2f} €")
+
+    # ======================
+    # FINALIZAR PDF
+    # ======================
+    p.showPage()
+    p.save()
+
+    buffer.seek(0)
+    return buffer
