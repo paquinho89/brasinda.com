@@ -81,6 +81,7 @@ class Evento(models.Model):
     condiciones_confirmacion = models.BooleanField(default=False)
     evento_cancelado = models.BooleanField(default=False)
     xustificacion_cancelacion = models.TextField(blank=True, null=True)
+    codigo_factura = models.CharField(max_length=20, blank=True, null=True)
 
     gastos_xestion = models.DecimalField(
         max_digits=5, decimal_places=2, null=True, blank=True,
