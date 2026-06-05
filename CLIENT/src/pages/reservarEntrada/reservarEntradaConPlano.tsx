@@ -24,6 +24,7 @@ interface Evento {
   entradas_reservadas?: number;
   entradas_vendidas?: number;
   prezo_evento?: number;
+  prezo_pvp?: number | null;
   procedimiento_cobro_manual?: string | null;
 }
 
@@ -276,7 +277,7 @@ export default function ReservarEntrada() {
               <SummaryBox
                   ref={summaryBoxRef}
                   entradasSeleccionadas={entradasSeleccionadas}
-                  prezoEvento={evento.prezo_evento}
+                  prezoEvento={evento.prezo_pvp ?? evento.prezo_evento}
                   onEliminarButaca={handleEliminarButaca}
                   onNomeChange={(idx, novoNome) => {
                     setEntradasSeleccionadas(prev => {

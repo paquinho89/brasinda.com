@@ -35,7 +35,6 @@ import InfoPagamento from './pages/reservarEntrada/infoPagamento.tsx';
 import ReservaExitosa from './pages/reservarEntrada/ReservaExitosa';
 import PanelOrganizador from './pages/panelOrganizador/panelOrganizador';
 import EventoDetalle from './pages/panelOrganizador/eventoDetalle';
-import ResumoEvento from './pages/panelOrganizador/resumoEvento';
 import CobroEvento from './pages/panelOrganizador/cobroEvento';
 import CobroExitoso from './pages/panelOrganizador/cobroExitoso';
 import ListadoEntradas from './pages/panelOrganizador/componentes/listadoEntradas';
@@ -141,7 +140,6 @@ function App() {
 
             <Route path="panel-organizador" element={<PanelOrganizador />} />
             <Route path="panel-organizador/evento/:id" element={<EventoDetalle />} />
-            <Route path="panel-organizador/evento/:id/resumo" element={<ResumoEvento />} />
             <Route path="panel-organizador/evento/:id/entradas" element={<ListadoEntradas />} />
             <Route path="panel-organizador/cobro/:id" element={<CobroEvento />} />
             <Route path="/panelOrganizador/cobroExitoso" element={<CobroExitoso />} />

@@ -1,6 +1,6 @@
 import { Button } from "react-bootstrap";
 import MainNavbar from "../componentes/NavBar";
-import { FaCalendarAlt, FaMapMarkerAlt, FaEuroSign, FaExclamationTriangle } from "react-icons/fa";
+import { FaCalendarAlt, FaMapMarkerAlt, FaEuroSign, FaExclamationTriangle, FaArrowLeft, FaCheckCircle } from "react-icons/fa";
 import API_BASE_URL from "../../utils/api";
 interface Evento {
   id: number;
@@ -13,6 +13,7 @@ interface Evento {
   prezo_evento?: number;
   gastos_xestion?: number;
   email_organizador?: string;
+  evento_cobrado?: boolean;
 }
 
 import { useEffect, useState } from "react";
@@ -186,6 +187,13 @@ export default function CobroEvento() {
           <div className="card-body">
             <div className="d-flex align-items-center mb-4">
               <h2 className="m-0 flex-grow-1">{evento.nome_evento}</h2>
+              <Button
+                className="boton-avance"
+                onClick={() => navigate(-1)}
+              >
+                <FaArrowLeft className="me-1" />
+                Volver
+              </Button>
             </div>
 
             <div className="row mb-3">
@@ -343,16 +351,24 @@ export default function CobroEvento() {
 
               {/* Entradas Escaneadas */}
               <div className="text-center mt-3 mb-1">
-                <h5 className="text-muted d-block mb-1">Entradas Escaneadas</h5>
+                <h5 className="text-muted d-block mb-1">Índice de Asistencia ao Evento</h5>
                 <div style={{ fontSize: "3rem", fontWeight: "bold", lineHeight: 1 }}>
                   {totalVendasConfirmadas > 0 ? Math.round((entradasVerificadas / totalVendasConfirmadas) * 100) : 0}%
                 </div>
                 <div className="text-muted" style={{ fontSize: "1rem" }}>
-                  {entradasVerificadas} de {totalVendasConfirmadas}
+                  {entradasVerificadas} escaneadas de {totalVendasConfirmadas} vendidas
                 </div>
               </div>
             </div>
 
+            {evento.evento_cobrado && (
+              <div className="text-center fw-bold fs-5 mt-3 p-3" style={{ backgroundColor: "rgba(255, 0, 147, 0.15)", borderRadius: "8px", color: "#000" }}>
+                <FaCheckCircle className="me-2" style={{ color: "#ff0093" }} />
+                Evento Cobrado
+              </div>
+            )}
+
+            {!evento.evento_cobrado && (
             <div className="row">
               <div className="col-md-12">
                 <label className="fw-bold h4">Importe Total a Cobrar:</label>
@@ -364,12 +380,14 @@ export default function CobroEvento() {
                     Recaudado bruto: {importeRecaudadoBruto.toFixed(2)} €
                   </small>
                   <small className="text-muted d-block">
-                    Comisión ({(comisionPct * 100).toFixed(2)}%) + 21% IVA: {comisionTotal.toFixed(2)} €
+                    Comisión ({(comisionPct * 100)}%) + 21% IVA: {comisionTotal.toFixed(2)} €
                   </small>
                 </div>
               </div>
             </div>
+            )}
 
+            {!evento.evento_cobrado && (
             <div className="row mb-3 mt-4">
               <div className="col-md-12">
                 {stripeStatusLoading ? (
@@ -469,8 +487,9 @@ export default function CobroEvento() {
                 )}
               </div>
             </div>
+            )}
 
-
+            {!evento.evento_cobrado && (
             <div className="d-flex gap-2 justify-content-between mt-4">
               <Button
                 className="reserva-entrada-btn"
@@ -537,6 +556,7 @@ export default function CobroEvento() {
                 Volver
               </Button>
             </div>
+            )}
           </div>
         </div>
       </div>

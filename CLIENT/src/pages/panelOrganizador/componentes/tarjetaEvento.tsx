@@ -72,7 +72,7 @@ export default function TarjetaEvento({ evento, isPast = false }: EventoProps) {
   };
 
   const handleResumo = () => {
-    navigate(`/panel-organizador/evento/${evento.id}/resumo`);
+    navigate(`/panel-organizador/cobro/${evento.id}`);
   };
 
   const handleCobrar = () => {
