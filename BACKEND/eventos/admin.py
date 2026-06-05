@@ -1,6 +1,9 @@
 from django.contrib import admin
 from .models import Evento, ZonaPrezo, ReservaButaca, SuscripcionNewsletter
 from .email_entradas import resend, settings, render_to_string
+from .utils_pdf import xerar_pdf_factura
+import base64
+from datetime import datetime
 
 # Register your models here.
 
@@ -15,7 +18,7 @@ def enviar_email_agradecemento(modeladmin, request, queryset):
 		data_galego = data.strftime('%A, %d de %B de %Y').capitalize()
 		hora_galego = data.strftime('%H:%M')
 		data_completa = f"{data_galego} ás {hora_galego}"
-		importe_vendido = getattr(evento, 'total_a_pagar_ao_organizador', None)
+		gastos_xestion = getattr(evento, 'total_gastos_xestion', None)
 		url_cobro = f"https://brasinda.com/panel-organizador/evento/{evento.id}/cobro" if getattr(evento, 'tipo_gestion_entrada', None) == 'pagina' else None
 		entradas_vendidas = getattr(evento, 'entradas_vendidas', 0) or 0
 		entradas_reservadas = getattr(evento, 'entradas_reservadas', 0) or 0
@@ -29,7 +32,7 @@ def enviar_email_agradecemento(modeladmin, request, queryset):
 					'data_evento': data_completa,
 					'lugar_evento': evento.localizacion,
 					'tipo_gestion_entrada': evento.tipo_gestion_entrada,
-					'importe_vendido': importe_vendido,
+					'importe_vendido': gastos_xestion,
 					'url_cobro': url_cobro,
 					'entradas_vendidas': entradas_vendidas,
 					'entradas_reservadas': entradas_reservadas,
@@ -37,13 +40,45 @@ def enviar_email_agradecemento(modeladmin, request, queryset):
 				}
 			}
 		)
+
+		# Xerar PDF da factura
+		org = getattr(evento, 'organizador', None)
+		class OrgAdapter:
+			nome = getattr(org, 'nome_organizador', '') or ''
+			nif = getattr(org, 'nif_cif', '') or ''
+			enderezo = getattr(org, 'enderezo_fiscal', '') or ''
+		comision = float(gastos_xestion) if gastos_xestion is not None else 0.0
+		comision_iva = float(evento.total_gastos_xestion_iva) if evento.total_gastos_xestion_iva is not None else 0.0
+		agora = datetime.now()
+		if evento.codigo_factura:
+			numero_factura = evento.codigo_factura
+		else:
+			contador = Evento.objects.filter(evento_envio_email_agradecemento_cobro=True).count() + 1
+			numero_factura = f"BRA-{agora.year}{agora.month:02d}-{contador:04d}"
+			evento.codigo_factura = numero_factura
+			evento.save(update_fields=["codigo_factura"])
+		pdf_buffer = xerar_pdf_factura(evento, OrgAdapter(), comision, comision_iva, numero_factura)
+		# Gardar PDF no campo factura_pdf do evento
+		from django.core.files.base import ContentFile
+		pdf_buffer.seek(0)
+		evento.factura_pdf.save(f"{numero_factura}.pdf", ContentFile(pdf_buffer.read()), save=True)
+		pdf_buffer.seek(0)
+		pdf_b64 = base64.b64encode(pdf_buffer.getvalue()).decode("utf-8")
+		attachments = [{
+			"filename": f"{numero_factura}.pdf",
+			"content": pdf_b64,
+			"contentType": "application/pdf"
+		}]
+
 		destinatario = 'paquinho89@gmail.com'
+		#destinatario = getattr(org, 'email', None) or 'paquinho89@gmail.com'
 		try:
 			resend.Emails.send({
 				"from": settings.DEFAULT_FROM_EMAIL,
 				"to": [destinatario],
 				"subject": subject,
 				"html": html_body,
+				"attachments": attachments,
 			})
 			evento.evento_envio_email_agradecemento_cobro = True
 			evento.save(update_fields=["evento_envio_email_agradecemento_cobro"])

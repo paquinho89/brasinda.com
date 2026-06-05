@@ -844,7 +844,7 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
     org = getattr(evento, "organizador", None)
     nome_organizador = getattr(org, "nome", None) or getattr(org, "nome_organizador", None) or "-"
     nif_organizador = getattr(org, "nif_cif", None) or getattr(org, "cif", None) or getattr(org, "nif", None) or "-"
-    footer_text = f"Organizador: {nome_organizador} | CIF/NIF: {nif_organizador}"
+    footer_text = f"Organizador: {nome_organizador} | NIF: {nif_organizador}"
     p.setFont("Helvetica", 8)
     p.setFillColorRGB(0.4, 0.4, 0.4)
     p.drawCentredString(width/2, 15, footer_text)
@@ -925,7 +925,7 @@ import os
 from datetime import date
 
 
-def xerar_pdf_factura(evento, organizador, comision, numero_factura="FAC-0001"):
+def xerar_pdf_factura(evento, organizador, comision, comision_iva, numero_factura):
     """
     Xera unha factura PDF simple para comisión de ticketing.
     """
@@ -973,11 +973,11 @@ def xerar_pdf_factura(evento, organizador, comision, numero_factura="FAC-0001"):
     y -= 15
 
     p.setFont("Helvetica", 10)
-    p.drawString(40, y, "Nome: O TEU NOME / EMPRESA")
+    p.drawString(40, y, "Nome: Brasinda - Eventos")
     y -= 15
-    p.drawString(40, y, "NIF: 12345678A")
+    p.drawString(40, y, "NIF: 34628886V")
     y -= 15
-    p.drawString(40, y, "Enderezo: O teu enderezo fiscal")
+    p.drawString(40, y, "Enderezo: Estrada de Castela N151 32600 Verín (Ourense)")
     y -= 30
 
     # ======================
@@ -1003,7 +1003,7 @@ def xerar_pdf_factura(evento, organizador, comision, numero_factura="FAC-0001"):
     y -= 15
 
     p.setFont("Helvetica", 10)
-    p.drawString(40, y, f"Servizo de plataforma de venda de entradas - {evento.nome_evento}")
+    p.drawString(40, y, f"Servizo para a xestión da venda de entradas - {evento.nome_evento}")
     y -= 30
 
     # ======================
@@ -1011,7 +1011,7 @@ def xerar_pdf_factura(evento, organizador, comision, numero_factura="FAC-0001"):
     # ======================
     base = comision
     iva = round(base * 0.21, 2)
-    total = round(base + iva, 2)
+    gastos_xestion_iva = comision_iva
 
     p.setFont("Helvetica-Bold", 12)
     p.drawString(40, y, "IMPORTES:")
@@ -1024,7 +1024,17 @@ def xerar_pdf_factura(evento, organizador, comision, numero_factura="FAC-0001"):
     y -= 15
 
     p.setFont("Helvetica-Bold", 10)
-    p.drawString(40, y, f"TOTAL: {total:.2f} €")
+    p.drawString(40, y, f"TOTAL: {gastos_xestion_iva:.2f} €")
+
+    # ======================
+    # Footer
+    # ======================
+
+    p.setFont("Helvetica", 8)
+    # Tono máis apagado (gris claro)
+    p.setFillColorRGB(0.65, 0.65, 0.65)
+    p.drawCentredString(width/2, 30, "brasinda.com   |   Eventos únicos para xente única.")
+    p.setFillColorRGB(0, 0, 0)
 
     # ======================
     # FINALIZAR PDF

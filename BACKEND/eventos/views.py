@@ -227,21 +227,39 @@ def enviar_entradas(request, evento_id):
     return Response({"success": True, "enviados": len(pdf_buffers)})
 
 def _actualizar_contadores_evento(evento):
-    """Sincroniza en BD os contadores de reservas/vendas confirmadas do evento."""
+    """Sincroniza en BD os contadores de reservas/vendas confirmadas do evento e os totais monetarios."""
+    from decimal import Decimal
+    from django.db.models import Sum
+
     entradas_reservadas = ReservaButaca.objects.filter(
         evento=evento,
         tipo_reserva=ReservaButaca.TIPO_RESERVA_INVITACION,
         estado=ReservaButaca.ESTADO_CONFIRMADO,
     ).count()
-    entradas_vendidas = ReservaButaca.objects.filter(
+
+    reservas_venta = ReservaButaca.objects.filter(
         evento=evento,
         tipo_reserva=ReservaButaca.TIPO_RESERVA_VENTA,
         estado=ReservaButaca.ESTADO_CONFIRMADO,
-    ).count()
+    )
+    entradas_vendidas = reservas_venta.count()
+
+    total_dinheiro_recadado = reservas_venta.aggregate(
+        total=Sum('prezo_entrada')
+    )['total'] or Decimal('0')
+
+    gastos_pct = evento.gastos_xestion or Decimal('0')
+    total_gastos_xestion = (total_dinheiro_recadado * gastos_pct / Decimal('100')) if gastos_pct else Decimal('0')
+    total_gastos_xestion_iva = total_gastos_xestion * Decimal('1.21')
+    total_a_pagar_ao_organizador = total_dinheiro_recadado - total_gastos_xestion_iva
 
     Evento.objects.filter(id=evento.id).update(
         entradas_reservadas=entradas_reservadas,
         entradas_vendidas=entradas_vendidas,
+        total_dinheiro_recadado=total_dinheiro_recadado,
+        total_gastos_xestion=total_gastos_xestion,
+        total_gastos_xestion_iva=total_gastos_xestion_iva,
+        total_a_pagar_ao_organizador=total_a_pagar_ao_organizador,
     )
     evento.entradas_reservadas = entradas_reservadas
     evento.entradas_vendidas = entradas_vendidas
@@ -895,6 +913,7 @@ def listado_invitacions(request, evento_id):
             "data_creacion": r.data_creacion.isoformat() if r.data_creacion else None,
             "email": r.email,
             "codigo_validacion": r.codigo_validacion,
+            "entrada_usada_validacion": r.entrada_usada_validacion,
         })
     
     return Response({
@@ -1095,3 +1114,70 @@ def validar_entrada_qr(request):
     reserva.entrada_usada_validacion = True
     reserva.save()
     return Response({"valida": True, "motivo": "Entrada validada correctamente"}, status=200)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def factura(request):
+    """
+    Xera e envía a factura de comisión de ticketing ao email do organizador autenticado.
+    Recibe: evento_id, comision (importe base sen IVE), numero_factura (opcional)
+    """
+    from .utils_pdf import xerar_pdf_factura
+    from .email_entradas import enviar_factura_email
+
+    evento_id = request.data.get('evento_id')
+    comision = request.data.get('comision')
+    numero_factura = request.data.get('numero_factura', 'FAC-0001')
+
+    if not evento_id or comision is None:
+        return Response({
+            "success": False,
+            "error": "Faltan datos obrigatorios (evento_id, comision)"
+        }, status=400)
+
+    try:
+        comision = float(comision)
+    except (TypeError, ValueError):
+        return Response({
+            "success": False,
+            "error": "O campo comision debe ser un número"
+        }, status=400)
+
+    evento = get_object_or_404(Evento, id=evento_id, organizador=request.user)
+
+    organizador = request.user
+
+    # Adaptador para que xerar_pdf_factura poida acceder a .nome, .nif e .enderezo
+    class OrgAdapter:
+        nome = getattr(organizador, 'nome_organizador', '') or ''
+        nif = getattr(organizador, 'nif_cif', '') or ''
+        enderezo = getattr(organizador, 'enderezo_fiscal', '') or ''
+
+    try:
+        buffer = xerar_pdf_factura(evento, OrgAdapter(), comision, numero_factura)
+        # Gardar PDF no campo factura_pdf do evento
+        from django.core.files.base import ContentFile
+        buffer.seek(0)
+        evento.factura_pdf.save(f"{numero_factura}.pdf", ContentFile(buffer.read()), save=True)
+        buffer.seek(0)
+        email_organizador = getattr(organizador, 'email', None)
+        if not email_organizador:
+            return Response({
+                "success": False,
+                "error": "O organizador non ten email rexistrado"
+            }, status=400)
+        enviar_factura_email(email_organizador, buffer, evento, numero_factura)
+        return Response({
+            "success": True,
+            "message": f"Factura {numero_factura} enviada a {email_organizador}"
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return Response({
+            "success": False,
+            "error": f"Erro ao xerar ou enviar a factura: {str(e)}"
+        }, status=500)
+
+

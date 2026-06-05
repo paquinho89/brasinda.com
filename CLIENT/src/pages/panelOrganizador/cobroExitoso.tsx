@@ -33,20 +33,9 @@ const ReservaExitosa: React.FC = () => {
       <MainNavbar />
       <div className="container py-4 text-center">
         <h1 className="mb-4" style={{ color: '#ff0093', fontWeight: 800, fontSize: '2.4rem' }}>¡O seu diñeiro está en camiño!</h1>
-        <div className="d-flex justify-content-center mb-4">
-          <button
-            onClick={handleDownload}
-            className="reserva-entrada-btn mt-4"
-            style={{ padding: '0.6rem 1.2rem', minWidth: 220, fontSize: '1.25rem' }}
-            disabled={!(reservas && reservas.length > 0) && !ticketId}
-          >
-            {reservas && reservas.length > 1
-              ? 'Descargar factura'
-              : 'Descargar factura'}
-          </button>
-        </div>
-        <h3 className="mb-5 mt-5" >O diñeiro será ingresado na súa conta nun prazo máximo de 24 horas. Tamén enviamos unha factura ao teu correo electrónico</h3>
-          <span style={{ color: '#ff0093', fontWeight: 700, fontSize: '1.5rem' }}>{email || "(descoñecido)"}</span>
+  
+        <h3 className="mb-3 mt-5" >O diñeiro será ingresado na súa conta nun prazo máximo de 24 horas.</h3>
+        <div style={{ fontSize: "5rem", lineHeight: 1 }} className="mb-5">💵</div>
 
         {/* Botón para ir á HomePage */}
         <div className="d-flex justify-content-center mt-4">

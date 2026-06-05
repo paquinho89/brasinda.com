@@ -24,23 +24,40 @@ export default function ResumoEvento() {
 	const [evento, setEvento] = useState<Evento | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [entradasVerificadas, setEntradasVerificadas] = useState<number>(0);
+	const [totalVendasConfirmadas, setTotalVendasConfirmadas] = useState<number>(0);
 
 	useEffect(() => {
 		const fetchEvento = async () => {
 			if (!id) return;
+			const token = localStorage.getItem("access_token");
+			const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 			try {
-				const token = localStorage.getItem("access_token");
-				const resp = await fetch(`${API_BASE_URL}/crear-eventos/${id}/`, {
-					headers: token ? { Authorization: `Bearer ${token}` } : {},
-				});
+				const resp = await fetch(`${API_BASE_URL}/crear-eventos/${id}/`, { headers });
 				if (!resp.ok) throw new Error("Evento non atopado");
 				const data = await resp.json();
 				setEvento(data);
 			} catch (e: any) {
 				setError(e.message || "Erro ao cargar o resumo do evento");
-			} finally {
 				setLoading(false);
+				return;
 			}
+
+			// Buscar entradas verificadas vs non verificadas (só ventas confirmadas)
+			try {
+				const respInv = await fetch(`${API_BASE_URL}/eventos/${id}/listado-invitacions/`, { headers });
+				if (respInv.ok) {
+					const dataInv = await respInv.json();
+					const vendasConfirmadas: any[] = (dataInv.invitacions || []).filter(
+						(r: any) => r.tipo_reserva === "venta" && r.estado === "confirmado"
+					);
+					const verificadas = vendasConfirmadas.filter((r: any) => r.entrada_usada_validacion).length;
+					setEntradasVerificadas(verificadas);
+					setTotalVendasConfirmadas(vendasConfirmadas.length);
+				}
+			} catch {}
+
+			setLoading(false);
 		};
 
 		fetchEvento();
@@ -219,8 +236,7 @@ export default function ResumoEvento() {
 								</div>
 							)}
 						</div>
-
-						<div className="row g-2 mb-4">
+					<div className="row g-2 mb-4">
 							<div className="col-6 col-md-4">
 								<small className="text-muted d-block">Vendidas</small>
 								<strong>{vendidas}</strong>
@@ -232,6 +248,17 @@ export default function ResumoEvento() {
 							<div className="col-6 col-md-4">
 								<small className="text-muted d-block">Sen vender</small>
 								<strong>{senVender}</strong>
+							</div>
+						</div>
+
+						{/* Stat de verificación */}
+						<div className="text-center mb-4">
+							<small className="text-muted d-block mb-1">Entradas Escaneadas</small>
+							<div style={{ fontSize: "3rem", fontWeight: "bold", lineHeight: 1 }}>
+								{totalVendasConfirmadas > 0 ? Math.round((entradasVerificadas / totalVendasConfirmadas) * 100) : 0}%
+							</div>
+							<div className="text-muted" style={{ fontSize: "1rem" }}>
+								{entradasVerificadas} de {totalVendasConfirmadas} entradas verificadas
 							</div>
 						</div>
 
@@ -253,8 +280,8 @@ export default function ResumoEvento() {
 								<FaMoneyBill className="me-2" />
 								<strong>Diñeiro recadado:</strong> {diñeiroRecaudado} €
 							</p>
-							<small className="text-muted ms-4">
-								*O diñeiro recadado foi xestionado polo organizador do evento
+							<small className="text-muted ms-4" style={{ display: "block", textAlign: "left", fontWeight: "bold" }}>
+								*O diñeiro recadado xa foi pagado ao organizador, descontando os gastos de xestión e o IVE correspondente.
 							</small>
 							</>
 						)}

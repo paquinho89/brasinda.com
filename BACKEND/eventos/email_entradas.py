@@ -265,3 +265,5 @@ def enviar_entradas_recuperadas_email(email, reservas_por_evento_data, pdf_buffe
     except Exception as e:
         print(f"[ERRO ENVIANDO EMAIL RECUPERACIÓN] para {email}: {e}")
         raise
+
+

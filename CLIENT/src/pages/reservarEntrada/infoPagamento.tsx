@@ -34,6 +34,7 @@ const stripePublishableKey =
 const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
 
 const cardElementOptions = {
+  hidePostalCode: true,
   style: {
     base: {
       fontSize: "16px",
@@ -479,7 +480,7 @@ const InfoPagamento_teu: React.FC = () => {
               Volver
             </button>
             <div style={{ textAlign: 'center' }}>
-              <h2 style={{ marginBottom: 0 }}>{evento?.nome_evento || "Información de Pago"}</h2>
+              <h2 style={{ marginBottom: 0 }}>{evento?.nome_evento || "Tarxeta de PAgo"}</h2>
               <p className="evento-fecha" style={{ marginTop: 4 }}>{evento && formatDate(evento.data_evento)}</p>
             </div>
           </div>
@@ -513,22 +514,6 @@ const InfoPagamento_teu: React.FC = () => {
                   <CardElement options={cardElementOptions} />
                 </div>
               </div>
-            </div>
-
-            {/* CHECKBOX SUSCRIPCIÓN */}
-            <div className="form-check mb-3 mt-4">
-              <input
-                id="suscribirse-eventos"
-                type="checkbox"
-                className="form-check-input checkbox-verde"
-                checked={suscribirseEventos}
-                onChange={(e) => setSuscribirseEventos(e.target.checked)}
-                disabled={loading}
-                style={{ accentColor: "#ff0093" }}
-              />
-              <label htmlFor="suscribirse-eventos" className="form-check-label">
-                <strong>Quero estar informado dos eventos que acontecen na miña zona</strong>
-              </label>
             </div>
 
             {/* ERROR MESSAGE */}

@@ -14,6 +14,8 @@ interface EventoProps {
     entradas_venta: number;
     prezo_evento?: number | null;
     tipo_gestion_entrada?: "pagina" | "manual" | "gratis" | null;
+    evento_cobrado?: boolean;
+    factura_pdf?: string | null;
   };
   isPast?: boolean;
 }
@@ -154,7 +156,30 @@ export default function TarjetaEvento({ evento, isPast = false }: EventoProps) {
         </p>
 
         {isPast ? (
-          isEventoGratuito ? (
+          evento.evento_cobrado ? (
+            <div className="d-flex flex-column gap-2 mt-auto">
+              <button
+                className="reserva-entrada-btn"
+                onClick={handleResumo}
+              >
+                Resumo Evento
+              </button>
+              <button
+                className="reserva-entrada-btn"
+                onClick={() => {
+                  if (evento.factura_pdf) {
+                    const url = evento.factura_pdf.startsWith("http")
+                      ? evento.factura_pdf
+                      : `${API_BASE_URL}${evento.factura_pdf}`;
+                    window.open(url, "_blank", "noopener,noreferrer");
+                  }
+                }}
+                disabled={!evento.factura_pdf}
+              >
+                Descargar Factura
+              </button>
+            </div>
+          ) : isEventoGratuito ? (
             <button
               className="reserva-entrada-btn mt-auto"
               onClick={handleResumo}

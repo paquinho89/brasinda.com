@@ -21,6 +21,10 @@ class Evento(models.Model):
         max_digits=12, decimal_places=2, null=True, blank=True,
         help_text="Total absoluto de gastos de xestión deste evento"
     )
+    total_gastos_xestion_iva = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True,
+        help_text="Total absoluto de gastos de xestión deste evento con IVE"
+    )
     total_a_pagar_ao_organizador = models.DecimalField(
         max_digits=12, decimal_places=2, null=True, blank=True,
         help_text="Total a transferir ao organizador tras descontar gastos de xestión"
@@ -82,6 +86,13 @@ class Evento(models.Model):
     evento_cancelado = models.BooleanField(default=False)
     xustificacion_cancelacion = models.TextField(blank=True, null=True)
     codigo_factura = models.CharField(max_length=20, blank=True, null=True)
+    factura_pdf = models.FileField(upload_to="contratos/facturas/", null=True, blank=True)
+    factura_pdf = models.FileField(
+        upload_to="facturas/",
+        null=True,
+        blank=True,
+        help_text="Arquivo PDF da factura."
+    )
 
     gastos_xestion = models.DecimalField(
         max_digits=5, decimal_places=2, null=True, blank=True,
@@ -96,7 +107,8 @@ class Evento(models.Model):
         from decimal import Decimal
         self.total_dinheiro_recadado = self.prezo_evento * self.entradas_vendidas if self.prezo_evento and self.entradas_vendidas else 0
         self.total_gastos_xestion = (self.total_dinheiro_recadado * self.gastos_xestion / Decimal('100.0')) if self.gastos_xestion else 0
-        self.total_a_pagar_ao_organizador = self.total_dinheiro_recadado - self.total_gastos_xestion
+        self.total_gastos_xestion_iva = (self.total_gastos_xestion * Decimal('0.21')) + self.total_gastos_xestion if self.total_gastos_xestion else 0
+        self.total_a_pagar_ao_organizador = self.total_dinheiro_recadado - self.total_gastos_xestion_iva
         if self.prezo_evento is not None:
             porcentaxe = self.gastos_xestion if self.gastos_xestion is not None else Decimal('5.0')
             prezo = self.prezo_evento if isinstance(self.prezo_evento, Decimal) else Decimal(str(self.prezo_evento))

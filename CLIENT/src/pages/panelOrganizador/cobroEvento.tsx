@@ -34,6 +34,8 @@ export default function CobroEvento() {
   const [evento, setEvento] = useState<Evento | null>(null);
   const [loading, setLoading] = useState(true);
   const [error] = useState<string | null>(null);
+  const [entradasVerificadas, setEntradasVerificadas] = useState<number>(0);
+  const [totalVendasConfirmadas, setTotalVendasConfirmadas] = useState<number>(0);
 
   useEffect(() => {
     const fetchEvento = async () => {
@@ -45,6 +47,21 @@ export default function CobroEvento() {
         if (!resp.ok) throw new Error("Evento non atopado");
         const data = await resp.json();
         setEvento(data);
+
+        // Buscar entradas escaneadas
+        try {
+          const respInv = await fetch(`${API_BASE_URL}/eventos/${id}/listado-invitacions/`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          });
+          if (respInv.ok) {
+            const dataInv = await respInv.json();
+            const vendasConf: any[] = (dataInv.invitacions || []).filter(
+              (r: any) => r.tipo_reserva === "venta" && r.estado === "confirmado"
+            );
+            setTotalVendasConfirmadas(vendasConf.length);
+            setEntradasVerificadas(vendasConf.filter((r: any) => r.entrada_usada_validacion).length);
+          }
+        } catch {}
       } finally {
         setLoading(false);
       }
@@ -325,6 +342,17 @@ export default function CobroEvento() {
                   </div>
                 </div>
               </div>
+
+              {/* Entradas Escaneadas */}
+              <div className="text-center mt-3 mb-1">
+                <small className="text-muted d-block mb-1">Entradas Escaneadas</small>
+                <div style={{ fontSize: "3rem", fontWeight: "bold", lineHeight: 1 }}>
+                  {totalVendasConfirmadas > 0 ? Math.round((entradasVerificadas / totalVendasConfirmadas) * 100) : 0}%
+                </div>
+                <div className="text-muted" style={{ fontSize: "1rem" }}>
+                  {entradasVerificadas} de {totalVendasConfirmadas} entradas verificadas
+                </div>
+              </div>
             </div>
 
             <div className="row">
@@ -450,6 +478,19 @@ export default function CobroEvento() {
                 className="reserva-entrada-btn"
                 onClick={async () => {
                   if (stripeOnboardingCompleted) {
+                    try {
+                      const token = localStorage.getItem("access_token");
+                      await fetch(`${API_BASE_URL}/crear-eventos/${evento.id}/`, {
+                        method: "PATCH",
+                        headers: {
+                          "Content-Type": "application/json",
+                          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                        },
+                        body: JSON.stringify({ evento_cobrado: true }),
+                      });
+                    } catch {
+                      // Non bloquear a navegación se falla
+                    }
                     navigate("/panelOrganizador/cobroExitoso");
                     return;
                   }
