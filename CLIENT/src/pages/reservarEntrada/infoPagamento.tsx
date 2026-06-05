@@ -68,7 +68,6 @@ const InfoPagamento_teu: React.FC = () => {
   const [prezoZonaPvp, setPrezoZonaPvp] = useState<number | null>(null);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
-  const [suscribirseEventos, setSuscribirseEventos] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [timeRemaining, setTimeRemaining] = useState(10 * 60);

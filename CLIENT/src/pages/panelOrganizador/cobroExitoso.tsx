@@ -1,14 +1,10 @@
 import React, { useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import MainNavbar from "../componentes/NavBar";
-
-import API_BASE_URL from "../../utils/api";
 import confetti from 'canvas-confetti';
 
 const ReservaExitosa: React.FC = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const { ticketId, reservas, email } = location.state || {};
 
   useEffect(() => {
     confetti({
@@ -17,16 +13,6 @@ const ReservaExitosa: React.FC = () => {
       origin: { y: 0.6 },
     });
   }, []);
-
-  // Backend endpoint to download PDF (adjust as needed)
-  const handleDownload = () => {
-    if (reservas && Array.isArray(reservas) && reservas.length > 0) {
-      const ids = reservas.join(',');
-      window.open(`${API_BASE_URL}/eventos/pdf-entradas-multipaxina/?reservas=${ids}`, '_blank');
-    } else if (ticketId) {
-      window.open(`${API_BASE_URL}/descargar-pdf/${ticketId}`, '_blank');
-    }
-  };
 
   return (
     <>

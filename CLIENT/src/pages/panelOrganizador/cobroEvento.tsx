@@ -28,7 +28,6 @@ export default function CobroEvento() {
   const [stripeRecreateLoading, setStripeRecreateLoading] = useState(false);
   const [stripeDashboardLoading, setStripeDashboardLoading] = useState(false);
   const [stripeBankLast4, setStripeBankLast4] = useState<string | null>(null);
-  const [stripeBankBrand, setStripeBankBrand] = useState<string | null>(null);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [evento, setEvento] = useState<Evento | null>(null);
@@ -85,7 +84,6 @@ export default function CobroEvento() {
         }
         setStripeOnboardingCompleted(Boolean(data?.onboarding_completed));
         setStripeBankLast4(data?.bank_last4 ? String(data.bank_last4) : null);
-        setStripeBankBrand(data?.bank_brand ? String(data.bank_brand) : null);
       } catch (e: any) {
         setStripeStatusError(e?.message || "Erro comprobando Stripe");
       } finally {
@@ -345,12 +343,12 @@ export default function CobroEvento() {
 
               {/* Entradas Escaneadas */}
               <div className="text-center mt-3 mb-1">
-                <small className="text-muted d-block mb-1">Entradas Escaneadas</small>
+                <h5 className="text-muted d-block mb-1">Entradas Escaneadas</h5>
                 <div style={{ fontSize: "3rem", fontWeight: "bold", lineHeight: 1 }}>
                   {totalVendasConfirmadas > 0 ? Math.round((entradasVerificadas / totalVendasConfirmadas) * 100) : 0}%
                 </div>
                 <div className="text-muted" style={{ fontSize: "1rem" }}>
-                  {entradasVerificadas} de {totalVendasConfirmadas} entradas verificadas
+                  {entradasVerificadas} de {totalVendasConfirmadas}
                 </div>
               </div>
             </div>
