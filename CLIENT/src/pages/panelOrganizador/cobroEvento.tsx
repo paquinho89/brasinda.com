@@ -132,7 +132,7 @@ export default function CobroEvento() {
   // Usar comisión do backend (gastos_xestion)
   const comisionPct = (evento.gastos_xestion ?? 5) / 100;
   const comisionPorEntrada = (evento.prezo_evento || 0) * comisionPct;
-  const comisionTotal = (evento.entradas_vendidas || 0) * comisionPorEntrada;
+  const comisionTotal = (evento.entradas_vendidas || 0) * comisionPorEntrada * 1.21; // 21% IVA sobre a comisión
   const importeTotal = importeRecaudadoBruto - comisionTotal;
 
   const abrirStripeDashboard = async () => {
@@ -366,7 +366,7 @@ export default function CobroEvento() {
                     Recaudado bruto: {importeRecaudadoBruto.toFixed(2)} €
                   </small>
                   <small className="text-muted d-block">
-                    Comisión ({(comisionPct * 100).toFixed(2)}%): {comisionTotal.toFixed(2)} €
+                    Comisión ({(comisionPct * 100).toFixed(2)}%) + 21% IVA: {comisionTotal.toFixed(2)} €
                   </small>
                 </div>
               </div>

@@ -374,9 +374,14 @@ def evento_detail_view(request, pk):
 
     if request.method in ['PUT', 'PATCH']:
         partial = request.method == 'PATCH'
+        cobrado_antes = evento.evento_cobrado
         serializer = EventoSerializer(evento, data=request.data, partial=partial, context={'request': request})
         if serializer.is_valid():
             serializer.save()
+            # Se acaba de marcarse como cobrado, enviar notificación interna
+            if not cobrado_antes and serializer.instance.evento_cobrado:
+                from .email_entradas import enviar_notificacion_cobro_pendente
+                enviar_notificacion_cobro_pendente(serializer.instance)
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
 

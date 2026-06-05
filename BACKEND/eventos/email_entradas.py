@@ -267,3 +267,39 @@ def enviar_entradas_recuperadas_email(email, reservas_por_evento_data, pdf_buffe
         raise
 
 
+def enviar_notificacion_cobro_pendente(evento):
+    """Envía un aviso interno a paquinho89@gmail.com cando un organizador marca un evento como cobrado."""
+    from django.utils.timezone import localtime
+    data = localtime(evento.data_evento)
+    data_str = data.strftime('%A, %d de %B de %Y').capitalize()
+    hora_str = data.strftime('%H:%M')
+    org = evento.organizador
+    org_id = org.id if org else "?"
+    org_nome = getattr(org, 'nome_organizador', None) or getattr(org, 'first_name', '') or str(org)
+    org_email = getattr(org, 'email', '')
+    total = evento.total_a_pagar_ao_organizador
+    total_str = f"{float(total):.2f} €" if total is not None else "non calculado"
+
+    html_body = f"""
+    <h2>💰 Novo cobro pendente</h2>
+    <p>O organizador marcou o evento como cobrado e está pendente de pago.</p>
+    <table style="border-collapse:collapse;width:100%;max-width:500px;">
+      <tr><td style="padding:6px 12px;font-weight:bold;">ID organizador</td><td style="padding:6px 12px;">{org_id}</td></tr>
+      <tr style="background:#f9f9f9;"><td style="padding:6px 12px;font-weight:bold;">Nome organizador</td><td style="padding:6px 12px;">{org_nome}</td></tr>
+      <tr><td style="padding:6px 12px;font-weight:bold;">Email organizador</td><td style="padding:6px 12px;">{org_email}</td></tr>
+      <tr style="background:#f9f9f9;"><td style="padding:6px 12px;font-weight:bold;">Evento</td><td style="padding:6px 12px;">{evento.nome_evento}</td></tr>
+      <tr><td style="padding:6px 12px;font-weight:bold;">Data do evento</td><td style="padding:6px 12px;">{data_str} ás {hora_str}</td></tr>
+      <tr style="background:#f9f9f9;"><td style="padding:6px 12px;font-weight:bold;">Total a pagar</td><td style="padding:6px 12px;"><strong>{total_str}</strong></td></tr>
+    </table>
+    """
+    try:
+        resend.Emails.send({
+            "from": settings.DEFAULT_FROM_EMAIL,
+            "to": ["paquinho89@gmail.com"],
+            "subject": f"💰 Cobro pendente: {evento.nome_evento}",
+            "html": html_body,
+        })
+        print(f"[EMAIL COBRO PENDENTE] enviado para evento {evento.id}")
+    except Exception as e:
+        print(f"[ERRO EMAIL COBRO PENDENTE] evento {evento.id}: {e}")
+
