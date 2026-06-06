@@ -1,6 +1,6 @@
 import { Button } from "react-bootstrap";
 import MainNavbar from "../componentes/NavBar";
-import { FaCalendarAlt, FaMapMarkerAlt, FaEuroSign, FaExclamationTriangle, FaArrowLeft, FaCheckCircle } from "react-icons/fa";
+import { FaCalendarAlt, FaMapMarkerAlt, FaEuroSign, FaExclamationTriangle, FaArrowLeft, FaCheckCircle, FaTag } from "react-icons/fa";
 import API_BASE_URL from "../../utils/api";
 interface Evento {
   id: number;
@@ -14,6 +14,7 @@ interface Evento {
   gastos_xestion?: number;
   email_organizador?: string;
   evento_cobrado?: boolean;
+  tipo_gestion_entrada?: string;
 }
 
 import { useEffect, useState } from "react";
@@ -214,15 +215,24 @@ export default function CobroEvento() {
             </div>
 
             <div className="row mb-3">
-              <div className="col-md-12">
+              <div className="col-md-6">
                 <label className="fw-bold">
                   <FaEuroSign className="me-2" style={{ color: "#ff0093" }}/>
                   Precio por entrada:
                 </label>
                 <p>{evento.prezo_evento || 0} €</p>
               </div>
-            </div>
 
+              <div className="col-md-6">
+                <label className="fw-bold"><FaTag className="me-2" style={{ color: "#ff0093" }}/>Tipo de Xestión de Entrada:</label>
+                <p>
+                  {evento.tipo_gestion_entrada === 'pagina' && 'A través da páxina'}
+                  {evento.tipo_gestion_entrada === 'manual' && 'A través do organizador'}
+                  {evento.tipo_gestion_entrada === 'gratis' && 'De balde'}
+                  {!evento.tipo_gestion_entrada && '—'}
+                </p>
+              </div>
+            </div>
 
             {/* Barra visual de estado das entradas (idéntica a eventoDetalle.tsx salvo "Sen vender" en vez de "Disponibles") */}
             <div className="mb-3 mt-2">
@@ -368,26 +378,32 @@ export default function CobroEvento() {
               </div>
             )}
 
-            {!evento.evento_cobrado && (
+            {!evento.evento_cobrado && (evento.tipo_gestion_entrada === 'pagina' || evento.tipo_gestion_entrada === 'manual') && (
             <div className="row">
               <div className="col-md-12">
-                <label className="fw-bold h4">Importe Total a Cobrar:</label>
+                <label className="fw-bold h4">
+                  {evento.tipo_gestion_entrada === 'manual' ? 'Importe Recaudado:' : 'Importe Total a Cobrar:'}
+                </label>
                 <div className="p-3" style={{ border: "1px solid #ddd", borderRadius: "6px" }}>
                   <h3 className="mb-0">
-                    {importeTotal.toFixed(2)} €
+                    {evento.tipo_gestion_entrada === 'pagina' ? importeTotal.toFixed(2) : importeRecaudadoBruto.toFixed(2)} €
                   </h3>
-                  <small className="text-muted d-block mt-2">
-                    Recaudado bruto: {importeRecaudadoBruto.toFixed(2)} €
-                  </small>
-                  <small className="text-muted d-block">
-                    Comisión ({(comisionPct * 100)}%) + 21% IVA: {comisionTotal.toFixed(2)} €
-                  </small>
+                  {evento.tipo_gestion_entrada === 'pagina' && (
+                    <>
+                      <small className="text-muted d-block mt-2">
+                        Recaudado bruto: {importeRecaudadoBruto.toFixed(2)} €
+                      </small>
+                      <small className="text-muted d-block">
+                        Comisión ({(comisionPct * 100)}%) + 21% IVA: {comisionTotal.toFixed(2)} €
+                      </small>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
             )}
 
-            {!evento.evento_cobrado && (
+            {!evento.evento_cobrado && evento.tipo_gestion_entrada === 'pagina' && (
             <div className="row mb-3 mt-4">
               <div className="col-md-12">
                 {stripeStatusLoading ? (
@@ -489,7 +505,7 @@ export default function CobroEvento() {
             </div>
             )}
 
-            {!evento.evento_cobrado && (
+            {!evento.evento_cobrado && evento.tipo_gestion_entrada === 'pagina' && (
             <div className="d-flex gap-2 justify-content-between mt-4">
               <Button
                 className="reserva-entrada-btn"

@@ -32,7 +32,9 @@ FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173').rstrip('/')
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev-key-change-me')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
+DEBUG = os.getenv('DEBUG', 'True').lower() == 'false'
+
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
 
 # Supabase Storage for production
 if not DEBUG and os.getenv("SUPABASE_URL"):
