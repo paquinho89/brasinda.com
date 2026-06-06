@@ -48,19 +48,7 @@ export default function UserAvatarToggle({ hideLanguages = false }: { hideLangua
             <ListGroup.Item action onClick={() => { window.location.href = "/escanear-entradas"; setOpen(false); }}>
               <FaQrcode style={{ marginRight: "8px" }} /> Escanear entradas
             </ListGroup.Item>
-            {!hideLanguages && (
-              <>
-                <ListGroup.Item action onClick={() => { localStorage.setItem('language', 'gl'); setOpen(false); }}>
-                  <span style={{ marginRight: "8px" }}>🇬🇱</span> Galego
-                </ListGroup.Item>
-                <ListGroup.Item action onClick={() => { localStorage.setItem('language', 'es'); setOpen(false); }}>
-                  <span style={{ marginRight: "8px" }}>🇪🇸</span> Español
-                </ListGroup.Item>
-                <ListGroup.Item action onClick={() => { localStorage.setItem('language', 'en'); setOpen(false); }}>
-                  <span style={{ marginRight: "8px" }}>🇬🇧</span> English
-                </ListGroup.Item>
-              </>
-            )}
+            
             <ListGroup.Item action onClick={() => {
             logout();
             setOpen(false);

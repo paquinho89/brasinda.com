@@ -224,11 +224,11 @@ export default function CobroEvento() {
               </div>
 
               <div className="col-md-6">
-                <label className="fw-bold"><FaTag className="me-2" style={{ color: "#ff0093" }}/>Tipo de Xestión de Entrada:</label>
+                <label className="fw-bold"><FaTag className="me-2" style={{ color: "#ff0093" }}/>Xestión do Diñeiro:</label>
                 <p>
                   {evento.tipo_gestion_entrada === 'pagina' && 'A través da páxina'}
-                  {evento.tipo_gestion_entrada === 'manual' && 'A través do organizador'}
-                  {evento.tipo_gestion_entrada === 'gratis' && 'De balde'}
+                  {evento.tipo_gestion_entrada === 'manual' && 'A través de ti, o organizador'}
+                  {evento.tipo_gestion_entrada === 'gratis' && 'Evento de Balde'}
                   {!evento.tipo_gestion_entrada && '—'}
                 </p>
               </div>

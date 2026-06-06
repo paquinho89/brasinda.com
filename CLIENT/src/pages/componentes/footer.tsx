@@ -59,7 +59,7 @@ function Footer() {
                 onMouseLeave={(e) => e.currentTarget.style.color = "#ff0093"}>
                 <FaInstagram />
               </a>
-              <a href="mailto:contacto@eventospink.com"
+              <a href="mailto:eventos@brasinda.com"
                 style={{ color: "#ff0093", fontSize: "1.3rem", transition: "color 0.2s" }}
                 onMouseEnter={(e) => e.currentTarget.style.color = "#d1007a"}
                 onMouseLeave={(e) => e.currentTarget.style.color = "#ff0093"}>
@@ -175,22 +175,6 @@ function Footer() {
               </li>
               <li style={{ marginBottom: "0.75rem" }}>
                 <a
-                  onClick={() => navigate("/contacto")}
-                  style={{ 
-                    color: "#666", 
-                    textDecoration: "none",
-                    cursor: "pointer",
-                    fontSize: "0.95rem",
-                    transition: "color 0.2s"
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = "#ff0093"}
-                  onMouseLeave={(e) => e.currentTarget.style.color = "#666"}
-                >
-                  Contacto
-                </a>
-              </li>
-              <li style={{ marginBottom: "0.75rem" }}>
-                <a
                   onClick={handleOpenRecuperacionEntradas}
                   style={{ 
                     color: "#666", 
@@ -205,6 +189,22 @@ function Footer() {
                   onMouseLeave={(e) => e.currentTarget.style.color = "#666"}
                 >
                   Volver imprimir entradas
+                </a>
+              </li>
+              <li style={{ marginBottom: "0.75rem" }}>
+                  <a
+                  onClick={() => navigate("/sobre-nos")}
+                  style={{ 
+                    color: "#666", 
+                    textDecoration: "none",
+                    cursor: "pointer",
+                    fontSize: "0.95rem",
+                    transition: "color 0.2s"
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = "#ff0093"}
+                  onMouseLeave={(e) => e.currentTarget.style.color = "#666"}
+                >
+                  eventos@brasinda.com
                 </a>
               </li>
             </ul>
