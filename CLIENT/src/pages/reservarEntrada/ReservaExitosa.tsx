@@ -32,7 +32,7 @@ const ReservaExitosa: React.FC = () => {
     <>
       <MainNavbar />
       <div className="container py-4 text-center">
-        <h1 className="mb-4" style={{ color: '#ff0093', fontWeight: 800, fontSize: '2.4rem' }}>¡Reserva realizada con éxito!</h1>
+        <h1 className="mb-4" style={{ color: '#ff0093', fontWeight: 800, fontSize: '2.4rem' }}>Reserva realizada con éxito!</h1>
         <div className="d-flex justify-content-center mb-4">
           <button
             onClick={handleDownload}

@@ -21,7 +21,7 @@ import {
   FaGuitar,
   FaStore,
   FaStar,
-  FaMoneyBill,
+  FaCoins,
 } from "react-icons/fa";
 
 interface evento {
@@ -59,7 +59,8 @@ const getTipoIcon = (tipo?: string) => {
     case "Coloquio":
     case "Charla":
       return <FaCommentDots className="me-2" />;
-    case "Comida/Cena Popular":
+    case "Comida Popular":
+    case "Cea Popular":
       return <FaUtensils className="me-2" />;
     case "Festa Popular":
       return <FaGlassCheers className="me-2" />;
@@ -219,14 +220,7 @@ export default function DescripcionEvento() {
             )}
 
             {/* Botones arriba */}
-            <div className="d-flex gap-3 mb-3">
-              <Button
-                className="volver-btn"
-                onClick={() => navigate("/")}
-              >
-                <FaArrowLeft className="me-2" />
-                Volver
-              </Button>
+            <div className="d-flex justify-content-between gap-3 mb-3">
               {evento.evento_verificado && (
                 <Button
                   variant="success"
@@ -238,6 +232,13 @@ export default function DescripcionEvento() {
                   {evento.entradas_venta > 0 ? "Reservar Entrada" : "Agotadas"}
                 </Button>
               )}
+              <Button
+                className="volver-btn"
+                onClick={() => navigate("/")}
+              >
+                <FaArrowLeft className="me-2" />
+                Volver
+              </Button>
             </div>
             {/* Mensaxe se non está verificado */}
             {!evento.evento_verificado && (
@@ -249,26 +250,24 @@ export default function DescripcionEvento() {
 
             <div className="card mb-4 p-3">
               <p className="mb-2">
-                <FaCalendarAlt className="me-1" />
+                <FaCalendarAlt className="me-1" style={{ color: '#ff0093'}}/>
                 <strong>{dataFormato}</strong>
               </p>
               <p className="mb-2">
-                <FaClock className="me-1" />
+                <FaClock className="me-1" style={{ color: '#ff0093'}}/>
                 <strong>{horaFormato}</strong>
               </p>
               <p className="mb-2">
-                <strong className="text-success fs-5">
-                  {prezoAreas
-                    ? (prezoPVP > 0
-                        ? <span style={{ color: '#000', fontWeight: 700, fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: 4 }}><FaMoneyBill className="me-1" style={{ color: '#000', fontSize: '1.1em', verticalAlign: 'middle' }} />Desde: {prezoFormatado} €</span>
-                        : "Evento de Balde")
-                    : (prezoPVP > 0
-                        ? `Prezo: ${prezoFormatado} €`
-                        : "Evento de Balde")}
-                </strong>
+                {prezoAreas
+                  ? (prezoPVP == 0
+                      ? <><FaCoins className="me-1" style={{ color: '#ff0093'}}/><strong>Desde: {prezoFormatado} €</strong></>
+                      : <strong className="text-success">Evento de Balde</strong>)
+                  : (prezoPVP > 0
+                      ? <><FaCoins className="me-1" style={{ color: '#ff0093'}}/><strong>{prezoFormatado} €</strong></>
+                      : <strong className="text-success">Evento de Balde</strong>)}
               </p>
               <p className="mb-2">
-                <FaMapMarkerAlt className="me-1" />
+                <FaMapMarkerAlt className="me-1" style={{ color: '#ff0093'}}/>
                 <strong>{(() => {
               if (!evento.localizacion) return "";
               // Eliminar só 'GA' e 'España' e posibles comas/espazos antes/despois, pero nunca eliminar a localidade

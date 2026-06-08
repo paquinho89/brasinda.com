@@ -120,7 +120,8 @@ export default function TarjetaEventoHome({ evento, modoPublicacionExitosa }: Ev
       case "Coloquio":
       case "Charla":
         return <FaCommentDots style={{ marginRight: "6px", color: rosa }} />;
-      case "Comida/Cena Popular":
+      case "Comida Popular":
+      case "Cea Popular":
         return <FaUtensils style={{ marginRight: "6px", color: rosa }} />;
       case "Festa Popular":
         return <FaGlassCheers style={{ marginRight: "6px", color: rosa }} />;

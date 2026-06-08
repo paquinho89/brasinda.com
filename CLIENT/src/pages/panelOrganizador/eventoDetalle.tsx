@@ -627,7 +627,7 @@ export default function EventoDetalle() {
                 {evento.descripcion_evento && (
                   <div className="mt-3">
                     <p><FaRegFileAlt className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} /><strong>Descripción:</strong></p>
-                    <p><em>{evento.descripcion_evento}</em></p>
+                    <p style={{ whiteSpace: 'pre-line' }}><em>{evento.descripcion_evento}</em></p>
                   </div>
                 )}
                 <div className="d-flex flex-column align-items-start gap-2">
