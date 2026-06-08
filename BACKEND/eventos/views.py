@@ -608,7 +608,7 @@ def crear_payment_intent_stripe(request, evento_id):
         payment_intent = stripe.PaymentIntent.create(
             amount=amount_cents,
             currency="eur",
-            automatic_payment_methods={"enabled": True},
+            payment_method_configuration="pmc_1Tg1IL1wwymJRQZBEOs6GUu9",
             receipt_email=email or None,
             metadata={
                 "evento_id": str(evento.id),
@@ -640,11 +640,11 @@ def estado_payment_intent_stripe(request, payment_intent_id):
     except Exception as e:
         return Response({"error": f"Non se puido verificar o pago: {str(e)}"}, status=400)
 
-    paid = payment_intent.get("status") == "succeeded"
+    paid = payment_intent.status == "succeeded"
     return Response({
         "paid": paid,
-        "status": payment_intent.get("status"),
-        "payment_intent_id": payment_intent.get("id"),
+        "status": payment_intent.status,
+        "payment_intent_id": payment_intent.id,
     })
 
 

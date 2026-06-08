@@ -3,13 +3,10 @@ import React, { useState, useEffect } from "react";
 import { Modal } from "react-bootstrap";
 import { FaExclamationTriangle, FaArrowLeft } from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
-import { Elements, CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import "../../estilos/infoPagamento.css";
 import "../../estilos/Botones.css";
-
-import "../../estilos/infoPagamento.css";
-// import SummaryBox from "./SummaryBox";
 
 interface SelectedSeat {
   row: number;
@@ -33,24 +30,12 @@ const stripePublishableKey =
   "";
 const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
 
-const cardElementOptions = {
-  hidePostalCode: true,
-  style: {
-    base: {
-      fontSize: "16px",
-      color: "#212529",
-      fontFamily: "Arial, sans-serif",
-      "::placeholder": {
-        color: "#999",
-      },
-    },
-    invalid: {
-      color: "#d9534f",
-    },
-  },
-};
+interface InfoPagamentoProps {
+  clientSecret: string;
+  amountTotal: number | null;
+}
 
-const InfoPagamento_teu: React.FC = () => {
+const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
   const { eventoId, zona } = useParams<{ eventoId: string; zona: string }>();
   const navigate = useNavigate();
   const stripe = useStripe();
@@ -68,6 +53,14 @@ const InfoPagamento_teu: React.FC = () => {
   const [prezoZonaPvp, setPrezoZonaPvp] = useState<number | null>(null);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const [telefono, setTelefono] = useState("");
+  const handleTelefonoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digits = e.target.value.replace(/\D/g, "").slice(0, 9);
+    const formatted = digits.replace(/(\d{3})(?=\d)/g, "$1 ").trim();
+    setTelefono(formatted);
+  };
+  const [prefixo, setPrefixo] = useState("+34");
+  const [metodoPago, setMetodoPago] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [timeRemaining, setTimeRemaining] = useState(10 * 60);
@@ -164,6 +157,50 @@ const InfoPagamento_teu: React.FC = () => {
       navigate("/reserva-exitosa", { state: { ticketId, email: pendingEmail } });
     }
   };
+
+  // Verificar se volvemos dunha redirección de Stripe (Bizum)
+  useEffect(() => {
+    if (!stripe) return;
+    const params = new URLSearchParams(window.location.search);
+    const paymentIntentClientSecret = params.get("payment_intent_client_secret");
+    if (!paymentIntentClientSecret) return;
+
+    const pendingRaw = sessionStorage.getItem("brasinda_pending_payment");
+    if (!pendingRaw) return;
+
+    const pending = JSON.parse(pendingRaw);
+    sessionStorage.removeItem("brasinda_pending_payment");
+
+    // Limpar params da URL sen recargar
+    window.history.replaceState({}, "", window.location.pathname);
+
+    setLoading(true);
+    stripe.retrievePaymentIntent(paymentIntentClientSecret).then(async ({ paymentIntent }) => {
+      if (paymentIntent?.status === "succeeded") {
+        try {
+          const verif = await fetch(`${API_BASE_URL}/crear-eventos/stripe/payment-intent-status/${paymentIntent.id}/`);
+          if (!verif.ok) {
+            setError("Erro ao verificar o pago co servidor ("+verif.status+")");
+            setLoading(false);
+            return;
+          }
+          const verifData = await verif.json();
+          if (!verifData.paid || verifData.status !== "succeeded") {
+            setError("O pago non foi confirmado polo servidor. Estado: " + (verifData.status || "descoñecido"));
+            setLoading(false);
+            return;
+          }
+          finalizarReservaDespuesPago(pending);
+        } catch {
+          setError("Erro ao verificar o pago co servidor");
+          setLoading(false);
+        }
+      } else {
+        setError("O pago non se completou. Estado: " + (paymentIntent?.status || "descoñecido"));
+        setLoading(false);
+      }
+    });
+  }, [stripe]);
 
   // Fetch evento data
   useEffect(() => {
@@ -271,23 +308,6 @@ const InfoPagamento_teu: React.FC = () => {
     }
   }, []);
 
-  const obterEntradasParaPago = () => {
-    if (entradasSeleccionadas.length > 0) {
-      return entradasSeleccionadas;
-    }
-
-    if (Array.isArray(navigationState.reservas) && navigationState.reservas.length > 0) {
-      return navigationState.reservas.map((id: number) => ({ id }));
-    }
-
-    const cantidadeFallback = Number(cantidadeState || 0);
-    if (cantidadeFallback > 0) {
-      return Array.from({ length: cantidadeFallback }, (_, idx) => ({ idx }));
-    }
-
-    return [];
-  };
-
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -333,20 +353,7 @@ const InfoPagamento_teu: React.FC = () => {
       return;
     }
 
-    const cardElement = elements.getElement(CardElement);
-    if (!cardElement) {
-      setError("Non se puido cargar o formulario da tarxeta.");
-      setLoading(false);
-      return;
-    }
-
     try {
-      const entradasParaPago = obterEntradasParaPago();
-      if (entradasParaPago.length === 0) {
-        setError("Non hai entradas para procesar o pago.");
-        return;
-      }
-
       const pendingData = {
         seats: entradasSeleccionadas,
         reservas: navigationState.reservas || [],
@@ -356,47 +363,49 @@ const InfoPagamento_teu: React.FC = () => {
         zona,
       };
 
-      const response = await fetch(`${API_BASE_URL}/crear-eventos/${eventoId}/stripe/payment-intent/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          zona,
-          entradas: entradasParaPago,
-          email,
-          nome,
-        }),
-      });
+      // Gardar antes de redirixir (necesario para Bizum que sempre redirixe)
+      sessionStorage.setItem("brasinda_pending_payment", JSON.stringify(pendingData));
 
-      const data = await response.json();
-      if (!response.ok) {
-        setError(data.error || "Erro ao iniciar o pago con Stripe Elements");
-        return;
-      }
-
-      if (!data.client_secret) {
-        setError("Stripe non devolveu un client_secret válido");
-        return;
-      }
-
-      const confirmResult = await stripe.confirmCardPayment(data.client_secret, {
-        payment_method: {
-          card: cardElement,
-          billing_details: {
-            name: nome,
-            email,
+      const confirmResult = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          receipt_email: email,
+          return_url: `${window.location.href}`,
+          payment_method_data: {
+            billing_details: {
+              name: "",
+              email,
+              phone: telefono ? `${prefixo}${telefono.replace(/\s/g, "")}` : "",
+              address: { country: "ES", postal_code: "", state: "", city: "", line1: "", line2: "" },
+            },
           },
         },
+        redirect: "if_required",
       });
+
+      // Se chegamos aquí, non houbo redirección (pago con tarxeta)
+      sessionStorage.removeItem("brasinda_pending_payment");
 
       if (confirmResult.error) {
         setError(confirmResult.error.message || "Non se puido completar o pago");
         return;
       }
 
-      if (confirmResult.paymentIntent?.status !== "succeeded") {
-        setError("O pago non se completou correctamente");
+      const paymentIntentId = confirmResult.paymentIntent?.id;
+      if (!paymentIntentId) {
+        setError("Non se puido verificar o pago");
+        return;
+      }
+
+      // Verificar no backend que o pago é realmente succeeded
+      const verif = await fetch(`${API_BASE_URL}/crear-eventos/stripe/payment-intent-status/${paymentIntentId}/`);
+      if (!verif.ok) {
+        setError("Erro ao verificar o pago co servidor ("+verif.status+")");
+        return;
+      }
+      const verifData = await verif.json();
+      if (!verifData.paid || verifData.status !== "succeeded") {
+        setError("O pago non foi confirmado. Estado: " + (verifData.status || "descoñecido"));
         return;
       }
 
@@ -453,7 +462,7 @@ const InfoPagamento_teu: React.FC = () => {
   if (typeof prezoPvpUnitario === 'number' && !isNaN(prezoPvpUnitario) && cantidadeEntradasParaTotal > 0) {
     total = prezoPvpUnitario * cantidadeEntradasParaTotal;
   } else {
-    total = importeTotalState;
+    total = amountTotal ?? importeTotalState;
   }
   if (typeof total === 'number' && !isNaN(total)) {
     if (Number.isInteger(total)) {
@@ -494,23 +503,50 @@ const InfoPagamento_teu: React.FC = () => {
           <form onSubmit={handleSubmit} className="info-pagamento-formulario">
             {/* INFORMACIÓN DE PAGO */}
             <div className="form-section">
-              <h3>Información de Pago</h3>
+              <h3>Método de Pago</h3>
               <div className="form-group">
-                <label htmlFor="nome">Nome Titular Tarxeta</label>
-                <input
-                  id="nome"
-                  type="text"
-                  placeholder="Introduce o teu nome"
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                  disabled={loading}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Tarxeta</label>
-                <div className="stripe-card-element-wrapper">
-                  <CardElement options={cardElementOptions} />
+                <div className="stripe-card-element-wrapper" style={{ padding: 0 }}>
+                  <div style={{ padding: "12px 14px" }}>
+                    <PaymentElement
+                      options={{
+                        fields: { billingDetails: "never" },
+                        terms: { card: "never" },
+                      }}
+                      onChange={(e) => setMetodoPago(e.value.type)}
+                    />
+                  </div>
+                  {metodoPago === "bizum" && (
+                    <div style={{ padding: "12px 14px" }}>
+                      <label htmlFor="telefono" style={{ display: "block", marginBottom: 6, fontSize: "1rem", color: "#555" }}><strong>Teléfono Bizum</strong></label>
+                      <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+                        <select
+                          value={prefixo}
+                          onChange={(e) => setPrefixo(e.target.value)}
+                          disabled={loading}
+                          style={{ border: "none", outline: "none", background: "transparent", fontSize: "1rem", color: "#212529", cursor: "pointer", paddingRight: 4, flexShrink: 0 }}
+                        >
+                          <option value="+34">🇪🇸 +34</option>
+                          <option value="+351">🇵🇹 +351</option>
+                          <option value="+33">🇫🇷 +33</option>
+                          <option value="+49">🇩🇪 +49</option>
+                          <option value="+39">🇮🇹 +39</option>
+                          <option value="+44">🇬🇧 +44</option>
+                          <option value="+1">🇺🇸 +1</option>
+                        </select>
+                        <span style={{ color: "#d9d9d9", marginRight: 8 }}>|</span>
+                        <input
+                          id="telefono"
+                          type="tel"
+                          placeholder="600 000 000"
+                          value={telefono}
+                          onChange={handleTelefonoChange}
+                          disabled={loading}
+                          required
+                          style={{ flex: 1, border: "none", outline: "none", fontSize: "1rem", background: "transparent", color: "#212529" }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -552,6 +588,44 @@ const InfoPagamento_teu: React.FC = () => {
 };
 
 const InfoPagamentoWrapper: React.FC = () => {
+  const { eventoId, zona } = useParams<{ eventoId: string; zona: string }>();
+  const navigationState = window.history.state?.usr || {};
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [amountTotal, setAmountTotal] = useState<number | null>(null);
+  const [loadingIntent, setLoadingIntent] = useState(true);
+  const [errorIntent, setErrorIntent] = useState("");
+
+  useEffect(() => {
+    if (!stripePromise || !eventoId) { setLoadingIntent(false); return; }
+
+    const seats = navigationState.seats || [];
+    const reservas = navigationState.reservas || [];
+    const cantidade = Number(navigationState.cantidade || 0);
+    let entradas: any[] = [];
+    if (seats.length > 0) entradas = seats;
+    else if (reservas.length > 0) entradas = reservas.map((id: number) => ({ id }));
+    else if (cantidade > 0) entradas = Array.from({ length: cantidade }, (_, i) => ({ idx: i }));
+
+    if (entradas.length === 0) { setLoadingIntent(false); return; }
+
+    fetch(`${API_BASE_URL}/crear-eventos/${eventoId}/stripe/payment-intent/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ zona, entradas }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.client_secret) {
+          setClientSecret(data.client_secret);
+          setAmountTotal(data.amount_total ?? null);
+        } else {
+          setErrorIntent(data.error || "Erro ao iniciar o pago");
+        }
+      })
+      .catch(() => setErrorIntent("Erro de conexión ao iniciar o pago"))
+      .finally(() => setLoadingIntent(false));
+  }, [eventoId, zona]);
+
   if (!stripePromise) {
     return (
       <div className="info-pagamento-page verde">
@@ -565,9 +639,34 @@ const InfoPagamentoWrapper: React.FC = () => {
     );
   }
 
+  if (loadingIntent) {
+    return (
+      <div className="info-pagamento-page verde">
+        <div className="info-pagamento-container">
+          <div style={{ textAlign: "center", padding: "40px" }}>
+            <h2>Iniciando pago...</h2>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (errorIntent || !clientSecret) {
+    return (
+      <div className="info-pagamento-page verde">
+        <div className="info-pagamento-container">
+          <div style={{ textAlign: "center", padding: "40px" }}>
+            <h2>Erro</h2>
+            <p>{errorIntent || "Non se puido iniciar o proceso de pago"}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <Elements stripe={stripePromise}>
-      <InfoPagamento_teu />
+    <Elements stripe={stripePromise} options={{ clientSecret, locale: "es" }}>
+      <InfoPagamento_teu clientSecret={clientSecret} amountTotal={amountTotal} />
     </Elements>
   );
 };

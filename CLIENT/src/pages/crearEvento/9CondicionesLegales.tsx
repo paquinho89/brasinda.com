@@ -134,7 +134,7 @@ const CondicionesLegales: React.FC = () => {
   };
 
   return (
-    <Container className="py-5 d-flex justify-content-center">
+    <Container className="py-5 px-3 d-flex justify-content-center">
       <Card
         className="shadow-sm"
         style={{ maxWidth: "600px", width: "100%" }}

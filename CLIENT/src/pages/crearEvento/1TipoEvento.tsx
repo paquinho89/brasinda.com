@@ -18,7 +18,6 @@ const TIPOS_EVENTO = [
   "Festival",
   "Feira",
   "Cine",
-  "Andaina",
   "Partido",
   "Andaina",
   "Carreira",
