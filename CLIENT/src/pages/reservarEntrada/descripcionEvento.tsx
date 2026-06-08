@@ -203,7 +203,7 @@ export default function DescripcionEvento() {
                 src={imageUrl}
                 alt={evento.nome_evento}
                 className="img-fluid rounded shadow"
-                style={{ maxHeight: "500px", objectFit: "cover", width: "100%" }}
+                style={{ width: "100%", height: "auto", objectFit: "contain" }}
               />
             )}
           </div>

@@ -335,12 +335,6 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
     setError("");
     setLoading(true);
 
-    if (!nome) {
-      setError("O nome é obrigatorio");
-      setLoading(false);
-      return;
-    }
-
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setError("Email non válido");
       setLoading(false);

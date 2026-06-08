@@ -691,21 +691,22 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
     icon_size = 18
     icon_gap = 10
     x_text = x_icon
+    x_text_nota = x_icon + icon_size + icon_gap  # aliñar coa localizacion_str
     max_width = width - x_text - 18
     y_lugar = y
     if nota_lugar:
         localizacion_str = lugar_text
-        nota_str = f"Nota: {nota_lugar}"
+        nota_str = f"{nota_lugar}"
         first_line = localizacion_str + " (" + nota_str + ")"
         if stringWidth(first_line, main_font, main_size) <= max_width:
             draw_icon_and_text_left("location.png", localizacion_str, y_lugar, font_size=main_size)
             y_lugar -= main_size + 1
             p.setFillColorRGB(0.2, 0.2, 0.2)
             p.setFont(nota_bold_font, nota_size)
-            p.drawString(x_text, y_lugar, "Nota:")
+            p.drawString(x_text_nota, y_lugar, "Nota:")
             nota_offset = stringWidth("Nota:", nota_bold_font, nota_size)
             p.setFont(nota_font, nota_size)
-            p.drawString(x_text + nota_offset + 2, y_lugar, str(nota_lugar))
+            p.drawString(x_text_nota + nota_offset + 2, y_lugar, str(nota_lugar))
             p.setFillColorRGB(0, 0, 0)
             y_lugar -= nota_size + 2
         else:
@@ -716,13 +717,13 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
             for i, nline in enumerate(nota_lines):
                 if nline.startswith("Nota:"):
                     p.setFont(nota_bold_font, nota_size)
-                    p.drawString(x_text, y_lugar, "Nota:")
+                    p.drawString(x_text_nota, y_lugar, "Nota:")
                     nota_offset = stringWidth("Nota:", nota_bold_font, nota_size)
                     p.setFont(nota_font, nota_size)
-                    p.drawString(x_text + nota_offset + 2, y_lugar, nline[5:].lstrip())
+                    p.drawString(x_text_nota + nota_offset + 2, y_lugar, nline[5:].lstrip())
                 else:
                     p.setFont(nota_font, nota_size)
-                    p.drawString(x_text, y_lugar, nline)
+                    p.drawString(x_text_nota, y_lugar, nline)
                 y_lugar -= nota_size + 1
             p.setFillColorRGB(0, 0, 0)
             y_lugar -= 2
@@ -842,7 +843,11 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
 
     # Footer: Organizador e CIF/NIF centrado abaixo
     org = getattr(evento, "organizador", None)
-    nome_organizador = getattr(org, "nome", None) or getattr(org, "nome_organizador", None) or "-"
+    tipo_org = getattr(org, "tipo_organizador", None) or ""
+    if tipo_org.lower() == "particular":
+        nome_organizador = getattr(org, "nome_organizador", None) or "-"
+    else:
+        nome_organizador = getattr(org, "nome_empresa", None) or getattr(org, "nome_organizador", None) or "-"
     nif_organizador = getattr(org, "nif_cif", None) or getattr(org, "cif", None) or getattr(org, "nif", None) or "-"
     footer_text = f"Organizador: {nome_organizador} | NIF: {nif_organizador}"
     p.setFont("Helvetica", 8)
