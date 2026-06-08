@@ -608,7 +608,7 @@ def crear_payment_intent_stripe(request, evento_id):
         payment_intent = stripe.PaymentIntent.create(
             amount=amount_cents,
             currency="eur",
-            payment_method_configuration="pmc_1Tg1IL1wwymJRQZBEOs6GUu9",
+            payment_method_configuration=getattr(settings, "STRIPE_PAYMENT_METHOD_CONFIGURATION", "pmc_1Tg1IL1wwymJRQZBEOs6GUu9"),
             receipt_email=email or None,
             metadata={
                 "evento_id": str(evento.id),

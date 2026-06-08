@@ -5,7 +5,7 @@ import { useAuth } from "../AuthContext";
 import { useTranslations } from "../../i18n/useTranslations";
 import { useNavigate } from "react-router-dom";
 
-export default function UserAvatarToggle({ hideLanguages = false }: { hideLanguages?: boolean }) {
+export default function UserAvatarToggle() {
   const navigate = useNavigate();
   const { organizador, logout } = useAuth();
   const { t } = useTranslations();
