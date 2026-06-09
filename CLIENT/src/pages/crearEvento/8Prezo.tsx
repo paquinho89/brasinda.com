@@ -7,9 +7,13 @@ import { ZONAS_AUDITORIOS } from "../planoAuditorios/ZonasAuditorios";
 import { FaExclamationTriangle } from "react-icons/fa";
 
 const PrezoContaBancaria: React.FC = () => {
+  // 5% gastos de xestión (usado nos cálculos inline)
   const [mostrarZonas, setMostrarZonas] = React.useState(false);
   const { evento, setEvento } = useOutletContext<OutletContext>();
   const [prezo, setPrezo] = useState<string>("");
+  const [checkOrganizador, setCheckOrganizador] = useState<boolean>(false);
+  const [checkComprador, setCheckComprador] = useState<boolean>(false);
+  const [tipoIVE, setTipoIVE] = useState<"reducido" | "xeral">("xeral");
   // Estados dinámicos para prezos por zona
   const [prezosZona, setPrezosZona] = useState<{ [zona: string]: string }>({});
   const [errorPrezoZona, setErrorPrezoZona] = useState("");
@@ -120,15 +124,28 @@ const PrezoContaBancaria: React.FC = () => {
           return acc;
         }, {} as { [zona: string]: string });
       }
+      const pvpCalculado = (() => {
+        const base = Number(prezo.replace(",", "."));
+        if (!isNaN(base) && base > 0) {
+          let extra = 0;
+          if (checkOrganizador) extra += base * 0.05 * 1.21;
+          if (checkComprador) extra += base * (tipoIVE === "reducido" ? 0.10 : 0.21);
+          return extra > 0 ? (base + extra).toFixed(2).replace(".", ",") : prezo;
+        }
+        return prezo;
+      })();
+      const gastosAsumeValor: "organizador" | "comprador" = checkComprador ? "comprador" : "organizador";
       if (todasZonasCubertas) {
         setEvento({
           ...evento,
           precio: '',
-          precios_zona: prezosZonaGardar
+          precios_zona: prezosZonaGardar,
+          gastosAsume: gastosAsumeValor,
+          pvp: pvpCalculado,
         });
       } else {
         const precioNumerico = Number(prezo.replace(",", "."));
-        setEvento({ ...evento, precio: precioNumerico.toFixed(2).replace(".", ","), precios_zona: prezosZonaGardar });
+        setEvento({ ...evento, precio: precioNumerico.toFixed(2).replace(".", ","), precios_zona: prezosZonaGardar, gastosAsume: gastosAsumeValor, pvp: pvpCalculado });
       }
       // Limpar prezosZona do localStorage ao avanzar
       localStorage.removeItem("prezosZona");
@@ -143,7 +160,7 @@ const PrezoContaBancaria: React.FC = () => {
 
   return (
   <Container className="py-5 d-flex justify-content-center">
-    <Card className="shadow-sm" style={{ maxWidth: "500px", width: "100%" }}>
+    <Card className="shadow-sm" style={{ maxWidth: "700px", width: "100%" }}>
       <Card.Body className="p-4">
         <h3 className="text-center mb-4">Prezo da entrada</h3>
         {/* Botón para mostrar/ocultar zonas do auditorio para calquera auditorio con zonas */}
@@ -188,6 +205,63 @@ const PrezoContaBancaria: React.FC = () => {
                         {errorPrezo}
                     </div>
                   )}
+                </Form.Group>
+              )}
+              {/* Checkboxes de gastos de xestión */}
+              {!mostrarZonas && prezo !== "" && Number(prezo.replace(",", ".")) > 0 && (
+                <Form.Group className="mb-3">
+                  {(() => {
+                    const base = Number(prezo.replace(",", "."));
+                    const gastosBase = base * 0.05;
+                    const gastosIVE = gastosBase * 0.21;
+                    const gastosTotais = gastosBase + gastosIVE; // prezo*0.05 + prezo*0.05*0.21
+                    const fmtGastos = (!isNaN(base) && base > 0)
+                      ? gastosTotais.toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                      : null;
+                   
+                    return (
+                      <>
+                        <Form.Check
+                          type="checkbox"
+                          id="gastos-organizador"
+                          label={fmtGastos
+                            ? <span>O organizador asume os gastos de xestión ({gastosBase.toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€ (5%) + {gastosIVE.toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€ (21%)) = <strong>{fmtGastos} €</strong></span>
+                            : "O organizador asume os gastos de xestión (5%) + IVE (21%)"
+                          }
+                          checked={checkOrganizador}
+                          onChange={() => setCheckOrganizador(prev => !prev)}
+                          className="mb-2"
+                        />
+              
+                        {!isNaN(base) && base > 0 && (() => {
+                          // PVP = base + o que NON asume o organizador (paga o comprador)
+                          const pvpTotal = base
+                            + (checkOrganizador ? 0 : gastosTotais)
+                          // Recibes = base - o que SI asume o organizador
+                          const recibeTotal = base
+                            - (checkOrganizador ? gastosTotais : 0)
+                          const fmtPvpTotal = pvpTotal.toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                          const fmtRecibe = recibeTotal.toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                          return (
+                            <div style={{ marginTop: 18, borderTop: "2px solid #dee2e6", paddingTop: 14 }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#f1e4f7", borderRadius: 8, padding: "10px 14px", marginBottom: 8 }}>
+                                <span style={{ fontSize: "1em" }}>Recibes por entrada</span>
+                                <strong style={{ fontSize: "1.25em", color: "black" }}>{fmtRecibe} €</strong>
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fff0f8", borderRadius: 8, padding: "10px 14px" }}>
+                                <span style={{ fontSize: "1em" }}>Prezo Venta</span>
+                                <strong style={{ fontSize: "1.25em", color: "black" }}>{fmtPvpTotal} €</strong>
+                              </div>
+                              <div className="mt-3" style={{ fontSize: "1.0em", color: "#555" }}>
+                                <span><FaExclamationTriangle style={{ fontSize: "1.3em", color: '#ff0093', marginRight: 8 }} />O organizador é responsable de tramitar o <strong>IVE</strong> do valor recibido por entrada: {fmtRecibe} €</span>
+                              </div>
+                            </div>
+                            
+                          );
+                        })()}
+                      </>
+                    );
+                  })()}
                 </Form.Group>
               )}
               {(() => {

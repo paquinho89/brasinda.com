@@ -245,7 +245,7 @@ def _actualizar_contadores_evento(evento):
     entradas_vendidas = reservas_venta.count()
 
     total_dinheiro_recadado = reservas_venta.aggregate(
-        total=Sum('prezo_entrada')
+        total=Sum('prezo_pvp')
     )['total'] or Decimal('0')
 
     gastos_pct = evento.gastos_xestion or Decimal('0')
@@ -520,6 +520,15 @@ def reservar_entradas(request, evento_id):
                     )
             
             # Create new reservation (only when no existing non-canceled reservation found)
+            zona_qs = ZonaPrezo.objects.filter(evento=evento, nome__iexact=zona).first() if zona else None
+            if zona_qs and zona_qs.prezo_pvp is not None:
+                _prezo_pvp = zona_qs.prezo_pvp
+            elif zona_qs and zona_qs.prezo is not None:
+                _prezo_pvp = zona_qs.prezo
+            elif evento.prezo_pvp is not None:
+                _prezo_pvp = evento.prezo_pvp
+            else:
+                _prezo_pvp = evento.prezo_evento
             reserva = ReservaButaca.objects.create(
                 evento=evento,
                 zona=zona,
@@ -530,6 +539,7 @@ def reservar_entradas(request, evento_id):
                 nome_titular=nome_titular_seat,
                 lugar_entrada=evento.localizacion,
                 prezo_entrada=evento.prezo_evento,
+                prezo_pvp=_prezo_pvp,
                 email=email,
                 fecha_expiracion=fecha_expiracion if estado == ReservaButaca.ESTADO_TEMPORAL else None,
                 estado=estado
@@ -605,17 +615,20 @@ def crear_payment_intent_stripe(request, evento_id):
 
     try:
         stripe.api_key = stripe_secret
-        payment_intent = stripe.PaymentIntent.create(
-            amount=amount_cents,
-            currency="eur",
-            payment_method_configuration=getattr(settings, "STRIPE_PAYMENT_METHOD_CONFIGURATION", "pmc_1Tg1IL1wwymJRQZBEOs6GUu9"),
-            receipt_email=email or None,
-            metadata={
+        payment_intent_params: dict = {
+            "amount": amount_cents,
+            "currency": "eur",
+            "receipt_email": email or None,
+            "metadata": {
                 "evento_id": str(evento.id),
                 "zona": zona,
                 "cantidade": str(cantidade),
             },
-        )
+        }
+        pmc = getattr(settings, "STRIPE_PAYMENT_METHOD_CONFIGURATION", None)
+        if pmc:
+            payment_intent_params["payment_method_configuration"] = pmc
+        payment_intent = stripe.PaymentIntent.create(**payment_intent_params)
     except Exception as e:
         return Response({"error": f"Erro ao crear PaymentIntent: {str(e)}"}, status=500)
 
@@ -857,10 +870,12 @@ def invitacions_sen_plano(request, evento_id):
                     nome_titular=titular,
                     lugar_entrada=evento.localizacion,
                     prezo_entrada=evento.prezo_evento,
+                    prezo_pvp=evento.prezo_pvp if evento.prezo_pvp is not None else evento.prezo_evento,
                     estado=ReservaButaca.ESTADO_CONFIRMADO,
                     email=email if email else (email_suscripcion if email_suscripcion else None),
                 )
             )
+        novas_objs = []
         if novas:
             ReservaButaca.objects.bulk_create(novas)
             # Asignar codigo_validacion a cada reserva creada

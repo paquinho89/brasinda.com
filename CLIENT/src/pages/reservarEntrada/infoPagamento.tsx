@@ -26,7 +26,7 @@ interface Evento {
 
 const stripePublishableKey =
   (import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined) ||
-  (import.meta.env.VITE_STRIPEPUBLISHABLE_KEY as string | undefined) ||
+  (import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined) ||
   "";
 const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
 

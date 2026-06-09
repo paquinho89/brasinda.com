@@ -25,6 +25,7 @@ export interface Evento {
   procedimiento_cobro_manual?: string;
   condicionesConfirmacion: boolean;
   precios_zona?: { [zona: string]: string };
+  gastosAsume?: "organizador" | "comprador";
   nomeCompleto?: string; // Para contrato
   nifCif?: string; // Para contrato
   dataNacemento?: string; // Para contrato
@@ -58,6 +59,7 @@ export function CreateEventLayout() {
     procedimiento_cobro_manual: "",
     esAuditorio: false,
     condicionesConfirmacion: false,
+    gastosAsume: "organizador",
     nomeCompleto: "",
     nifCif: "",
     dataNacemento: "",

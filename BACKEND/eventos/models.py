@@ -163,6 +163,7 @@ class ReservaButaca(models.Model):
     nome_titular = models.CharField(max_length=200, null=True, blank=True)
     lugar_entrada = models.CharField(max_length=200, null=True, blank=True)
     prezo_entrada = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    prezo_pvp = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     data_creacion = models.DateTimeField(auto_now_add=True)
     email = models.EmailField(blank=True, null=True)
     fecha_expiracion = models.DateTimeField(blank=True, null=True)
