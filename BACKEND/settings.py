@@ -112,7 +112,13 @@ WSGI_APPLICATION = 'BACKEND.wsgi.application'
 # CORS settings: sempre require orixe explícito e credenciais para cookies
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [FRONTEND_URL]
+CORS_ALLOWED_ORIGINS = [
+    FRONTEND_URL,
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
+]
 # Se queres permitir máis orixes, engádeos aquí:
 # CORS_ALLOWED_ORIGINS = [FRONTEND_URL, "http://outro-front.com"]
 

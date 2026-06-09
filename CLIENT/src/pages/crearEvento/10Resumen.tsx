@@ -17,11 +17,11 @@ const Resumen: React.FC = () => {
 
   // Limpeza de prezos de zona se o evento é gratuíto
   React.useEffect(() => {
-    const isGratis = (!evento.precio || parseFloat(evento.precio) === 0) && (!evento.precios_zona || Object.values(evento.precios_zona).every(p => parseFloat((p as string).replace(',', '.')) === 0));
+    const isGratis = (!evento.prezo_recibe_organizador || parseFloat(evento.prezo_recibe_organizador) === 0) && (!evento.precios_zona || Object.values(evento.precios_zona).every(p => parseFloat((p as string).replace(',', '.')) === 0));
     if (isGratis && evento.precios_zona && Object.keys(evento.precios_zona).length > 0) {
       evento.precios_zona = {};
     }
-  }, [evento.precio, evento.precios_zona]);
+  }, [evento.prezo_recibe_organizador, evento.precios_zona]);
 
   const { apiFetch } = useApi();
   const handleConfirmCreate = async () => {
@@ -29,7 +29,7 @@ const Resumen: React.FC = () => {
     setError("");
 
     // Se hai prezos por zona, establecer o prezo mínimo como prezo principal e prezo_areas a true
-    let precioFinal = evento.precio;
+    let precioFinal = evento.prezo_recibe_organizador;
     let prezoAreas = false;
     if (evento.precios_zona && Object.values(evento.precios_zona).length > 0) {
       // Filtrar só prezos válidos (>0)
@@ -252,27 +252,22 @@ const Resumen: React.FC = () => {
               </div>
               <div className="col-md-6"></div>
             </div>
-          ) : ((evento.precio && parseFloat(evento.precio) > 0) || (evento.precios_zona && Object.values(evento.precios_zona).some(p => parseFloat((p as string).replace(',', '.')) > 0))) ? (
+          ) : ((evento.prezo_recibe_organizador && parseFloat(evento.prezo_recibe_organizador) > 0) || (evento.precios_zona && Object.values(evento.precios_zona).some(p => parseFloat((p as string).replace(',', '.')) > 0))) ? (
             <div className="row mb-3">
               <div className="col-12">
                 <table className="table table-bordered w-100" style={{ background: '#f8f9fa', margin: 0 }}>
                   <tbody>
-                    {evento.precio && parseFloat(evento.precio) > 0 && (
+                    {evento.prezo_recibe_organizador && parseFloat(evento.prezo_recibe_organizador) > 0 && (
                       <tr>
-                        <th style={{ width: '50%' }}>Prezo</th>
-                        <td>{evento.precio} €</td>
+                        <th style={{ width: '50%' }}>Recibes por entrada</th>
+                        <td>{evento.prezo_recibe_organizador} €</td>
                       </tr>
                     )}
-                    {evento.precio && parseFloat(evento.precio) > 0 && evento.tipo_gestion_entrada === "pagina" && (
+                    {evento.prezo_recibe_organizador && parseFloat(evento.prezo_recibe_organizador) > 0 && evento.tipo_gestion_entrada === "pagina" && (
                       <>
                         <tr>
-                          <th>PVP</th>
-                          <td>{(parseFloat(evento.precio.replace(',', '.')) * 1.05).toFixed(2).replace('.', ',')} €</td>
-                        </tr>
-                        <tr>
-                          <td colSpan={2} style={{ fontSize: '0.95em', color: '#888', textAlign: 'right', borderTop: 'none' }}>
-                            *Gastos xestión: 5%
-                          </td>
+                          <th>Prezo Venta</th>
+                          <td>{evento.prezo_venta || evento.prezo_recibe_organizador} €</td>
                         </tr>
                       </>
                     )}
@@ -303,8 +298,13 @@ const Resumen: React.FC = () => {
                           <tr key={zona}>
                             <td>{zona}</td>
                             <td>{prezo} €</td>
-                            {evento.tipo_gestion_entrada === 'pagina' ? (
-                              <td>{(parseFloat((prezo as string).replace(',', '.')) * 1.05).toFixed(2).replace('.', ',')} €</td>
+                            {evento.tipo_gestion_entrada === 'pagina' && evento.prezo_venta ? (
+                              <td>{(() => {
+                                const baseZ = parseFloat((prezo as string).replace(',', '.'));
+                                const prezo_venta = (baseZ * 0.05)+ (baseZ * 0.05)*0.21; // 5% gastos xestión + 21% IVE sobre os gastos
+                                
+                                return prezo_venta.toFixed(2).replace('.', ',');
+                              })()} €</td>
                             ) : null}
                           </tr>
                         );

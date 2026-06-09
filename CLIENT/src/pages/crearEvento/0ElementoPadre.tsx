@@ -18,14 +18,16 @@ export interface Evento {
   coordenadas?: number[];
   esAuditorio?: boolean;
   entradas: number;
-  precio: string;
-  pvp: string;
+  prezo_recibe_organizador: string;
+  prezo_venta: string;
+  prezo_base: string;
   iban: string;
   tipo_gestion_entrada?: "pagina" | "manual" | "gratis" | null;
   procedimiento_cobro_manual?: string;
   condicionesConfirmacion: boolean;
   precios_zona?: { [zona: string]: string };
   gastosAsume?: "organizador" | "comprador";
+  asumeFees?: boolean;
   nomeCompleto?: string; // Para contrato
   nifCif?: string; // Para contrato
   dataNacemento?: string; // Para contrato
@@ -52,14 +54,16 @@ export function CreateEventLayout() {
     nota_lugar: "",
     coordenadas: [],
     entradas: 0,
-    precio: "",
-    pvp: "", 
+    prezo_recibe_organizador: "",
+    prezo_venta: "",
+    prezo_base: "", 
     iban: "",
     tipo_gestion_entrada: null,
     procedimiento_cobro_manual: "",
     esAuditorio: false,
     condicionesConfirmacion: false,
     gastosAsume: "organizador",
+    asumeFees: false,
     nomeCompleto: "",
     nifCif: "",
     dataNacemento: "",
