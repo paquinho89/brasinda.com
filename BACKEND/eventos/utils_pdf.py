@@ -757,11 +757,9 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
                 if base == 0 or pct == 0 or tipo_gestion == "a través do organizador":
                     desglose_str = None
                 else:
-                    importe_gastos = (base * pct / 100)+(base * pct / 100)*0.21  # Imos calcular o importe dos gastos coa parte de IVE que corresponde
-                    base_str = str(int(base)) if float(base) == int(base) else (f"{base:.2f}".rstrip("0").rstrip("."))
-                    gastos_str = str(int(importe_gastos)) if float(importe_gastos) == int(importe_gastos) else (f"{importe_gastos:.2f}".rstrip("0").rstrip("."))
-                    #pct_str = str(int(pct)) if float(pct) == int(pct) else (f"{pct:.2f}".rstrip("0").rstrip("."))
-                    desglose_str = f"→ {base_str} € + {gastos_str} € xestión"
+                    importe_gastos = prezo_pvp-prezo_evento  # Imos calcular o importe dos gastos coa parte de IVE que corresponde
+                    gastos_str = str(int(importe_gastos)) if float(importe_gastos) == int(importe_gastos) else (f"{importe_gastos:.2f}")
+                    desglose_str = f"→ {prezo_evento} € + {gastos_str} € xestión"
             except Exception:
                 desglose_str = "→ Desglose non dispoñible"
         # Construír a liña de prezo e desglose xuntos
