@@ -1,7 +1,7 @@
 import API_BASE_URL from "../../utils/api";
 import React, { useState, useEffect } from "react";
 import { Modal } from "react-bootstrap";
-import { FaExclamationTriangle, FaArrowLeft } from "react-icons/fa";
+import { FaExclamationTriangle } from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
