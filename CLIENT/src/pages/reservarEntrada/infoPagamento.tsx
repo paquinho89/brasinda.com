@@ -472,15 +472,6 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
         {/* HEADER */}
         <div className="info-pagamento-header">
           <div className="header-content" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="boton-avance"
-              style={{ position: 'absolute', left: 0, top: 0 }}
-            >
-              <FaArrowLeft className="me-2" />
-              Volver
-            </button>
             <div style={{ textAlign: 'center' }}>
               <h2 style={{ marginBottom: 0 }}>{evento?.nome_evento || "Tarxeta de PAgo"}</h2>
               <p className="evento-fecha" style={{ marginTop: 4 }}>{evento && formatDate(evento.data_evento)}</p>
