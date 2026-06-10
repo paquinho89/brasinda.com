@@ -28,25 +28,34 @@ const Resumen: React.FC = () => {
     setIsSubmitting(true);
     setError("");
 
-    // Se hai prezos por zona, establecer o prezo mínimo como prezo principal e prezo_areas a true
-    let precioFinal = evento.prezo_recibe_organizador;
+    // Calcular prezo_evento (recibe organizador) e prezo_venta (pvp comprador)
+    // seguindo a mesma lóxica que se mostra no Resumen
+    const gastosFactor = 0.05 * 1.21;
+    let precioEventoBackend: string | null = null;
+    let prezoVentaBackend: string | null = null;
     let prezoAreas = false;
+
     if (evento.precios_zona && Object.values(evento.precios_zona).length > 0) {
-      // Filtrar só prezos válidos (>0)
       const prezosValidos = Object.values(evento.precios_zona)
         .map(p => parseFloat((p as string).replace(",", ".")))
         .filter(p => !isNaN(p) && p > 0);
       if (prezosValidos.length > 0) {
-        const minPrezo = Math.min(...prezosValidos);
-        precioFinal = minPrezo.toFixed(2).replace(".", ",");
         prezoAreas = true;
+        const recibesValidos = prezosValidos.map(base =>
+          evento.asumeFees ? base - base * gastosFactor : base
+        );
+        const pvpValidos = prezosValidos.map(base =>
+          evento.asumeFees ? base : base + base * gastosFactor
+        );
+        precioEventoBackend = Math.min(...recibesValidos).toFixed(2);
+        prezoVentaBackend = Math.min(...pvpValidos).toFixed(2);
       }
+    } else if (evento.prezo_recibe_organizador && evento.prezo_recibe_organizador !== "") {
+      precioEventoBackend = evento.prezo_recibe_organizador.replace(",", ".");
+      prezoVentaBackend = evento.prezo_venta
+        ? evento.prezo_venta.replace(",", ".")
+        : precioEventoBackend;
     }
-
-    const precioBackend =
-      precioFinal && precioFinal !== ""
-        ? precioFinal.replace(",", ".")
-        : null;
 
     const formData = new FormData();
     formData.append("tipo_evento", evento.tipo);
@@ -66,7 +75,8 @@ const Resumen: React.FC = () => {
     formData.append("localizacion", evento.lugar);
     formData.append("tipo_localizacion", evento.ubicacion);
     formData.append("entradas_venta", evento.entradas.toString());
-    if (precioBackend !== null) formData.append("prezo_evento", precioBackend);
+    if (precioEventoBackend !== null) formData.append("prezo_recibe_organizador", precioEventoBackend);
+    if (prezoVentaBackend !== null) formData.append("prezo_venta", prezoVentaBackend);
     formData.append("prezo_areas", prezoAreas ? "true" : "false");
     if (evento.tipo_gestion_entrada) formData.append("tipo_gestion_entrada", evento.tipo_gestion_entrada);
     if (evento.procedimiento_cobro_manual) formData.append("procedimiento_cobro_manual", evento.procedimiento_cobro_manual);
@@ -75,9 +85,23 @@ const Resumen: React.FC = () => {
     if (evento.coordenadas && evento.coordenadas.length > 0) {
       formData.append("coordenadas", JSON.stringify(evento.coordenadas));
     }
-    // Gardar prezos por zona se existen
+    // Gardar prezos por zona se existen, incluíndo prezo_recibe_organizador e prezo_venta por área
     if (evento.precios_zona && Object.keys(evento.precios_zona).length > 0) {
-      formData.append("precios_zona", JSON.stringify(evento.precios_zona));
+      const preciosZonaDetalles = Object.fromEntries(
+        Object.entries(evento.precios_zona)
+          .filter(([, prezo]) => parseFloat((prezo as string).replace(',', '.')) > 0)
+          .map(([zona, prezo]) => {
+            const baseZ = parseFloat((prezo as string).replace(',', '.'));
+            const gastos = baseZ * 0.05 * 1.21;
+            const prezoVenta = evento.asumeFees ? baseZ : baseZ + gastos;
+            const recibe = evento.asumeFees ? baseZ - gastos : baseZ;
+            return [zona, {
+              prezo_recibe_organizador: recibe.toFixed(2).replace('.', ','),
+              prezo_venta: prezoVenta.toFixed(2).replace('.', ','),
+            }];
+          })
+      );
+      formData.append("precios_zona", JSON.stringify(preciosZonaDetalles));
     }
     if (evento.duracion !== undefined && evento.duracion !== null && evento.duracion !== 0) {
       formData.append("duracion", String(evento.duracion));
@@ -86,7 +110,14 @@ const Resumen: React.FC = () => {
       "condiciones_confirmacion",
       evento.condicionesConfirmacion ? "true" : "false"
     );
-    // NON engadir nomeCompleto, nifCif, enderezoFiscal, telefono ao evento
+    formData.append(
+      "condiciones_confirmacion",
+      evento.condicionesConfirmacion ? "true" : "false"
+    );
+    formData.append(
+      "asume_gastos_organizador",
+      evento.asumeFees ? "true" : "false"
+    );
 
     try {
       let response = await apiFetch(`${API_BASE_URL}/crear-eventos/`, {
@@ -285,9 +316,9 @@ const Resumen: React.FC = () => {
                   <thead>
                     <tr>
                       <th style={{ width: evento.tipo_gestion_entrada === 'pagina' ? '40%' : '50%' }}>Zona</th>
-                      <th style={{ width: evento.tipo_gestion_entrada === 'pagina' ? '30%' : '50%' }}>Prezo</th>
+                      <th style={{ width: evento.tipo_gestion_entrada === 'pagina' ? '30%' : '50%' }}>Recibes por entrada</th>
                       {evento.tipo_gestion_entrada === 'pagina' ? (
-                        <th style={{ width: '30%' }}>PVP</th>
+                        <th style={{ width: '30%' }}>Prezo Venta</th>
                       ) : null}
                     </tr>
                   </thead>
@@ -297,12 +328,17 @@ const Resumen: React.FC = () => {
                         return (
                           <tr key={zona}>
                             <td>{zona}</td>
-                            <td>{prezo} €</td>
-                            {evento.tipo_gestion_entrada === 'pagina' && evento.prezo_venta ? (
+                            <td>{(() => {
+                              const baseZ = parseFloat((prezo as string).replace(',', '.'));
+                              const gastos = baseZ * 0.05 * 1.21;
+                              const recibe = evento.asumeFees ? (baseZ - gastos) : baseZ;
+                              return recibe.toFixed(2).replace('.', ',');
+                            })()} €</td>
+                            {evento.tipo_gestion_entrada === 'pagina' ? (
                               <td>{(() => {
                                 const baseZ = parseFloat((prezo as string).replace(',', '.'));
-                                const prezo_venta = (baseZ * 0.05)+ (baseZ * 0.05)*0.21; // 5% gastos xestión + 21% IVE sobre os gastos
-                                
+                                const gastos = evento.asumeFees ? 0 : baseZ * 0.05 * 1.21;
+                                const prezo_venta = baseZ + gastos;
                                 return prezo_venta.toFixed(2).replace('.', ',');
                               })()} €</td>
                             ) : null}
@@ -315,7 +351,7 @@ const Resumen: React.FC = () => {
                 </table>
                 {evento.tipo_gestion_entrada === 'pagina' && (
                   <div style={{ fontSize: '0.95em', color: '#888', textAlign: 'right', marginTop: 4 }}>
-                    *Gastos de xestión: 5%
+                    *O organizador é o encargado de tramitar o IVE do diñeiro que recibe por entrada.
                   </div>
                 )}
               </div>

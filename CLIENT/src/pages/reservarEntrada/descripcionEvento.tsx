@@ -33,7 +33,7 @@ interface evento {
   localidade: string;
   nota_lugar?: string;
   entradas_venta: number;
-  prezo_evento?: number;
+  prezo_recibe_organizador?: number;
   descripcion_evento?: string;
   tipo_evento?: string;
   coordenadas?: [number, number];
@@ -119,13 +119,13 @@ export default function DescripcionEvento() {
 
   const handleReservation = () => {
     if (!evento) return;
-    const precioTotal = (evento.prezo_evento || 0) * cantidad;
+    const precioTotal = (evento.prezo_recibe_organizador || 0) * cantidad;
 
     const reservaData = {
       eventoId: evento.id,
       eventoNombre: evento.nome_evento,
       cantidadEntradas: cantidad,
-      precioUnitario: evento.prezo_evento,
+      precioUnitario: evento.prezo_recibe_organizador,
       precioTotal: precioTotal,
       imaxe_evento: evento.imaxe_evento,
       localizacion: evento.localizacion,
@@ -185,10 +185,10 @@ export default function DescripcionEvento() {
     minute: "2-digit",
   });
 
-  const prezoPVP = Number((evento as any).prezo_pvp ?? 0);
-  const prezoFormatado = Number.isInteger(prezoPVP)
-    ? String(prezoPVP)
-    : prezoPVP.toFixed(2);
+  const prezoVenta = Number((evento as any).prezo_venta ?? 0);
+  const prezoFormatado = prezoVenta.toFixed(2)
+    ? String(prezoVenta)
+    : prezoVenta.toFixed(2);
 
   // Mostrar 'Dende:' se prezo_areas é true
   const prezoAreas = (evento as any).prezo_areas === true || (evento as any).prezo_areas === 'true';
@@ -259,10 +259,10 @@ export default function DescripcionEvento() {
               </p>
               <p className="mb-2">
                 {prezoAreas
-                  ? (prezoPVP == 0
-                      ? <><FaCoins className="me-1" style={{ color: '#ff0093'}}/><strong>Desde: {prezoFormatado} €</strong></>
+                  ? (prezoVenta > 0
+                      ? <><FaCoins className="me-1" style={{ color: '#ff0093'}}/><strong>Dende: {prezoFormatado} €</strong></>
                       : <strong className="text-success">Evento de Balde</strong>)
-                  : (prezoPVP > 0
+                  : (prezoVenta > 0
                       ? <><FaCoins className="me-1" style={{ color: '#ff0093'}}/><strong>{prezoFormatado} €</strong></>
                       : <strong className="text-success">Evento de Balde</strong>)}
               </p>

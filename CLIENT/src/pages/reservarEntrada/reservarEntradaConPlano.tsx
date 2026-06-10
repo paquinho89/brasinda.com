@@ -25,6 +25,8 @@ interface Evento {
   entradas_vendidas?: number;
   prezo_evento?: number;
   prezo_pvp?: number | null;
+  prezo_venta?: number | null;
+  prezo_recibe_organizador?: number | null;
   procedimiento_cobro_manual?: string | null;
 }
 
@@ -277,7 +279,7 @@ export default function ReservarEntrada() {
               <SummaryBox
                   ref={summaryBoxRef}
                   entradasSeleccionadas={entradasSeleccionadas}
-                  prezoEvento={evento.prezo_pvp ?? evento.prezo_evento}
+                  prezoEvento={evento.prezo_venta ?? evento.prezo_pvp ?? evento.prezo_evento ?? evento.prezo_recibe_organizador}
                   onEliminarButaca={handleEliminarButaca}
                   onNomeChange={(idx, novoNome) => {
                     setEntradasSeleccionadas(prev => {
@@ -319,7 +321,7 @@ export default function ReservarEntrada() {
                 </p>
               </div>
             )}
-            {evento.prezo_evento != null && (
+            {(evento.prezo_venta != null || evento.prezo_pvp != null || evento.prezo_evento != null || evento.prezo_recibe_organizador != null) && (
               <>
                 <Button
                   className="reserva-entrada-btn mt-3"

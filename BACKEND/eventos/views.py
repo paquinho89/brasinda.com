@@ -521,12 +521,12 @@ def reservar_entradas(request, evento_id):
             
             # Create new reservation (only when no existing non-canceled reservation found)
             zona_qs = ZonaPrezo.objects.filter(evento=evento, nome__iexact=zona).first() if zona else None
-            if zona_qs and zona_qs.prezo_pvp is not None:
-                _prezo_pvp = zona_qs.prezo_pvp
+            if zona_qs and zona_qs.prezo_venta is not None:
+                _prezo_pvp = zona_qs.prezo_venta
             elif zona_qs and zona_qs.prezo is not None:
                 _prezo_pvp = zona_qs.prezo
-            elif evento.prezo_pvp is not None:
-                _prezo_pvp = evento.prezo_pvp
+            elif evento.prezo_venta is not None:
+                _prezo_pvp = evento.prezo_venta
             else:
                 _prezo_pvp = evento.prezo_evento
             reserva = ReservaButaca.objects.create(
@@ -538,7 +538,7 @@ def reservar_entradas(request, evento_id):
                 tipo_reserva=tipo_reserva,
                 nome_titular=nome_titular_seat,
                 lugar_entrada=evento.localizacion,
-                prezo_entrada=evento.prezo_evento,
+                prezo_entrada=evento.prezo_recibe_organizador,
                 prezo_pvp=_prezo_pvp,
                 email=email,
                 fecha_expiracion=fecha_expiracion if estado == ReservaButaca.ESTADO_TEMPORAL else None,
@@ -575,12 +575,12 @@ def reservar_entradas(request, evento_id):
 
 def _calcular_total_evento(evento, zona, entradas):
     zona_qs = ZonaPrezo.objects.filter(evento=evento, nome__iexact=zona).first() if zona else None
-    if zona_qs and zona_qs.prezo_pvp is not None:
-        prezo_unitario = zona_qs.prezo_pvp
+    if zona_qs and zona_qs.prezo_venta is not None:
+        prezo_unitario = zona_qs.prezo_venta
     elif zona_qs and zona_qs.prezo is not None:
         prezo_unitario = zona_qs.prezo
-    elif evento.prezo_pvp is not None:
-        prezo_unitario = evento.prezo_pvp
+    elif evento.prezo_venta is not None:
+        prezo_unitario = evento.prezo_venta
     else:
         prezo_unitario = evento.prezo_evento
 
@@ -869,8 +869,8 @@ def invitacions_sen_plano(request, evento_id):
                     tipo_reserva=tipo_reserva,
                     nome_titular=titular,
                     lugar_entrada=evento.localizacion,
-                    prezo_entrada=evento.prezo_evento,
-                    prezo_pvp=evento.prezo_pvp if evento.prezo_pvp is not None else evento.prezo_evento,
+                    prezo_entrada=evento.prezo_recibe_organizador,
+                    prezo_pvp=evento.prezo_venta if evento.prezo_venta is not None else evento.prezo_recibe_organizador,
                     estado=ReservaButaca.ESTADO_CONFIRMADO,
                     email=email if email else (email_suscripcion if email_suscripcion else None),
                 )

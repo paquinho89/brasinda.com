@@ -52,8 +52,8 @@ def xerar_pdf_contrato(evento, organizador):
     tipo_xestion_text = tipo_gestion
     if procedemento_cobro_manual:
         tipo_xestion_text = f"{tipo_xestion_text} ({procedemento_cobro_manual})"
-    prezo_evento = getattr(evento, 'prezo_evento', '')
-    prezo_pvp = getattr(evento, 'prezo_pvp', '')
+    prezo_evento = getattr(evento, 'prezo_recibe_organizador', '')
+    prezo_pvp = getattr(evento, 'prezo_venta', '')
     entradas_venta = getattr(evento, 'entradas_venta', '')
     gastos_xestion = getattr(evento, 'gastos_xestion', '')
 
@@ -75,7 +75,7 @@ def xerar_pdf_contrato(evento, organizador):
         for z in zonas:
             nome = getattr(z, 'nome', str(z))
             prezo = getattr(z, 'prezo', None)
-            prezo_pvp_z = getattr(z, 'prezo_pvp', None)
+            prezo_pvp_z = getattr(z, 'prezo_venta', None)
             partes = []
             if prezo is not None:
                 partes.append(f"{prezo} €")
@@ -736,9 +736,9 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
     y = y_lugar - MARXE_EXTRA_PREZO
 
     # Prezo
-    prezo_evento = getattr(evento, "prezo_evento", None)
+    prezo_evento = getattr(evento, "prezo_recibe_organizador", None)
     gastos_xestion = getattr(evento, "gastos_xestion", None)
-    prezo_pvp = getattr(evento, "prezo_pvp", None)
+    prezo_pvp = getattr(evento, "prezo_venta", None)
     tipo_gestion = getattr(evento, "tipo_gestion_entrada", None)
     forma_pago = getattr(evento, "forma_pago", None)
     # Preferir o procedemento_cobro_manual da reserva se existe, senón do evento
@@ -757,11 +757,11 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
                 if base == 0 or pct == 0 or tipo_gestion == "a través do organizador":
                     desglose_str = None
                 else:
-                    importe_gastos = base * pct / 100
+                    importe_gastos = (base * pct / 100)+(base * pct / 100)*0.21  # Imos calcular o importe dos gastos coa parte de IVE que corresponde
                     base_str = str(int(base)) if float(base) == int(base) else (f"{base:.2f}".rstrip("0").rstrip("."))
                     gastos_str = str(int(importe_gastos)) if float(importe_gastos) == int(importe_gastos) else (f"{importe_gastos:.2f}".rstrip("0").rstrip("."))
-                    pct_str = str(int(pct)) if float(pct) == int(pct) else (f"{pct:.2f}".rstrip("0").rstrip("."))
-                    desglose_str = f"→ {base_str} € + {gastos_str} € xestión ({pct_str}%)"
+                    #pct_str = str(int(pct)) if float(pct) == int(pct) else (f"{pct:.2f}".rstrip("0").rstrip("."))
+                    desglose_str = f"→ {base_str} € + {gastos_str} € xestión"
             except Exception:
                 desglose_str = "→ Desglose non dispoñible"
         # Construír a liña de prezo e desglose xuntos
@@ -783,7 +783,7 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
         x_actual = x_prezo + p.stringWidth(prezo_text, "Helvetica-Bold", 12)
         y = y_icon  # Manter y para o resto do layout
         if desglose_str:
-            p.setFont("Helvetica", 12)
+            p.setFont("Helvetica", 10)
             p.drawString(x_actual + 8, y, desglose_str)
         p.setFillColorRGB(0, 0, 0)
         y -= 2  # Espazo mínimo tras prezo antes de 'Pago'

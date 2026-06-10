@@ -64,11 +64,33 @@ class EventoSerializer(serializers.ModelSerializer):
         # Crear ZonaPrezo se hai prezos por zona
         if precios_zona and isinstance(precios_zona, dict):
             for nome, prezo in precios_zona.items():
+                prezo_recibe = None
+                prezo_venta = None
+                if isinstance(prezo, dict):
+                    prezo_recibe = prezo.get('prezo_recibe_organizador')
+                    prezo_venta = prezo.get('prezo_venta')
+                else:
+                    prezo_recibe = prezo
+
                 try:
-                    prezo_float = float(str(prezo).replace(",", "."))
+                    prezo_recibe_float = float(str(prezo_recibe).replace(",", "."))
                 except Exception:
                     continue
-                ZonaPrezo.objects.create(evento=evento, nome=nome, prezo=prezo_float)
+
+                if prezo_venta is not None:
+                    try:
+                        prezo_venta_float = float(str(prezo_venta).replace(",", "."))
+                    except Exception:
+                        prezo_venta_float = None
+                else:
+                    prezo_venta_float = None
+
+                ZonaPrezo.objects.create(
+                    evento=evento,
+                    nome=nome,
+                    prezo_recibe_organizador=prezo_recibe_float,
+                    prezo_venta=prezo_venta_float,
+                )
 
         return evento
 

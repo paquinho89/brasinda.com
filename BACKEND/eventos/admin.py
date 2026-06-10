@@ -103,7 +103,7 @@ class EventoAdmin(admin.ModelAdmin):
 
 @admin.register(ZonaPrezo)
 class ZonaPrezoAdmin(admin.ModelAdmin):
-    list_display = ("id", "nome", "prezo", "evento")
+    list_display = ("id", "nome", "prezo_recibe_organizador", "prezo_venta", "evento")
 
 @admin.register(ReservaButaca)
 class ReservaButacaAdmin(admin.ModelAdmin):

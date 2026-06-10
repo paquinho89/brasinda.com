@@ -153,7 +153,13 @@ const PrezoContaBancaria: React.FC = () => {
           asumeFees: checkOrganizador,
         });
       } else {
-        setEvento({ ...evento, prezo_base: prezo, prezo_recibe_organizador: recibeCalculado, precios_zona: prezosZonaGardar, gastosAsume: gastosAsumeValor, asumeFees: checkOrganizador, prezo_venta: pvpCalculado });
+        setEvento({ ...evento, 
+                    prezo_base: prezo, 
+                    prezo_recibe_organizador: recibeCalculado, 
+                    precios_zona: prezosZonaGardar, 
+                    gastosAsume: gastosAsumeValor, 
+                    asumeFees: checkOrganizador, 
+                    prezo_venta: pvpCalculado });
       }
       // Limpar prezosZona do localStorage ao avanzar
       localStorage.removeItem("prezosZona");

@@ -19,8 +19,8 @@ interface Evento {
   data_evento: string;
   entradas_venta: number;
   entradas_reservadas: number;
-  prezo_evento: number | null;
-  prezo_pvp?: number | null;
+  prezo_recibe_organizador: number | null;
+  prezo_venta?: number | null;
   tipo_gestion_entrada?: string;
 }
 
@@ -228,10 +228,10 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
         } else {
           data.prezo_evento = null;
         }
-        if (data.prezo_pvp !== null && data.prezo_pvp !== undefined && data.prezo_pvp !== '') {
-          data.prezo_pvp = parseFloat(data.prezo_pvp);
+        if (data.prezo_venta !== null && data.prezo_venta !== undefined && data.prezo_venta !== '') {
+          data.prezo_venta = parseFloat(data.prezo_venta);
         } else {
-          data.prezo_pvp = null;
+          data.prezo_venta = null;
         }
         
         setEvento(data);
@@ -261,7 +261,7 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
           (z: any) => typeof z?.nome === "string" && z.nome.toLowerCase() === zona.toLowerCase()
         );
         if (!zonaActual) return;
-        const pvp = Number(zonaActual.prezo_pvp ?? zonaActual.prezo);
+        const pvp = Number(zonaActual.prezo_venta ?? zonaActual.prezo);
         if (!isNaN(pvp)) {
           setPrezoZonaPvp(pvp);
         }
@@ -446,7 +446,7 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
 
   // Usar o importeTotal do state se existe, senón calcular
   let importeTotal: string | null = null;
-  const prezoPvpUnitario = prezoZonaPvp ?? evento?.prezo_pvp ?? prezoEventoState ?? evento?.prezo_evento ?? null;
+  const prezoPvpUnitario = prezoZonaPvp ?? evento?.prezo_venta ?? prezoEventoState ?? evento?.prezo_recibe_organizador ?? null;
   let total = null as number | null;
   const cantidadeEntradasParaTotal = entradasSeleccionadas.length > 0
     ? entradasSeleccionadas.length
