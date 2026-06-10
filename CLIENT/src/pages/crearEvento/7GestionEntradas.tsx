@@ -109,7 +109,7 @@ const GestionEntradas: React.FC = () => {
                   // Limpar prezos do obxecto evento
                   setEvento({
                     ...evento,
-                    precio: "0,00",
+                    prezo_recibe_organizador: "0,00",
                     precios_zona: {},
                     tipo_gestion_entrada: "gratis"
                   });
