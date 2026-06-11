@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 
-
 interface SelectedSeat {
   row: number;
   seat: number;
@@ -17,17 +16,24 @@ interface Props {
   blockReservedSeats?: boolean;
 }
 
-// Cada fila é un array, onde "null" é espazo / pasillo 54
 export const AUDITORIO: (number | null)[][] = [
-  [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,null,1,1,1,1,1,1,1,1,1,1], //6
-  [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,null,1,1,1,1,1,1,1,1,1,1], //5
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,null,null,null,null,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,null,null,null,null,null,null,null,null,null,null,null], //4
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,null,null,null,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,null,null,null,null,null,null,null,null,null,null,null],  //3
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null], //2
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null] //1
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,null,null,null], //14
+    [null,null,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,null,null,null], //13
+    [null,null,null,null,1,1,1,1,1,1,1,1,1,1,1,1,1,1,null,null], //12
+    [null,null,null,null,null,1,1,1,1,1,1,1,1,1,1,1,1,1,null,null], //11
+    [null,null,null,null,null,null,1,1,1,1,1,1,1,1,1,1,1,1,null,null], //10
+    [null,null,null,null,null,null,1,1,1,1,1,1,1,1,1,1,1,1,null,null], //9
+    [null,null,null,null,null,null,null,null,1,1,1,1,1,1,1,1,1,1,1,null], //8
+    [null,null,null,null,null,null,null,null,1,1,1,1,1,1,1,1,1,1,1,null], //7
+    [null,null,null,null,null,null,null,null,null,1,1,1,1,1,1,1,1,1,1,null], //6
+    [null,null,null,null,null,null,null,null,null,1,1,1,1,1,1,1,1,1,1,null], //5
+    [null,null,null,null,null,null,null,null,null,null,null,1,1,1,1,1,1,1,1,1], //4
+    [null,null,null,null,null,null,null,null,null,null,null,1,1,1,1,1,1,1,1,1], //3
+    [null,null,null,null,null,null,null,null,null,null,null,null,1,1,1,1,1,1,1,1], //2
+    [null,null,null,null,null,null,null,null,null,null,null,null,null,1,1,1,1,1,1,1],       //1 
 ];
 
-const AuditorioOurenseAnfiteatro: React.FC<Props> = ({
+const AuditorioOurenseEsquerda: React.FC<Props> = ({
   selectedSeats,
   reservedSeats,
   myReservedSeats,
@@ -99,12 +105,14 @@ const AuditorioOurenseAnfiteatro: React.FC<Props> = ({
     handleSelectionChange(updated);
   };
 
+
+
   return (
-    <>
-      <div className="auditorio-seatmap-wrapper" style={{ padding: 20 }}>
+    <div style={{ padding: 20 }}>
       {(() => {
         // Calcular números de fila só para as filas que teñen butacas
         const filasConButacas = AUDITORIO.filter(row => !row.every(seat => seat === null));
+        
         // Calcular map de rowIndex a numeroFila para consistencia
         const rowIndexToFila = new Map<number, number>();
         let filaCounter = filasConButacas.length;
@@ -114,15 +122,16 @@ const AuditorioOurenseAnfiteatro: React.FC<Props> = ({
             filaCounter--;
           }
         });
+
         return (
           <>
             {AUDITORIO.map((row, rowIndex) => {
               const isEmptyRow = row.every(seat => seat === null);
               const displayNumber = isEmptyRow ? "" : rowIndexToFila.get(rowIndex);
+
               return (
                 <div
                   key={rowIndex}
-                  className="auditorio-seat-row"
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -132,7 +141,6 @@ const AuditorioOurenseAnfiteatro: React.FC<Props> = ({
                 >
                   {/* Número de fila */}
                   <div
-                    className="auditorio-row-number"
                     style={{
                       width: 30,
                       textAlign: "right",
@@ -143,9 +151,11 @@ const AuditorioOurenseAnfiteatro: React.FC<Props> = ({
                   >
                     {displayNumber}
                   </div>
+
                   {/* Butacas */}
                   <div style={{ display: "flex" }}>
                     {row.map((seat, colIndex) => {
+
                       if (seat === null) {
                         return (
                           <div
@@ -154,11 +164,14 @@ const AuditorioOurenseAnfiteatro: React.FC<Props> = ({
                           />
                         );
                       }
+
                       const realRow = isEmptyRow ? -1 : displayNumber;
                       const realSeat = colIndex + 1;
+
                       const isReserved = activeReservedSeats.some(
                         (s) => s.row === realRow && s.seat === realSeat
                       );
+
                       const isMyReserved = activeMyReservedSeats.some(
                         (s) => s.row === realRow && s.seat === realSeat
                       );
@@ -168,9 +181,11 @@ const AuditorioOurenseAnfiteatro: React.FC<Props> = ({
                       const isSelected = activeSelectedSeats.some(
                         (s) => s.row === realRow && s.seat === realSeat
                       );
+
                       let className = "butaca ";
                       let cursor = "pointer";
                       let title = "";
+                      
                       if (!areaActiva) {
                         className += "butaca-inactiva";
                         cursor = "not-allowed";
@@ -191,6 +206,7 @@ const AuditorioOurenseAnfiteatro: React.FC<Props> = ({
                       } else {
                         className += "butaca-dispoñible";
                       }
+
                       return (
                         <div
                           key={colIndex}
@@ -212,46 +228,53 @@ const AuditorioOurenseAnfiteatro: React.FC<Props> = ({
         );
       })()}
 
-      {/* FRECHA ESCENARIO AO FONDO */}
+      {/* ESCENARIO - Frecha grande á dereita */}
       <div
         style={{
-          marginTop: 35,
+          marginTop: 25,
           display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        {/* Corpo máis delgado */}
         <div
           style={{
-            width: 120,
-            height: 32,
-            backgroundColor: "#222",
-            color: "white",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            fontWeight: "bold",
-            letterSpacing: 2,
           }}
         >
-          ESCENARIO
-        </div>
+          {/* Corpo máis delgado */}
+          <div
+            style={{
+              width: 180,
+              height: 40,
+              backgroundColor: "#222",
+              color: "white",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: "bold",
+              letterSpacing: 2,
+              borderTopLeftRadius: 6,
+              borderBottomLeftRadius: 6,
+            }}
+          >
+            ESCENARIO
+          </div>
 
-        {/* Cabeza máis ancha ca o corpo */}
-        <div
-          style={{
-            width: 0,
-            height: 0,
-            borderLeft: "90px solid transparent",
-            borderRight: "90px solid transparent",
-            borderTop: "60px solid #222",
-          }}
-        />
+          {/* Punta GRANDE á dereita */}
+          <div
+            style={{
+              width: 0,
+              height: 0,
+              borderTop: "35px solid transparent",
+              borderBottom: "35px solid transparent",
+              borderLeft: "60px solid #222",
+            }}
+          />
+        </div>
       </div>
     </div>
-  </>
   );
 };
 
-export default AuditorioOurenseAnfiteatro;
+export default AuditorioOurenseEsquerda;

@@ -317,6 +317,10 @@ from io import BytesIO
 from django.http import HttpResponse
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+from reportlab.platypus import Table, TableStyle
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib import colors
+from reportlab.lib.units import mm
 import qrcode
 from django.conf import settings
 
@@ -324,6 +328,9 @@ def xerar_pdf_listado(evento, reservas):
     """
     Xera un PDF cun listado de entradas/invitacións, mostrando o nome do evento, data e lugar no heading.
     """
+    from reportlab.platypus import Table, TableStyle
+    from reportlab.lib import colors
+
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4

@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import "../../../estilos/BotonesAuditorios.css";
 import AuditorioOurenseAnfiteatro, { AUDITORIO as AUDITORIO_OURENSE_ANFITEATRO } from "../Planos/auditorioOurense/anfiteatro";
 import AuditorioOurenseZonaCentral, { AUDITORIO as AUDITORIO_OURENSE_CENTRAL } from "../Planos/auditorioOurense/zonaCentral";
-import AuditorioOurenseDereita, { AUDITORIO as AUDITORIO_OURENSE_DEREITA } from "../Planos/auditorioOurense/dereita";
-import AuditorioOurenseEsquerda, { AUDITORIO as AUDITORIO_OURENSE_ESQUERDA } from "../Planos/auditorioOurense/esquerda";
+import AuditorioOurenseDereita, { AUDITORIO as AUDITORIO_OURENSE_DEREITA } from "../Planos/auditorioOurense/ZonaLateralDereita";
+import AuditorioOurenseEsquerda, { AUDITORIO as AUDITORIO_OURENSE_ESQUERDA } from "../Planos/auditorioOurense/zonaLateralEsquerda";
 
 type Zona = "anfiteatro" | "esquerda" | "central" | "dereita";
 
