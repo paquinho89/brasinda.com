@@ -49,6 +49,7 @@ function ToggleHamburguer() {
                   <FaTicketAlt style={{ marginRight: "8px", color: "#ff0093" }} />
                   {t("toggle.reprintTicket")}
                 </ListGroup.Item>
+                {/*
                 <ListGroup.Item className="seccion-secundaria d-flex align-items-center gap-2">
                   <FaGlobe style={{ color: "#ff0093" }} />
                   <span style={{ marginRight: 4 }}>Idioma:</span>
@@ -68,6 +69,7 @@ function ToggleHamburguer() {
                     </span>
                   ))}
                 </ListGroup.Item>
+                */}
             </ListGroup>
             </Card>
         </>

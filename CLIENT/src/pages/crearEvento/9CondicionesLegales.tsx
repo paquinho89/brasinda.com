@@ -241,7 +241,12 @@ const CondicionesLegales: React.FC = () => {
             <Form.Group className="mb-3">
               <Form.Check
                 type="checkbox"
-                label="Lin e acepto o contrato de colaboración"
+                id="lin-acepto"
+                label={
+                  <strong>
+                    Lin e acepto o contrato de colaboración
+                  </strong>
+                }
                 checked={aceptacionCondiciones}
                 onChange={(e) =>
                   setAceptacionCondiciones(e.target.checked)
@@ -264,14 +269,6 @@ const CondicionesLegales: React.FC = () => {
                   {touched.nifCif && nifCif.trim() === "" && (
                     <div className="text-danger small">Este campo é obrigatorio</div>
                   )}
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Check
-                    type="checkbox"
-                    label="Declaro baixo a miña responsabilidade que son maior de idade"
-                    checked={maiorIdade}
-                    onChange={(e) => setMaiorIdade(e.target.checked)}
-                  />
                 </Form.Group>
                 <div className="mb-3 d-flex gap-2 align-items-end">
                   <Form.Group style={{maxWidth: "110px"}}>
@@ -376,6 +373,20 @@ const CondicionesLegales: React.FC = () => {
                       )}
                     </Form.Group>
                   </div>
+                    <Form.Group className="mb-4 mt-4">
+                      <Form.Check
+                        className="checkbox-verde"
+                        type="checkbox"
+                        id="maior-idade"
+                        label={
+                          <strong>
+                            Declaro baixo a miña responsabilidade que son maior de idade!!
+                          </strong>
+                        }
+                        checked={maiorIdade}
+                        onChange={(e) => setMaiorIdade(e.target.checked)}
+                      />
+                    </Form.Group>
                 </div>
               </>
             )}

@@ -77,7 +77,7 @@ export default function PanelOrganizador() {
 
       <div className="mb-4 d-flex flex-column align-items-center justify-content-center">
         <div className="mb-2" style={{ display: 'flex', justifyContent: 'center' }}>
-          <div style={{ transform: 'scale(1.7)', width: 60, height: 60, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="avatar-no-click" style={{ transform: 'scale(1.7)', width: 60, height: 60, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <UserAvatarToggle hideLanguages />
           </div>
         </div>
