@@ -4,9 +4,8 @@ import CreateAccountModal from "./CreacionCuentaCuadro";
 import LoginModal from "./InicioSesionCrearEventoCuadro";
 import RecuperarEntradaModal from "./RecuperarEntradaCuadro"
 import "../../estilos/Botones.css";
-import { FaSignInAlt, FaUserPlus, FaTicketAlt, FaGlobe } from "react-icons/fa";
-import { useTranslations } from "../../i18n/useTranslations";
-import { useLanguage } from "../LanguageContext";
+import { FaSignInAlt, FaUserPlus, FaTicketAlt } from "react-icons/fa";
+
 
 
 function ToggleHamburguer() {
@@ -14,8 +13,7 @@ function ToggleHamburguer() {
   const [showCreateAccount, setShowCreateAccount] = useState(false);
   const [showLogIn, setShowLogIn] = useState(false);
   const [showRecuperacionEntradas, setShowRecuperacionEntradas] = useState(false);
-  const { language, t } = useTranslations();
-  const { setLanguage } = useLanguage();
+ 
   const handleOpenCreateAccount = () => { setShowCreateAccount(true); setOpen(false); };
   const handleCloseCreateAccount = () => setShowCreateAccount(false);
   const handleOpenLogIn = () => { setShowLogIn(true); setOpen(false); };
@@ -39,37 +37,16 @@ function ToggleHamburguer() {
             <ListGroup variant="flush">
                 <ListGroup.Item action onClick={handleOpenLogIn}>
                   <FaSignInAlt style={{ marginRight: "8px", color: "#ff0093" }} />
-                  {t("toggle.organizerLogin")}
+                  Iniciar sesión organizador
                 </ListGroup.Item>
                 <ListGroup.Item action onClick={handleOpenCreateAccount}>
                   <FaUserPlus style={{ marginRight: "8px", color: "#ff0093" }} />
-                  {t("toggle.organizerCreate")}
+                  Crear conta organizador
                 </ListGroup.Item>
                 <ListGroup.Item action onClick={handleOpenRecuperacionEntradas} className="seccion-secundaria">
                   <FaTicketAlt style={{ marginRight: "8px", color: "#ff0093" }} />
-                  {t("toggle.reprintTicket")}
+                  Imprimir entradas
                 </ListGroup.Item>
-                {/*
-                <ListGroup.Item className="seccion-secundaria d-flex align-items-center gap-2">
-                  <FaGlobe style={{ color: "#ff0093" }} />
-                  <span style={{ marginRight: 4 }}>Idioma:</span>
-                  {["gl", "es", "en"].map((lang) => (
-                    <span
-                      key={lang}
-                      onClick={() => setLanguage(lang as "gl" | "es" | "en")}
-                      style={{
-                        cursor: "pointer",
-                        fontWeight: language === lang ? 700 : 400,
-                        color: language === lang ? "#ff0093" : "#666",
-                        textDecoration: language === lang ? "underline" : "none",
-                        fontSize: "0.95em",
-                      }}
-                    >
-                      {lang.toUpperCase()}
-                    </span>
-                  ))}
-                </ListGroup.Item>
-                */}
             </ListGroup>
             </Card>
         </>
