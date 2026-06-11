@@ -72,19 +72,6 @@ function Nosostros() {
 							border: "1px solid rgba(255, 0, 147, 0.08)",
 						}}
 					>
-						<p
-							style={{
-								color: "#ff0093",
-								fontWeight: 700,
-								textTransform: "uppercase",
-								letterSpacing: "0.08em",
-								marginBottom: "0.75rem",
-								fontSize: "0.85rem",
-							}}
-						>
-							Coñécenos
-						</p>
-
 						<h1
 							style={{
 								fontSize: "clamp(2rem, 4vw, 3.4rem)",

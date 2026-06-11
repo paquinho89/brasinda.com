@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from django.urls import path
 from .views import crear_evento_view, evento_detail_view, eliminar_evento_definitivo_view, eventos_list_public, evento_detail_public, reservar_entradas, reservas_butacas, reservas_vendidas, mis_reservas, eliminar_reserva, invitacions_sen_plano, listado_invitacions, eliminar_invitacion, eventos_activos_por_email, enviar_entradas_recuperadas, zonas_prezo_evento, validar_entrada_qr, crear_payment_intent_stripe, estado_payment_intent_stripe
 
-from .views import enviar_entradas, ver_pdf_entrada, pdf_entradas_multipaxina, enviar_invitacion_individual, descargar_pdf_invitacion, descargar_pdf_listado
+from .views import enviar_entradas, ver_pdf_entrada, pdf_entradas_multipaxina, enviar_invitacion_individual, descargar_pdf_invitacion, descargar_pdf_listado, confirmar_reservas
 
 urlpatterns = [
     path('<int:evento_id>/stripe/payment-intent/', crear_payment_intent_stripe, name='crear_payment_intent_stripe'),
@@ -22,6 +22,7 @@ urlpatterns = [
     path('<int:evento_id>/reservas-vendidas/', reservas_vendidas, name='reservas_vendidas'),
     path('<int:evento_id>/mis-reservas/', mis_reservas, name='mis_reservas'),
     path('<int:evento_id>/invitacions-sen-plano/', invitacions_sen_plano, name='invitacions_sen_plano'),
+    path('<int:evento_id>/confirmar-reservas/', confirmar_reservas, name='confirmar_reservas'),
     path('<int:evento_id>/listado-invitacions/', listado_invitacions, name='listado_invitacions'),
     path('<int:evento_id>/invitacions/<int:invitacion_id>/', eliminar_invitacion, name='eliminar_invitacion'),
     path('<int:evento_id>/eliminar-reserva/<str:zona>/<int:fila>/<int:butaca>/', eliminar_reserva, name='eliminar_reserva'),

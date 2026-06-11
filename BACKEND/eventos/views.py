@@ -468,7 +468,7 @@ def reservar_entradas(request, evento_id):
     try:
         duracion_minutos = int(duracion_reserva)
     except (TypeError, ValueError):
-        duracion_minutos = 10
+        duracion_minutos = 1
     
     fecha_expiracion = timezone.now() + timedelta(minutes=duracion_minutos)
 
@@ -476,17 +476,24 @@ def reservar_entradas(request, evento_id):
     pdf_buffers = []
     with transaction.atomic():
         reservas_creadas = []
-        if not hasattr(request, 'user') or not request.user.is_authenticated or isinstance(request.user, AnonymousUser):
-            organizador = None
-        else:
-            organizador = request.user
-        tipo_reserva = ReservaButaca.TIPO_RESERVA_VENTA if organizador is None else ReservaButaca.TIPO_RESERVA_INVITACION
+        is_event_organizer = (
+            hasattr(request, 'user')
+            and request.user.is_authenticated
+            and not isinstance(request.user, AnonymousUser)
+            and request.user.id == evento.organizador_id
+        )
+        organizador = request.user if is_event_organizer else None
+        tipo_reserva = ReservaButaca.TIPO_RESERVA_INVITACION if is_event_organizer else ReservaButaca.TIPO_RESERVA_VENTA
+        paga_en_pagina = evento.tipo_gestion_entrada in (Evento.TIPO_ENTRADA_PAGINA, 'a través da páxina')
+
         if confirmada:
             estado = ReservaButaca.ESTADO_CONFIRMADO
         else:
-            estado = ReservaButaca.ESTADO_CONFIRMADO if organizador is not None else ReservaButaca.ESTADO_TEMPORAL
+            if paga_en_pagina and not is_event_organizer:
+                estado = ReservaButaca.ESTADO_TEMPORAL
+            else:
+                estado = ReservaButaca.ESTADO_CONFIRMADO
 
-        
         for seat_obj in seats:
             row = seat_obj["row"]
             seat = seat_obj["seat"]
@@ -853,7 +860,12 @@ def invitacions_sen_plano(request, evento_id):
     with transaction.atomic():
         novas = []
         # Determine reservation type based on authentication
-        tipo_reserva = ReservaButaca.TIPO_RESERVA_INVITACION if (request.user and request.user.is_authenticated) else ReservaButaca.TIPO_RESERVA_VENTA
+        is_event_organizer = request.user and request.user.is_authenticated and request.user.id == evento.organizador_id
+        tipo_reserva = ReservaButaca.TIPO_RESERVA_INVITACION if is_event_organizer else ReservaButaca.TIPO_RESERVA_VENTA
+        paga_en_pagina = evento.tipo_gestion_entrada in (Evento.TIPO_ENTRADA_PAGINA, 'a través da páxina')
+        estado = ReservaButaca.ESTADO_TEMPORAL if paga_en_pagina and not is_event_organizer else ReservaButaca.ESTADO_CONFIRMADO
+        fecha_expiracion = timezone.now() + timedelta(minutes=10) if estado == ReservaButaca.ESTADO_TEMPORAL else None
+
         for idx in range(cantidade):
             nome_individual = ""
             if idx < len(nomes) and isinstance(nomes[idx], str):
@@ -862,7 +874,7 @@ def invitacions_sen_plano(request, evento_id):
             novas.append(
                 ReservaButaca(
                     evento=evento,
-                    organizador=request.user if request.user and request.user.is_authenticated else None,
+                    organizador=request.user if is_event_organizer else None,
                     zona="sen-plano",
                     fila=None,
                     butaca=None,
@@ -871,7 +883,8 @@ def invitacions_sen_plano(request, evento_id):
                     lugar_entrada=evento.localizacion,
                     prezo_entrada=evento.prezo_recibe_organizador,
                     prezo_pvp=evento.prezo_venta if evento.prezo_venta is not None else evento.prezo_recibe_organizador,
-                    estado=ReservaButaca.ESTADO_CONFIRMADO,
+                    estado=estado,
+                    fecha_expiracion=fecha_expiracion,
                     email=email if email else (email_suscripcion if email_suscripcion else None),
                 )
             )
@@ -996,6 +1009,38 @@ def eventos_activos_por_email(request):
     eventos = {r.evento for r in reservas}
     data = EventoSerializer(eventos, many=True, context={'request': request}).data
     return Response(data)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def confirmar_reservas(request, evento_id):
+    """Confirma reservas temporais despois de completar o pago."""
+    evento = get_object_or_404(Evento, id=evento_id)
+    reserva_ids = request.data.get('reservas') or request.data.get('reserva_ids') or []
+    if not isinstance(reserva_ids, list) or len(reserva_ids) == 0:
+        return Response({"success": False, "error": "Faltan IDs de reservas para confirmar."}, status=400)
+
+    reservas = ReservaButaca.objects.filter(
+        id__in=[int(r) for r in reserva_ids if isinstance(r, (int, str)) and str(r).isdigit()],
+        evento=evento,
+        estado=ReservaButaca.ESTADO_TEMPORAL,
+    )
+    if not reservas.exists():
+        return Response({"success": False, "error": "Non hai reservas temporais válidas para confirmar."}, status=404)
+
+    confirmed_ids = []
+    with transaction.atomic():
+        for reserva in reservas:
+            reserva.estado = ReservaButaca.ESTADO_CONFIRMADO
+            reserva.fecha_expiracion = None
+            if not reserva.codigo_validacion:
+                letras = ''.join(random.choices(string.ascii_uppercase, k=3))
+                reserva.codigo_validacion = f"{reserva.id}-{letras}"
+            reserva.save(update_fields=["estado", "fecha_expiracion", "codigo_validacion"])
+            confirmed_ids.append(reserva.id)
+        _actualizar_contadores_evento(evento)
+
+    return Response({"success": True, "confirmadas": confirmed_ids})
 
 
 @api_view(['POST'])

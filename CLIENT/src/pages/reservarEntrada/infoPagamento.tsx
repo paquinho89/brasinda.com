@@ -80,6 +80,19 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
         .filter((id: unknown) => typeof id === "number")
         .map((id: number) => ({ id }));
 
+      // Confirmar as reservas temporais despois do pagamento
+      const confirmarResp = await fetch(`${API_BASE_URL}/crear-eventos/${eventoId}/confirmar-reservas/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reservas: pendingReservas }),
+      });
+      if (!confirmarResp.ok) {
+        const confirmarData = await confirmarResp.json().catch(() => null);
+        throw new Error(confirmarData?.error || "Erro ao confirmar as reservas despois do pago.");
+      }
+
       await fetch(`${API_BASE_URL}/crear-eventos/${eventoId}/enviar-entradas/`, {
         method: "POST",
         headers: {

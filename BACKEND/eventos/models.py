@@ -107,8 +107,8 @@ class Evento(models.Model):
     def save(self, *args, **kwargs):
         from decimal import Decimal
         self.total_dinheiro_recadado = self.prezo_venta * self.entradas_vendidas if self.prezo_venta and self.entradas_vendidas else 0
-        self.total_gastos_xestion = (self.total_dinheiro_recadado * self.gastos_xestion / Decimal('100.0')) if self.gastos_xestion else 0
-        self.total_gastos_xestion_iva = (self.total_gastos_xestion * Decimal('0.21')) + self.total_gastos_xestion if self.total_gastos_xestion else 0
+        self.total_gastos_xestion = (self.prezo_recibe_organizador*self.gastos_xestion/Decimal('100.0'))*self.entradas_vendidas if self.gastos_xestion else 0
+        self.total_gastos_xestion_iva = (self.prezo_venta-self.prezo_recibe_organizador)*self.entradas_vendidas if self.total_gastos_xestion else 0
         self.total_a_pagar_ao_organizador = self.total_dinheiro_recadado - self.total_gastos_xestion_iva
         if self.prezo_venta is not None:
             porcentaxe = self.gastos_xestion if self.gastos_xestion is not None else Decimal('5.0')
