@@ -8,10 +8,6 @@ import ZonaCentral from "../planoAuditorios/Planos/auditorioVerin/zonaCentral";
 import ZonaLateralDereita from "../planoAuditorios/Planos/auditorioVerin/zonaLateralDereita";
 import ZonaLateralEsquerda from "../planoAuditorios/Planos/auditorioVerin/zonaLateralEsquerda";
 
-import AuditorioOurenseAnfiteatro from "../planoAuditorios/Planos/auditorioOurense/anfiteatro";
-import AuditorioOurenseZonaCentral from "../planoAuditorios/Planos/auditorioOurense/zonaCentral";
-import AuditorioOurenseDereita from "../planoAuditorios/Planos/auditorioOurense/ZonaLateralDereita";
-import AuditorioOurenseEsquerda from "../planoAuditorios/Planos/auditorioOurense/zonaLateralEsquerda";
 
 import API_BASE_URL from "../../utils/api";
 
