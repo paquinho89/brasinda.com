@@ -1,0 +1,472 @@
+@media (max-width: 600px) {
+  .auditorio-seatmap-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+    max-width: 100vw;
+  }
+  .auditorio-seat-row {
+    min-width: 340px;
+    max-width: 100vw;
+  }
+  .butaca {
+    width: 16px !important;
+    height: 16px !important;
+    margin: 2px !important;
+  }
+  .auditorio-row-number {
+    font-size: 12px !important;
+    width: 18px !important;
+    min-width: 18px !important;
+    margin-right: 4px !important;
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: #f8f9fa;
+    border-radius: 4px;
+    box-shadow: 1px 0 2px rgba(0,0,0,0.04);
+    text-align: right;
+  }
+}
+/* Responsive seat map for small screens */
+@media (max-width: 600px) {
+  .auditorio-seatmap-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+    max-width: 100vw;
+  }
+  .auditorio-seat-row {
+    min-width: 340px;
+    max-width: 100vw;
+  }
+  .butaca {
+    width: 16px !important;
+    height: 16px !important;
+    margin: 2px !important;
+  }
+  .auditorio-row-number {
+    font-size: 12px !important;
+    width: 18px !important;
+    margin-right: 4px !important;
+    min-width: 18px !important;
+  }
+}
+/* =====================================================
+   CONTEDOR PRINCIPAL
+===================================================== */
+.auditorio-container {
+  width: 700px;
+  margin: 40px auto;
+  text-align: center;
+}
+
+/* =====================================================
+   BOTÓNS ZONAS
+===================================================== */
+
+/* Botóns grandes, texto negro, cor orixinal */
+.zona {
+  border: 2.5px solid #ff0093;
+  background: var(--color-fondo);
+  color: #111;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  font-weight: bold;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.10);
+  letter-spacing: 0.05em;
+  user-select: none;
+  font-size: 1.15rem;
+  height: 150px;
+}
+
+.zona:hover {
+  background-color: #ff0093 !important;
+  color: #fff !important;
+  transform: scale(1.04) translateY(-2px);
+  box-shadow: 0 7px 16px rgba(0, 0, 0, 0.22), 0 2px 5px rgba(0, 0, 0, 0.12);
+}
+
+.zona:active {
+  background-color: #ff0093 !important;
+  color: #fff !important;
+  transform: scale(0.97) translateY(1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.zona.zona-inactiva {
+  background: #cccccc !important;
+  border-color: #cccccc !important;
+  color: #333333 !important;
+  cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.10);
+}
+
+.zona.zona-inactiva:hover {
+  background-color: #bbbbbb !important;
+  color: #333333 !important;
+  transform: scale(1.04) translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.zona.zona-inactiva:active {
+  transform: scale(0.97) translateY(1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.10);
+}
+
+/* Zona Esquerda */
+.zona.esquerda {
+  width: 110px !important;
+  max-width: 110px !important;
+  height: 150px;
+  margin: 0 auto !important;
+  font-size: 1.15rem;
+}
+
+/* Zona Dereita */
+.zona.dereita {
+  width: 110px !important;
+  max-width: 110px !important;
+  height: 150px;
+  margin: 0 auto !important;
+  font-size: 1.15rem;
+}
+
+.zona-central-wrapper .zona {
+  width: 170px !important;
+  max-width: 170px !important;
+  margin: 0 !important;
+}
+
+.zona-central-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 0 !important;
+}
+
+/* Anfiteatro */
+.anfiteatro {
+  width: 60%;
+  height: 90px;
+  margin: 0 auto 3px auto;
+  border-radius: 80px 80px 0 0;
+  font-size: 1.15rem;
+}
+
+
+
+/* =====================================================
+   MODAL
+===================================================== */
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  position: relative;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 700px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* =====================================================
+   TOGGLE (SOLO ACTIVO EN ROSA)
+===================================================== */
+
+.toggle-area-wrapper {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  z-index: 10;
+}
+
+.toggle-area-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-area-label input {
+  display: none;
+}
+
+.toggle-slider {
+  width: 60px;
+  height: 32px;
+  background: #ccc;
+  border-radius: 16px;
+  position: relative;
+  transition: background 0.3s;
+  flex-shrink: 0;
+}
+
+.toggle-slider::before {
+  content: "";
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  left: 2px;
+  top: 2px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+/* 🔥 SOLO EN ROSA CAMBIA DE COR */
+.auditorio-container.rosa 
+.toggle-area-label input:checked + .toggle-slider {
+  background: var(--color-principal);
+}
+
+.auditorio-container.rosa 
+.toggle-area-label input:checked + .toggle-slider::before {
+  transform: translateX(28px);
+}
+
+.toggle-text {
+  font-weight: bold;
+  font-size: 16px;
+  margin-left: 10px;
+}
+
+/* =====================================================
+   INDICADOR ESCENARIO
+===================================================== */
+
+.zona-central-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.indicador-escenario {
+  margin-top: 8px;
+  background-color: #000;
+  color: #fff;
+  padding: 6px 60px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* =====================================================
+   HEADER MODAL
+===================================================== */
+
+.modal-header-custom {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1px;
+}
+
+.modal-title {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.modal-title-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modal-title-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.zona-nav-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid #d9d9d9;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.auditorio-container.rosa .zona-nav-btn:hover {
+  border-color: #ff0093;
+  color: #ff0093;
+}
+
+.auditorio-container.verde .zona-nav-btn:hover {
+  border-color: #60dd49;
+  color: #60dd49;
+}
+
+.close-x {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none;
+  border: none;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 5px 10px;
+}
+
+/* Hover dinámico segundo variante */
+.auditorio-container.rosa .close-x:hover {
+  color: #ff0093;
+}
+
+.auditorio-container.verde .close-x:hover {
+  color: #60dd49;
+}
+
+/* En venta mantemos variant verde (lóxica), pero forzamos só a cor a rosa */
+.venta-rosa-solo-color .auditorio-container.verde .zona-nav-btn:hover {
+  border-color: #ff0093;
+  color: #ff0093;
+}
+
+.venta-rosa-solo-color .auditorio-container.verde .close-x:hover {
+  color: #ff0093;
+}
+
+.venta-rosa-solo-color .auditorio-container.verde .reserva-entrada-btn,
+.venta-rosa-solo-color .auditorio-container.verde .volver-verde-btn {
+  border-color: #ff0093;
+}
+
+.venta-rosa-solo-color .auditorio-container.verde .reserva-entrada-btn:hover,
+.venta-rosa-solo-color .auditorio-container.verde .volver-verde-btn:hover {
+  background-color: #ff0093;
+  border-color: #ff0093;
+}
+
+.venta-rosa-solo-color .auditorio-container.verde .reserva-entrada-btn:active,
+.venta-rosa-solo-color .auditorio-container.verde .reserva-entrada-btn:focus-visible,
+.venta-rosa-solo-color .auditorio-container.verde .volver-verde-btn:active,
+.venta-rosa-solo-color .auditorio-container.verde .volver-verde-btn:focus-visible {
+  background-color: #ff0093 !important;
+  border-color: #ff0093 !important;
+}
+
+/* Close button en modal de confirmación */
+.modal-header-confirm .btn-close:hover {
+  color: #ff0093;
+}
+
+/* =====================================================
+   FOOTER
+===================================================== */
+
+.modal-footer-custom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+}
+
+/* =====================================================
+   ESTADO DAS ZONAS (INTERNO NO BOTÓN)
+===================================================== */
+
+.zona-estado-interno {
+  margin-top: 4px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+/* =====================================================
+   BUTACAS
+===================================================== */
+
+.butaca {
+  width: 22px;
+  height: 22px;
+  margin: 3px;
+  border-radius: 4px;
+  transition: 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.butaca-dispoñible {
+  background-color: #282d26;
+}
+
+.butaca-selected {
+  background-color: #ff0093 !important;
+}
+
+.butaca-my-reserved {
+  background-color: var(--color-principal);
+}
+
+.butaca-vendida {
+  background-color: #ccc;
+}
+
+.butaca-inactiva {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 768px) {
+  .modal-content {
+    padding: 10px;
+  }
+
+  .platea {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 12px !important;
+  }
+
+  .auditorio-container {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 auto !important;
+  }
+
+  .auditorio-container .zona,
+  .platea .zona {
+    min-width: 120px;
+    max-width: 260px;
+    width: 90vw;
+    margin: 0 auto;
+  }
+}

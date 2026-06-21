@@ -309,7 +309,7 @@ export default function EventoDetalle() {
             AuditorioComponente ? (
               <AuditorioComponente
                 eventoId={evento.id}
-                onZonaClick={(zona) => {
+                onZonaClick={(zona: any) => {
                   console.log("Zona seleccionada:", zona);
                 }}
                 onEntradasUpdate={() => fetchEvento(true)}

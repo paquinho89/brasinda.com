@@ -9,6 +9,8 @@ export const ZONAS_AUDITORIOS: Record<string, string[]> = {
     "Zona Central",
     "Zona Dereita",
     "Zona Esquerda",
-    "Anfiteatro"
+    "Anfiteatro Dereita",
+    "Anfiteatro Central",
+    "Anfiteatro Esquerda"
   ],
 };

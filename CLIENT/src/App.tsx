@@ -55,7 +55,7 @@ import PublicacionExitosa from './pages/crearEvento/11PublicacionExitosa.tsx';
 import EscanearEntrada from './pages/lector_entradas';
 
 import AuditorioOurenseZonaCentral from './pages/planoAuditorios/Planos/auditorioOurense/zonaCentral';
-import AuditorioOurenseDereita from './pages/planoAuditorios/Planos/auditorioOurense/ZonaLateralDereita.tsx';
+import AuditorioOurenseDereita from './pages/planoAuditorios/Planos/auditorioOurense/zonaLateralDereita.tsx';
 import AuditorioOurenseEsquerda from './pages/planoAuditorios/Planos/auditorioOurense/zonaLateralEsquerda.tsx';
 import AuditorioOurenseAnfiteatro from './pages/planoAuditorios/Planos/auditorioOurense/anfiteatro';
 import AuditorioVerinZonaCentral from './pages/planoAuditorios/Planos/auditorioVerin/zonaCentral';
