@@ -57,11 +57,23 @@ const AuditorioOurenseZonaCentral: React.FC<Props> = ({
   const activeSoldSeats = soldSeats ?? [];
   const handleSelectionChange = onSelectionChange ?? setInternalSelectedSeats;
 
+  const filasConButacas = AUDITORIO.filter(row => !row.every(seat => seat === null));
+  const rowIndexToFila = new Map<number, number>();
+  let filaCounter = filasConButacas.length;
+  AUDITORIO.forEach((row, idx) => {
+    if (!row.every(seat => seat === null)) {
+      rowIndexToFila.set(idx, filaCounter);
+      filaCounter--;
+    }
+  });
+
+  const getRealRow = (rowIndex: number) => rowIndexToFila.get(rowIndex) ?? -1;
+
   const handleSeatClick = (rowIndex: number, colIndex: number) => {
     if (AUDITORIO[rowIndex][colIndex] === null) return;
     if (!areaActiva) return;
 
-    const realRow = AUDITORIO.length - rowIndex;
+    const realRow = getRealRow(rowIndex);
     const realSeat = colIndex + 1;
 
     const isReserved = activeReservedSeats.some(
@@ -99,16 +111,6 @@ const AuditorioOurenseZonaCentral: React.FC<Props> = ({
 
     handleSelectionChange(updated);
   };
-
-  const filasConButacas = AUDITORIO.filter(row => !row.every(seat => seat === null));
-  const rowIndexToFila = new Map<number, number>();
-  let filaCounter = filasConButacas.length;
-  AUDITORIO.forEach((row, idx) => {
-    if (!row.every(seat => seat === null)) {
-      rowIndexToFila.set(idx, filaCounter);
-      filaCounter--;
-    }
-  });
 
   return (
     <>
@@ -150,7 +152,7 @@ const AuditorioOurenseZonaCentral: React.FC<Props> = ({
                     />
                   );
                 }
-                const realRow = rowIndexToFila.get(rowIndex) ?? -1;
+                const realRow = getRealRow(rowIndex);
                 const realSeat = colIndex + 1;
                 const isReserved = activeReservedSeats.some(
                   (s) => s.row === realRow && s.seat === realSeat

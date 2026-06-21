@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
+import "../../../estilos/BotonesAuditorioZona-Butaca.css";
 
 interface ReservaEntradaBotonesOurenseProps {
   evento?: any;
@@ -24,8 +25,8 @@ export default function ReservaEntradaBotonesOurense({ evento: eventoProp }: Res
 
 return (
 <div className="auditorio-container" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%" }}>
-          <div style={{ display: "flex", justifyContent: "center", gap: 15, width: "100%", marginBottom: 25 }}>
-            <button className="zona anfiteatro" onClick={() => handleZonaClick("anfiteatroEsquerda")}> 
+          <div className="anfiteatro-row" style={{ display: "flex", justifyContent: "center", gap: 2, flexWrap: "wrap", width: "100%", marginBottom: 25 }}>
+            <button className="zona anfiteatro" style={{ width: 130, minWidth: 130, margin: 2 }} onClick={() => handleZonaClick("anfiteatroEsquerda")}> 
               ANFITEATRO ESQ.
               <div style={{ fontSize: 15, color: '#009688', fontWeight: 600, lineHeight: 1, marginTop: 2 }}>
                 {evento?.prezo_areas
@@ -41,7 +42,7 @@ return (
                     : null}
               </div>
             </button>
-            <button className="zona anfiteatro" style={{ minWidth: 180 }} onClick={() => handleZonaClick("anfiteatroCentral")}> 
+            <button className="zona anfiteatro" style={{ width: 220, minWidth: 220, margin: 2 }} onClick={() => handleZonaClick("anfiteatroCentral")}> 
               ANFITEATRO
               <div style={{ fontSize: 15, color: '#009688', fontWeight: 600, lineHeight: 1, marginTop: 2 }}>
                 {evento?.prezo_areas
@@ -57,7 +58,7 @@ return (
                     : null}
               </div>
             </button>
-            <button className="zona anfiteatro" onClick={() => handleZonaClick("anfiteatroDereita")}> 
+            <button className="zona anfiteatro" style={{ width: 130, minWidth: 130, margin: 0 }} onClick={() => handleZonaClick("anfiteatroDereita")}> 
               ANFITEATRO DER.
               <div style={{ fontSize: 15, color: '#009688', fontWeight: 600, lineHeight: 1, marginTop: 2 }}>
                 {evento?.prezo_areas

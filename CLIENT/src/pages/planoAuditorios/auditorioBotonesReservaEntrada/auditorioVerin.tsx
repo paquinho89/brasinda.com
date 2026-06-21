@@ -1,12 +1,16 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 
-export default function ReservaEntradaBotonesVerin() {
+interface ReservaEntradaBotonesVerinProps {
+  evento?: any;
+}
+
+export default function ReservaEntradaBotonesVerin({ evento: eventoProp }: ReservaEntradaBotonesVerinProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams<{ id?: string }>();
   const [zonasPrezo, setZonasPrezo] = useState<Record<string, number>>({});
-  const [evento, setEvento] = useState<any>(location.state?.evento || null);
+  const evento = eventoProp || location.state?.evento || null;
 
   // Manter seleccións de butacas entre pantallas usando localStorage
   function handleZonaClick(zona: string) {

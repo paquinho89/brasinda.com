@@ -469,4 +469,16 @@
     width: 90vw;
     margin: 0 auto;
   }
+
+  .auditorio-container .anfiteatro-row {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 12px !important;
+  }
+
+  .auditorio-container .anfiteatro-row .zona {
+    width: min(90vw, 260px) !important;
+    max-width: 260px !important;
+    margin: 0 auto !important;
+  }
 }

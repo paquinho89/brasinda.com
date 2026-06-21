@@ -80,15 +80,32 @@ export default function ReservarEntrada() {
   const handleEliminarButaca = (_seat: any, idx: number) => {
     setEntradasSeleccionadas(prev => {
       const novas = prev.filter((_, i) => i !== idx);
-      // Actualizar localStorage para todas as zonas
-      if (id) {
-        const zonas = ["central", "dereita", "anfiteatro", "esquerda"];
-        zonas.forEach(z => {
-          const key = `auditorio_verin_selected_${z}_${id}`;
-          const lista = novas.filter(b => b.zona === z);
+      if (!id) return novas;
+
+      const locationLower = evento?.localizacion?.toLowerCase() || "";
+      const prefijo = locationLower.includes("auditorio") && locationLower.includes("ourense")
+        ? "auditorio_ourense_selected"
+        : "auditorio_verin_selected";
+      const zonas = [
+        "central",
+        "dereita",
+        "anfiteatro",
+        "esquerda",
+        "anfiteatroEsquerda",
+        "anfiteatroCentral",
+        "anfiteatroDereita",
+      ];
+
+      zonas.forEach(z => {
+        const key = `${prefijo}_${z}_${id}`;
+        const lista = novas.filter(b => b.zona === z);
+        if (lista.length > 0) {
           localStorage.setItem(key, JSON.stringify(lista));
-        });
-      }
+        } else {
+          localStorage.removeItem(key);
+        }
+      });
+
       return novas;
     });
   };
@@ -172,11 +189,16 @@ export default function ReservarEntrada() {
               <Button
                 className="volver-btn me-3"
                 onClick={() => {
-                  // Volver á última área de SeleccionButacaAuditorio na que se estivo
+                  // Volver á páxina anterior usando o historial do navegador
+                  if (window.history.length > 1) {
+                    navigate(-1);
+                    return;
+                  }
+
+                  // Se non hai historial válido, reconstruír a última zona visitada
                   if (id && location.state && location.state.ultimaZonaVisitada) {
                     navigate(`/reservar-entrada-auditorio/${id}/${location.state.ultimaZonaVisitada}`, { state: { butacasSeleccionadas: entradasSeleccionadas } });
                   } else if (id && entradasSeleccionadas.length > 0) {
-                    // Fallback: buscar a última zona con selección
                     const zonasOrde = ["central", "dereita", "anfiteatro", "esquerda"];
                     let ultimaZona = "central";
                     for (let i = entradasSeleccionadas.length - 1; i >= 0; i--) {
@@ -188,8 +210,6 @@ export default function ReservarEntrada() {
                     navigate(`/reservar-entrada-auditorio/${id}/${ultimaZona}`, { state: { butacasSeleccionadas: entradasSeleccionadas } });
                   } else if (id) {
                     navigate(`/reservar-entrada-auditorio/${id}/central`, { state: { butacasSeleccionadas: entradasSeleccionadas } });
-                  } else {
-                    navigate(-1);
                   }
                 }}
               >

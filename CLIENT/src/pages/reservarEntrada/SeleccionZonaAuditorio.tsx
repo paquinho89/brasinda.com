@@ -11,7 +11,7 @@ import API_BASE_URL from "../../utils/api";
 
 type AuditorioBotonesConfig = {
   keywords: string[];
-  component: React.ComponentType;
+  component: React.ComponentType<{ evento?: any }>;
 };
 
 const auditoriosBotones: AuditorioBotonesConfig[] = [
@@ -37,7 +37,7 @@ const auditoriosBotones: AuditorioBotonesConfig[] = [
   },
 ];
 
-const getAuditorioBotonesComponent = (localizacion?: string) => {
+const getAuditorioBotonesComponent = (localizacion?: string): React.ComponentType<{ evento?: any }> => {
   const lugarNormalizado = localizacion ? normalizarTexto(localizacion) : "";
 
   const encontrado = auditoriosBotones.find((opcion) =>
@@ -55,27 +55,6 @@ const SeleccionZonaAuditorio: React.FC = () => {
   const [loading, setLoading] = useState(!location.state?.evento);
   const [error, setError] = useState<string | null>(null);
   // Eliminamos o estado local de zonaSeleccionada
-  const [zonasPrezo, setZonasPrezo] = useState<Record<string, number>>({});
-  // Cargar prezos das zonas se prezo_areas
-  useEffect(() => {
-    if (evento && evento.prezo_areas && id) {
-      fetch(`${API_BASE_URL}/eventos/${id}/zonas-prezo/`)
-        .then((res) => {
-          if (!res.ok) throw new Error("Non se atoparon prezos de zonas");
-          return res.json();
-        })
-        .then((zonas: Array<{ nome: string; prezo: number; prezo_pvp?: number }>) => {
-          const map: Record<string, number> = {};
-          zonas.forEach(z => {
-            // Eliminar espazos e normalizar nomes
-            const nome = z.nome?.toLowerCase().trim();
-            map[nome] = z.prezo_pvp !== undefined ? z.prezo_pvp : z.prezo;
-          });
-          setZonasPrezo(map);
-        })
-        .catch(() => setZonasPrezo({}));
-    }
-  }, [evento, id]);
 
   useEffect(() => {
     if (!evento && id) {
@@ -106,7 +85,7 @@ const SeleccionZonaAuditorio: React.FC = () => {
     );
   }
 {/*ESTO É MUI IMPORNTATE PARA NOMEAR A LOCALIZACION*/}
-  const BotonesAuditorio = getAuditorioBotonesComponent(evento?.localizacion);
+  const BotonesAuditorio: React.ComponentType<{ evento?: any }> = getAuditorioBotonesComponent(evento?.localizacion);
 
   return (
     <div className="seleccion-butaca-auditorio-fullscreen" style={{ minHeight: "100vh", background: "#f8f9fa", position: 'relative' }}>

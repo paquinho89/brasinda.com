@@ -108,7 +108,7 @@ const SeleccionButacaAuditorio: React.FC = () => {
   let ZonaComponent = null;
   let zonaTitulo = "";
   const zonas = esOurense
-    ? ["anfiteatroEsquerda", "anfiteatroCentral", "anfiteatroDereita", "central", "esquerda", "dereita"]
+    ? ["anfiteatroEsquerda", "anfiteatroCentral", "anfiteatroDereita", "esquerda", "central", "dereita"]
     : ["central", "dereita", "anfiteatro", "esquerda"];
   const zonasTitulos: Record<string, string> = {
     central: "Central",
