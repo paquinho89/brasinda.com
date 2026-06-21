@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { FaArrowLeft, FaChevronLeft, FaChevronRight, FaExclamationTriangle } from "react-icons/fa";
 import MainNavbar from "../componentes/NavBar";
 import Anfiteatro from "../planoAuditorios/Planos/auditorioVerin/anfiteatro";
 import ZonaCentral from "../planoAuditorios/Planos/auditorioVerin/zonaCentral";
 import ZonaLateralDereita from "../planoAuditorios/Planos/auditorioVerin/zonaLateralDereita";
 import ZonaLateralEsquerda from "../planoAuditorios/Planos/auditorioVerin/zonaLateralEsquerda";
-
+import AuditorioOurenseAnfiteatroEsquerda from "../planoAuditorios/Planos/auditorioOurense/anfiteatroEsquerda";
+import AuditorioOurenseAnfiteatroCentral from "../planoAuditorios/Planos/auditorioOurense/anfiteatroCentral";
+import AuditorioOurenseAnfiteatroDereita from "../planoAuditorios/Planos/auditorioOurense/anfiteatroDereita";
+import AuditorioOurenseZonaCentral from "../planoAuditorios/Planos/auditorioOurense/zonaCentral";
+import AuditorioOurenseEsquerda from "../planoAuditorios/Planos/auditorioOurense/zonaLateralEsquerda";
+import AuditorioOurenseDereita from "../planoAuditorios/Planos/auditorioOurense/zonaLateralDereita";
+import { normalizarTexto } from "../../utils/normalizarTexto";
 
 import API_BASE_URL from "../../utils/api";
 
@@ -15,7 +21,19 @@ import API_BASE_URL from "../../utils/api";
 
 const SeleccionButacaAuditorio: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { zona, id } = useParams<{ zona: string; id: string }>();
+  const [evento, setEvento] = useState<any>(location.state?.evento || null);
+  const localizacion =
+    location.state?.localizacion ||
+    location.state?.evento?.localizacion ||
+    evento?.localizacion ||
+    "";
+  const lugarNormalizado = localizacion ? normalizarTexto(localizacion) : "";
+  const esOurense = lugarNormalizado.includes("auditorio") && lugarNormalizado.includes("ourense");
+  const ourenseZonas = ["anfiteatroEsquerda", "anfiteatroCentral", "anfiteatroDereita"];
+  const esOurenseZona = ourenseZonas.includes(zona || "");
+  const usarOurense = esOurense || esOurenseZona;
   const [reservedSeats, setReservedSeats] = useState<{ row: number; seat: number }[]>([]);
   const [selectedSeats, setSelectedSeats] = useState<{ row: number; seat: number }[]>([]);
   const [restaurado, setRestaurado] = useState(false);
@@ -40,7 +58,8 @@ const SeleccionButacaAuditorio: React.FC = () => {
     if (!id || !zona) return;
     setRestaurado(false);
     // Cargar a selección da nova zona
-    const key = `auditorio_verin_selected_${zona}_${id}`;
+    const prefix = usarOurense ? "auditorio_ourense_selected" : "auditorio_verin_selected";
+    const key = `${prefix}_${zona}_${id}`;
     const raw = localStorage.getItem(key);
     console.log('[DEBUG] getItem (on zona change)', key, raw);
     if (raw) {
@@ -67,10 +86,11 @@ const SeleccionButacaAuditorio: React.FC = () => {
   // Gardar seleccións no localStorage cando cambian, mantendo as doutras zonas
   useEffect(() => {
     if (!id || !zona || !restaurado) return;
-    const key = `auditorio_verin_selected_${zona}_${id}`;
+    const prefix = usarOurense ? "auditorio_ourense_selected" : "auditorio_verin_selected";
+    const key = `${prefix}_${zona}_${id}`;
     console.log('[DEBUG] setItem (on selectedSeats change)', key, selectedSeats);
     localStorage.setItem(key, JSON.stringify(selectedSeats));
-  }, [selectedSeats, id, zona, restaurado]);
+  }, [selectedSeats, id, zona, restaurado, usarOurense]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -87,12 +107,17 @@ const SeleccionButacaAuditorio: React.FC = () => {
 
   let ZonaComponent = null;
   let zonaTitulo = "";
-  const zonas = ["central", "dereita", "anfiteatro", "esquerda"];
+  const zonas = esOurense
+    ? ["anfiteatroEsquerda", "anfiteatroCentral", "anfiteatroDereita", "central", "esquerda", "dereita"]
+    : ["central", "dereita", "anfiteatro", "esquerda"];
   const zonasTitulos: Record<string, string> = {
     central: "Central",
     dereita: "Dereita",
     anfiteatro: "Anfiteatro",
     esquerda: "Esquerda",
+    anfiteatroEsquerda: "Anfiteatro Esquerda",
+    anfiteatroCentral: "Anfiteatro Central",
+    anfiteatroDereita: "Anfiteatro Dereita",
   };
   const commonProps = {
     reservedSeats,
@@ -101,20 +126,32 @@ const SeleccionButacaAuditorio: React.FC = () => {
     onSelectionChange: handleSelectionChange,
   };
   switch (zona) {
+    case "anfiteatroEsquerda":
+      ZonaComponent = <AuditorioOurenseAnfiteatroEsquerda {...commonProps} />;
+      zonaTitulo = zonasTitulos["anfiteatroEsquerda"];
+      break;
+    case "anfiteatroCentral":
+      ZonaComponent = <AuditorioOurenseAnfiteatroCentral {...commonProps} />;
+      zonaTitulo = zonasTitulos["anfiteatroCentral"];
+      break;
+    case "anfiteatroDereita":
+      ZonaComponent = <AuditorioOurenseAnfiteatroDereita {...commonProps} />;
+      zonaTitulo = zonasTitulos["anfiteatroDereita"];
+      break;
     case "anfiteatro":
       ZonaComponent = <Anfiteatro {...commonProps} />;
       zonaTitulo = zonasTitulos["anfiteatro"];
       break;
     case "central":
-      ZonaComponent = <ZonaCentral {...commonProps} />;
+      ZonaComponent = esOurense ? <AuditorioOurenseZonaCentral {...commonProps} /> : <ZonaCentral {...commonProps} />;
       zonaTitulo = zonasTitulos["central"];
       break;
     case "esquerda":
-      ZonaComponent = <ZonaLateralEsquerda {...commonProps} />;
+      ZonaComponent = esOurense ? <AuditorioOurenseEsquerda {...commonProps} /> : <ZonaLateralEsquerda {...commonProps} />;
       zonaTitulo = zonasTitulos["esquerda"];
       break;
     case "dereita":
-      ZonaComponent = <ZonaLateralDereita {...commonProps} />;
+      ZonaComponent = esOurense ? <AuditorioOurenseDereita {...commonProps} /> : <ZonaLateralDereita {...commonProps} />;
       zonaTitulo = zonasTitulos["dereita"];
       break;
     default:
@@ -143,10 +180,13 @@ const SeleccionButacaAuditorio: React.FC = () => {
                   onClick={() => {
                     if (id && zona && zonaEsquerda) {
                       // Gardar seleccións da zona actual antes de cambiar
-                      const key = `auditorio_verin_selected_${zona}_${id}`;
+                      const prefix = usarOurense ? "auditorio_ourense_selected" : "auditorio_verin_selected";
+                      const key = `${prefix}_${zona}_${id}`;
                       console.log('[DEBUG] setItem (on zona nav)', key, selectedSeats);
                       localStorage.setItem(key, JSON.stringify(selectedSeats));
-                      navigate(`/reservar-entrada-auditorio/${id}/${zonaEsquerda}`);
+                      navigate(`/reservar-entrada-auditorio/${id}/${zonaEsquerda}`, {
+                        state: { localizacion },
+                      });
                     }
                   }}
                 >
@@ -161,10 +201,13 @@ const SeleccionButacaAuditorio: React.FC = () => {
                   onClick={() => {
                     if (id && zona && zonaDereita) {
                       // Gardar seleccións da zona actual antes de cambiar
-                      const key = `auditorio_verin_selected_${zona}_${id}`;
+                      const prefix = usarOurense ? "auditorio_ourense_selected" : "auditorio_verin_selected";
+                      const key = `${prefix}_${zona}_${id}`;
                       console.log('[DEBUG] setItem (on zona nav)', key, selectedSeats);
                       localStorage.setItem(key, JSON.stringify(selectedSeats));
-                      navigate(`/reservar-entrada-auditorio/${id}/${zonaDereita}`);
+                      navigate(`/reservar-entrada-auditorio/${id}/${zonaDereita}`, {
+                        state: { localizacion },
+                      });
                     }
                   }}
                 >
@@ -177,10 +220,13 @@ const SeleccionButacaAuditorio: React.FC = () => {
               <button className="boton-avance" onClick={() => {
                 if (id && zona) {
                   // Gardar seleccións da zona actual antes de navegar atrás
-                  const key = `auditorio_verin_selected_${zona}_${id}`;
+                  const prefix = usarOurense ? "auditorio_ourense_selected" : "auditorio_verin_selected";
+                  const key = `${prefix}_${zona}_${id}`;
                   console.log('[DEBUG] setItem (on volver)', key, selectedSeats);
                   localStorage.setItem(key, JSON.stringify(selectedSeats));
-                  navigate(`/reservar-entrada-auditorio/${id}`);
+                  navigate(`/reservar-entrada-auditorio/${id}`, {
+                    state: { localizacion },
+                  });
                 }
               }}>
                 <FaArrowLeft style={{ marginRight: 8 }} /> Volver
@@ -192,14 +238,18 @@ const SeleccionButacaAuditorio: React.FC = () => {
                   if (selectedSeats.length === 0) return;
                   if (id) {
                     // Gardar as seleccións actuais da zona no localStorage
-                    const key = `auditorio_verin_selected_${zona}_${id}`;
+                    const prefix = usarOurense ? "auditorio_ourense_selected" : "auditorio_verin_selected";
+                    const key = `${prefix}_${zona}_${id}`;
                     console.log('[DEBUG] setItem (on continuar)', key, selectedSeats);
                     localStorage.setItem(key, JSON.stringify(selectedSeats));
                     // Recuperar todas as seleccións de todas as zonas
-                    const zonas = ["central", "dereita", "anfiteatro", "esquerda"];
+                    const zonas = usarOurense
+                      ? ["anfiteatroEsquerda", "anfiteatroCentral", "anfiteatroDereita", "central", "esquerda", "dereita"]
+                      : ["central", "dereita", "anfiteatro", "esquerda"];
                     let todas: any[] = [];
                     zonas.forEach(z => {
-                      const key = `auditorio_verin_selected_${z}_${id}`;
+                      const prefix = usarOurense ? "auditorio_ourense_selected" : "auditorio_verin_selected";
+                    const key = `${prefix}_${z}_${id}`;
                       const raw = localStorage.getItem(key);
                       if (raw) {
                         try {

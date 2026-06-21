@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "react-bootstrap";
-import AuditorioSelectorVerin from "../planoAuditorios/auditorioBotones/auditorioVerin";
-import AuditorioSelectorOurense from "../planoAuditorios/auditorioBotones/auditorioOurense";
+import AuditorioSelectorVerin from "../planoAuditorios/auditorioBotonesPanelOrganizador/auditorioVerin";
+import AuditorioSelectorOurense from "../planoAuditorios/auditorioBotonesPanelOrganizador/auditorioOurense";
 import ReservaSinPlano from "./componentes/reservaSinPlano";
 import MainNavbar from "../componentes/NavBar";
 import TablaPrezosZonas from "./TablaPrezosZonas";

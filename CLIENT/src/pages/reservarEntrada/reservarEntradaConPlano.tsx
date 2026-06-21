@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 // import { Button } from "react-bootstrap";
 import { Button, Modal } from "react-bootstrap";
-// import AuditorioSelectorVerin from "../planoAuditorios/auditorioBotones/auditorioVerin";
-// import AuditorioSelectorOurense from "../planoAuditorios/auditorioBotones/auditorioOurense";
+// import AuditorioSelectorVerin from "../planoAuditorios/auditorioBotonesPanelOrganizador/auditorioVerin";
+// import AuditorioSelectorOurense from "../planoAuditorios/auditorioBotonesPanelOrganizador/auditorioOurense";
 import MainNavbar from "../componentes/NavBar";
 
 import { FaCalendarAlt, FaArrowLeft, FaEnvelope, FaUser, FaExclamationTriangle } from "react-icons/fa";

@@ -100,11 +100,21 @@ const AuditorioOurenseZonaCentral: React.FC<Props> = ({
     handleSelectionChange(updated);
   };
 
+  const filasConButacas = AUDITORIO.filter(row => !row.every(seat => seat === null));
+  const rowIndexToFila = new Map<number, number>();
+  let filaCounter = filasConButacas.length;
+  AUDITORIO.forEach((row, idx) => {
+    if (!row.every(seat => seat === null)) {
+      rowIndexToFila.set(idx, filaCounter);
+      filaCounter--;
+    }
+  });
+
   return (
     <>
       <div className="auditorio-seatmap-wrapper" style={{ padding: 20 }}>
       {AUDITORIO.map((row, rowIndex) => {
-        const rowNumber = AUDITORIO.length - rowIndex;
+        const rowNumber = rowIndexToFila.get(rowIndex) ?? "";
         return (
           <div
             key={rowIndex}
@@ -140,7 +150,7 @@ const AuditorioOurenseZonaCentral: React.FC<Props> = ({
                     />
                   );
                 }
-                const realRow = AUDITORIO.length - rowIndex;
+                const realRow = rowIndexToFila.get(rowIndex) ?? -1;
                 const realSeat = colIndex + 1;
                 const isReserved = activeReservedSeats.some(
                   (s) => s.row === realRow && s.seat === realSeat
