@@ -22,6 +22,8 @@ interface Evento {
   entradas_reservadas?: number;
   entradas_vendidas?: number;
   prezo_evento?: number;
+  prezo_recibe_organizador?: number;
+  prezo_venta?: number;
   prezo_pvp?: number;
   prezo_areas?: boolean;
   tipo_gestion_entrada?: "pagina" | "manual" | "gratis" | null;
@@ -558,16 +560,21 @@ export default function EventoDetalle() {
                 </button>
                 <hr style={{ width: '100%', border: 0, borderTop: '4px solid #bdbdbd', margin: '22px 0 24px 0' }} />
 
-                {evento.prezo_evento != null && Number(evento.prezo_evento) > 0 && <p><FaCoins className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} /><strong>Diñeiro recadado:</strong> {formatImporteEuro(Number(evento.prezo_evento) * (evento.entradas_vendidas ?? 0))} €</p>}
+                {((evento.prezo_recibe_organizador ?? evento.prezo_evento ?? evento.prezo_venta) != null) && Number(evento.prezo_recibe_organizador ?? evento.prezo_evento ?? evento.prezo_venta) > 0 && (
+                  <p>
+                    <FaCoins className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} />
+                    <strong>Diñeiro recadado:</strong> {formatImporteEuro(Number(evento.prezo_recibe_organizador ?? evento.prezo_evento ?? evento.prezo_venta) * (evento.entradas_vendidas ?? 0))} €
+                  </p>
+                )}
                 {/* Mostrar título, icono e valor de prezo na mesma liña */}
                 <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.08rem', margin: '10px 0 18px 0' }}>
                   <FaEuroSign className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} />
                   <strong>Prezo:</strong>
-                  {evento.prezo_evento === 0 || evento.tipo_gestion_entrada === 'gratis' ? (
+                  {(evento.prezo_recibe_organizador ?? evento.prezo_evento ?? evento.prezo_venta) === 0 || evento.tipo_gestion_entrada === 'gratis' ? (
                     <span style={{ fontWeight: 700, color: '#222' }}>Evento de Balde</span>
                   ) : (
-                    evento.prezo_areas === false && evento.prezo_evento != null ? (
-                      <span style={{ fontWeight: 700, color: '#222' }}>{Number(evento.prezo_evento).toFixed(2).replace('.', ',')} €</span>
+                    evento.prezo_areas !== true && (evento.prezo_recibe_organizador ?? evento.prezo_evento ?? evento.prezo_venta) != null ? (
+                      <span style={{ fontWeight: 700, color: '#222' }}>{Number(evento.prezo_recibe_organizador ?? evento.prezo_evento ?? evento.prezo_venta).toFixed(2).replace('.', ',')} €</span>
                     ) : null
                   )}
                 </p>

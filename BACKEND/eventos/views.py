@@ -40,8 +40,8 @@ def zonas_prezo_evento(request, evento_id):
     data = [
         {
             "nome": z.nome,
-            "prezo": float(z.prezo),
-            "prezo_pvp": float(z.prezo_pvp) if z.prezo_pvp is not None else None
+            "prezo": float(z.prezo_recibe_organizador) if z.prezo_recibe_organizador is not None else None,
+            "prezo_pvp": float(z.prezo_venta) if z.prezo_venta is not None else None
         }
         for z in zonas
     ]
