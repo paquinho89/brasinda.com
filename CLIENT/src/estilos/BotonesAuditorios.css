@@ -166,7 +166,11 @@
 .platea {
   display: flex;
   justify-content: center;
-  gap: 15px;
+  gap: 0px;
+}
+
+.platea .zona {
+  margin: 0 !important;
 }
 
 
@@ -494,6 +498,29 @@
     min-width: 120px;
     max-width: 260px;
     width: 90vw;
+    margin: 0 auto;
+  }
+
+  .auditorio-container .zona-central-wrapper {
+    display: contents !important;
+  }
+
+  .auditorio-container .platea .zona.esquerda {
+    order: 1;
+  }
+
+  .auditorio-container .platea .zona.central {
+    order: 2;
+  }
+
+  .auditorio-container .platea .zona.dereita {
+    order: 3;
+  }
+
+  .auditorio-container .indicador-escenario {
+    order: 4;
+    width: 90vw;
+    max-width: 260px;
     margin: 0 auto;
   }
 }

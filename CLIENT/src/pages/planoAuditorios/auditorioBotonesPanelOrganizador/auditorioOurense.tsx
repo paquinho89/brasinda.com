@@ -568,16 +568,16 @@ const AuditorioSelectorOurense: React.FC<Props> = ({
       {/* BOTONES DE ZONA */}
       <div className="platea" style={{ marginBottom: 20 }}>
         <button
-          className={`zona anfiteatro-esquerda ${areaActiva.anfiteatroEsquerda ? "" : "zona-inactiva"}`}
+          className={`zona anfiteatro ${areaActiva.anfiteatroEsquerda ? "" : "zona-inactiva"}`}
           onClick={() => handleClick("anfiteatroEsquerda")}
         >
-          <div>ANFITEATRO ESQUERDA</div>
+          <div>ANFITEATRO ESQ</div>
           {variant === "rosa" && (
             <div className="zona-estado-interno">{areaActiva.anfiteatroEsquerda ? "(Activa)" : "(Inactiva)"}</div>
           )}
         </button>
         <button
-          className={`zona anfiteatro-central ${areaActiva.anfiteatroCentral ? "" : "zona-inactiva"}`}
+          className={`zona anfiteatro ${areaActiva.anfiteatroCentral ? "" : "zona-inactiva"}`}
           onClick={() => handleClick("anfiteatroCentral")}
         >
           <div>ANFITEATRO CENTRAL</div>
@@ -586,10 +586,10 @@ const AuditorioSelectorOurense: React.FC<Props> = ({
           )}
         </button>
         <button
-          className={`zona anfiteatro-dereita ${areaActiva.anfiteatroDereita ? "" : "zona-inactiva"}`}
+          className={`zona anfiteatro ${areaActiva.anfiteatroDereita ? "" : "zona-inactiva"}`}
           onClick={() => handleClick("anfiteatroDereita")}
         >
-          <div>ANFITEATRO DEREITA</div>
+          <div>ANFITEATRO DER</div>
           {variant === "rosa" && (
             <div className="zona-estado-interno">{areaActiva.anfiteatroDereita ? "(Activa)" : "(Inactiva)"}</div>
           )}
