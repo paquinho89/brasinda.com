@@ -23,7 +23,7 @@ const SeleccionButacaAuditorio: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { zona, id } = useParams<{ zona: string; id: string }>();
-  const [evento, setEvento] = useState<any>(location.state?.evento || null);
+  const [evento] = useState<any>(location.state?.evento || null);
   const localizacion =
     location.state?.localizacion ||
     location.state?.evento?.localizacion ||
