@@ -155,11 +155,11 @@
 /* Anfiteatro */
 
 .anfiteatro {
-  width: 60%;
-  height: 90px;
-  margin: 0 auto 25px auto;
+  width: 30%;
+  height: 78px;
+  margin: 0 auto 20px auto;
   border-radius: 80px 80px 0 0;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
 }
 
 /* Platea */

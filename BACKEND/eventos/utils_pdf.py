@@ -517,24 +517,34 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
 
     # Logo brasinda pequeno arriba esquerda
     logo_path = os.path.join(settings.BASE_DIR, "BACKEND", "organizador", "formato_email", "branding", "logo.png")
-    logo_w, logo_h = 48, 32  # Lixeiramente máis grande
+    logo_w, logo_h = 56, 32  # Lixeiramente máis grande
     if os.path.exists(logo_path):
         p.drawInlineImage(logo_path, 8, height - logo_h - 8, width=logo_w, height=logo_h)
 
 
-    # brasinda.com centrado arriba, xusto encima do QR code
+    # nome titular centrado arriba, xusto encima do QR code
+    nome_titular = reserva.nome_titular or reserva.email
     p.setFont("Helvetica", 8)
     p.setFillColorRGB(0.2, 0.2, 0.2)
-    p.drawCentredString(width/2, height - 12, "brasinda.com")
+    p.drawCentredString(width/2, height - 12, nome_titular)
     # Email do titular centrado xusto debaixo
     email_header = reserva.email if hasattr(reserva, 'email') and reserva.email else None
     if email_header:
         p.setFont("Helvetica", 8)
         p.setFillColorRGB(0.2, 0.2, 0.2)
         p.drawCentredString(width/2, height - 22, email_header)
-        p.setFillColorRGB(0, 0, 0)
-    else:
-        p.setFillColorRGB(0, 0, 0)
+    # Texto brasinda.com na marxe dereita, centrado verticalmente e rotado 90 grados
+    p.saveState()
+    p.setFont("Helvetica", 8)
+    p.setFillColorRGB(0.2, 0.2, 0.2)
+    text = "brasinda.com"
+    text_width = p.stringWidth(text, "Helvetica", 8)
+    margin_right = 10
+    p.translate(width - margin_right, height / 2 - text_width / 2)
+    p.rotate(90)
+    p.drawString(0, 0, text)
+    p.restoreState()
+    p.setFillColorRGB(0, 0, 0)
 
     # Reducir marxe superior para subir o texto
     y = height - 24  # Máis preto do header
@@ -563,33 +573,24 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
     p.setFont("Helvetica-Bold", 13)
     p.setFillColorRGB(0, 0, 0)
     p.drawCentredString(center_x, y, evento.nome_evento)
+    y -= 1  # menos espazo tras nome
     # Engadir unha liña horizontal lixeira entre nome_evento e Zona
-    line_y = y - 8
+    line_y = y - 4
     p.setStrokeColorRGB(0.85, 0.85, 0.85)
     p.setLineWidth(1)
     p.line(32, line_y, width - 32, line_y)
     p.setStrokeColorRGB(0, 0, 0)
-    y -= 20  # máis espazo tras nome_evento para a liña horizontal
+    y -= 25  # máis espazo tras nome_evento para a liña horizontal
 
-    # Nome do titular/email arriba á dereita
-    p.setFont("Helvetica", 14)
-    nome_titular = reserva.nome_titular or reserva.email
+    zona = getattr(reserva, "zona", None)
     fila = getattr(reserva, "fila", None)
     butaca = getattr(reserva, "butaca", None)
-    zona = getattr(reserva, "zona", None)
-    evento_ten_plano = getattr(evento, "ten_plano", False)
-    nome_x = width - 12
-    nome_y = height - 14
-    p.setFont("Helvetica", 14)
-    p.setFillColorRGB(0.15, 0.15, 0.15)
-    p.drawRightString(nome_x, nome_y, nome_titular)
-    p.setFillColorRGB(0, 0, 0)
-    y -= 18  # menos espazo tras nome
+
     # Zona, Fila, Butaca: centrados, valor en negrita, con iconos se existen
     icon_size = 20
     icon_gap = 12
     text_gap = 28
-    y += 10  # SUBIR o bloque máis preto do nome do evento
+    y += 2  # manter o bloque de Zona algo máis preto da liña, sen solapalo
     def draw_centered_label_value(y, icon_filename, label, value):
         # icon_filename: icono a mostrar á esquerda (ou None)
         # label: string, value: string
@@ -864,19 +865,19 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
     # --- Páxina 2: termos de uso ---
     p.showPage()
     # Header igual que na primeira páxina
-    # brasinda.com centrado arriba
+    
+    # nome titular centrado arriba, xusto encima do QR code
+    nome_titular = reserva.nome_titular or reserva.email
     p.setFont("Helvetica", 8)
     p.setFillColorRGB(0.2, 0.2, 0.2)
-    p.drawCentredString(width/2, height - 12, "brasinda.com")
+    p.drawCentredString(width/2, height - 12, nome_titular)
     # Email do titular centrado xusto debaixo
     email_header = reserva.email if hasattr(reserva, 'email') and reserva.email else None
     if email_header:
         p.setFont("Helvetica", 8)
         p.setFillColorRGB(0.2, 0.2, 0.2)
         p.drawCentredString(width/2, height - 22, email_header)
-        p.setFillColorRGB(0, 0, 0)
-    else:
-        p.setFillColorRGB(0, 0, 0)
+    p.setFillColorRGB(0, 0, 0)
     y = height - 52  # Máis espazo baixo o header (antes era -30)
     p.setFont("Helvetica-Bold", 13)
     p.setFillColorRGB(0.2, 0.2, 0.2)
