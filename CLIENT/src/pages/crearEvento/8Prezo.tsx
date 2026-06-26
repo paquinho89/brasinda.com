@@ -18,6 +18,7 @@ const PrezoContaBancaria: React.FC = () => {
   const [errorPrezoZona, setErrorPrezoZona] = useState("");
   const [errorPrezo, setErrorPrezo] = useState<string>("");
   const navigate = useNavigate();
+  const isGestionPagina = evento.tipo_gestion_entrada === "pagina";
 
   // Removed unused prezoNumericoVista
   // Novo cálculo: Prezo venta público = prezo + 5%
@@ -222,7 +223,7 @@ const PrezoContaBancaria: React.FC = () => {
                 </Form.Group>
               )}
               {/* Checkboxes de gastos de xestión */}
-              {!mostrarZonas && prezo !== "" && Number(prezo.replace(",", ".")) > 0 && (
+              {!mostrarZonas && isGestionPagina && prezo !== "" && Number(prezo.replace(",", ".")) > 0 && (
                 <Form.Group className="mb-3">
                   {(() => {
                     const base = Number(prezo.replace(",", "."));
@@ -355,7 +356,7 @@ const PrezoContaBancaria: React.FC = () => {
                           </InputGroup>
                           {(() => {
                             const baseZona = Number((prezosZona[zona] || "").replace(",", "."));
-                            if (isNaN(baseZona) || baseZona <= 0) return null;
+                            if (!isGestionPagina || isNaN(baseZona) || baseZona <= 0) return null;
                             const gastosBaseZ = baseZona * 0.05;
                             const gastosIVEZ = gastosBaseZ * 0.21;
                             const gastosTotaisZ = gastosBaseZ + gastosIVEZ;
@@ -382,26 +383,30 @@ const PrezoContaBancaria: React.FC = () => {
                         </Form.Group>
                       );
                     })}
-                    <Form.Check
-                        type="checkbox"
-                        style={{ fontSize: "1rem" }}
-                        id="gastos-organizador"
-                        label={
+                    {isGestionPagina && (
+                      <>
+                        <Form.Check
+                          type="checkbox"
+                          style={{ fontSize: "1rem" }}
+                          id="gastos-organizador"
+                          label={
                             <span>Queres asumir os gastos de xestión?</span>
-                        }
-                        checked={checkOrganizador}
-                        onChange={() => setCheckOrganizador(prev => !prev)}
-                        className="mb-2"
-                      />
-                    {errorPrezoZona && (
-                      <div className="alert alert-danger" style={{ background: "#ffe6f3", color: "#000", marginTop: 0, display: 'flex', alignItems: 'center' }}>
-                        <FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
-                        {errorPrezoZona}
-                    </div>
+                          }
+                          checked={checkOrganizador}
+                          onChange={() => setCheckOrganizador(prev => !prev)}
+                          className="mb-2"
+                        />
+                        {errorPrezoZona && (
+                          <div className="alert alert-danger" style={{ background: "#ffe6f3", color: "#000", marginTop: 0, display: 'flex', alignItems: 'center' }}>
+                            <FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
+                            {errorPrezoZona}
+                          </div>
+                        )}
+                        <div className="mt-3" style={{ fontSize: "1.0em", color: "#555" }}>
+                          <span><FaExclamationTriangle style={{ fontSize: "1.3em", color: '#ff0093', marginRight: 8 }} />O organizador é responsable de tramitar o <strong>IVE</strong> do valor recibido por entrada</span>
+                        </div>
+                      </>
                     )}
-                    <div className="mt-3" style={{ fontSize: "1.0em", color: "#555" }}>
-                      <span><FaExclamationTriangle style={{ fontSize: "1.3em", color: '#ff0093', marginRight: 8 }} />O organizador é responsable de tramitar o <strong>IVE</strong> do valor recibido por entrada</span>
-                    </div>
                   </>
                 );
               })()}

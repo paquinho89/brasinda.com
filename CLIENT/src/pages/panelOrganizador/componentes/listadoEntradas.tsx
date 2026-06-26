@@ -269,7 +269,11 @@ export default function ListadoEntradas() {
     editingNomeRef.current = "";
   };
 
-  const invitacionsFiltradas = invitacionsData
+  const invitacionsConfirmadas = invitacionsData.filter((invitacion) =>
+    (invitacion.estado || "").toLowerCase() === "confirmado"
+  );
+
+  const invitacionsFiltradas = invitacionsConfirmadas
     .filter((invitacion) => {
       const tipoMatch = filterTipoReserva === "" || invitacion.tipo_reserva === filterTipoReserva;
       if (esSinPlano) {
@@ -290,9 +294,9 @@ export default function ListadoEntradas() {
       return 0;
     });
 
-  const zonasDisponibles = Array.from(new Set(invitacionsData.map((e) => e.zona)));
+  const zonasDisponibles = Array.from(new Set(invitacionsConfirmadas.map((e) => e.zona)));
   
-  const tiposReservaDisponibles = Array.from(new Set(invitacionsData.map((e) => e.tipo_reserva)));
+  const tiposReservaDisponibles = Array.from(new Set(invitacionsConfirmadas.map((e) => e.tipo_reserva)));
 
   const formatZonaDisplay = (zona: string) => {
     if (zona === "sen-plano") return "Sen Plano";
