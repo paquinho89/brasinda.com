@@ -12,7 +12,9 @@ const PrezoContaBancaria: React.FC = () => {
   const { evento, setEvento } = useOutletContext<OutletContext>();
   const [prezo, setPrezo] = useState<string>("");
   const [checkOrganizador, setCheckOrganizador] = useState<boolean>(evento.asumeFees ?? false);
+  const [gastosDecisionMade, setGastosDecisionMade] = useState<boolean>(evento.asumeFees !== undefined);
   const [checkComprador] = useState<boolean>(false);
+  const [iveRate, setIveRate] = useState<number | null>(null);
   // Estados dinámicos para prezos por zona
   const [prezosZona, setPrezosZona] = useState<{ [zona: string]: string }>({});
   const [errorPrezoZona, setErrorPrezoZona] = useState("");
@@ -126,19 +128,26 @@ const PrezoContaBancaria: React.FC = () => {
       }
       const pvpCalculado = (() => {
         const base = Number(prezo.replace(",", "."));
+        const ivaRate = iveRate ?? 0;
         if (!isNaN(base) && base > 0) {
-          // Se o organizador non asume os gastos, o comprador págaos (sumanse ao PVP)
-          const gastos = checkOrganizador ? 0 : base * 0.05 * 1.21;
-          return (base + gastos).toFixed(2).replace(".", ",");
+          const ivaPrecio = base * ivaRate;
+          const gastosBase = base * 0.05;
+          const gastosIVE = gastosBase * 0.21; // IVE normal por defecto
+          const gastos = checkOrganizador ? 0 : gastosBase + gastosIVE;
+          return (base + ivaPrecio + gastos).toFixed(2).replace(".", ",");
         }
         return prezo;
       })();
-      // O que realmente recibe o organizador = base - gastos que asume
+      // O que realmente recibe o organizador = base + IVE por entrada - gastos que asume
       const recibeCalculado = (() => {
         const base = Number(prezo.replace(",", "."));
+        const ivaRate = iveRate ?? 0;
         if (!isNaN(base) && base > 0) {
-          const gastos = checkOrganizador ? base * 0.05 * 1.21 : 0;
-          return (base - gastos).toFixed(2).replace(".", ",");
+          const ivaPrecio = base * ivaRate;
+          const gastosBase = base * 0.05;
+          const gastosIVE = gastosBase * 0.21; // IVE normal por defecto
+          const gastos = checkOrganizador ? gastosBase + gastosIVE : 0;
+          return (base + ivaPrecio - gastos).toFixed(2).replace(".", ",");
         }
         return prezo;
       })();
@@ -190,7 +199,6 @@ const PrezoContaBancaria: React.FC = () => {
               {/* Prezo da entrada xeral só visible se non se mostran as zonas */}
               {!mostrarZonas && (
                 <Form.Group className="mb-3">
-                  <Form.Label>Prezo da entrada (€)</Form.Label>
                   <InputGroup>
                     <InputGroup.Text>€</InputGroup.Text>
                     <Form.Control
@@ -201,7 +209,10 @@ const PrezoContaBancaria: React.FC = () => {
                       onChange={e => {
                         const value = e.target.value.replace(".", ",");
                         const regex = /^\d*(,\d{0,2})?$/;
-                        if (regex.test(value)) setPrezo(value);
+                        if (regex.test(value)) {
+                          setPrezo(value);
+                          setGastosDecisionMade(false);
+                        }
                       }}
                       onBlur={() => {
                         if (!prezo) return;
@@ -228,7 +239,7 @@ const PrezoContaBancaria: React.FC = () => {
                   {(() => {
                     const base = Number(prezo.replace(",", "."));
                     const gastosBase = base * 0.05;
-                    const gastosIVE = gastosBase * 0.21;
+                    const gastosIVE = gastosBase * 0.21; // IVE de gastos de xestión sempre 21%
                     const gastosTotais = gastosBase + gastosIVE; // prezo*0.05 + prezo*0.05*0.21
                     const fmtGastos = (!isNaN(base) && base > 0)
                       ? gastosTotais.toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -236,40 +247,145 @@ const PrezoContaBancaria: React.FC = () => {
                    
                     return (
                       <>
-                        <Form.Check
-                          type="checkbox"
-                          style={{ fontSize: "1rem" }}
-                          id="gastos-organizador"
-                          label={fmtGastos
-                            ? <span>Queres asumir os gastos de xestión? {gastosBase.toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€ (5%) + {gastosIVE.toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€ (21%) = <strong>{fmtGastos} €</strong></span>
-                            : "O organizador asume os gastos de xestión (5%) + IVE (21%)"
-                          }
-                          checked={checkOrganizador}
-                          onChange={() => setCheckOrganizador(prev => !prev)}
-                          className="mb-2"
-                        />
-              
-                        {!isNaN(base) && base > 0 && (() => {
-                          // PVP = base + o que NON asume o organizador (paga o comprador)
+                        <div style={{ marginBottom: 12 }}>
+                          <h5 style={{ marginBottom: 10 }}>Gastos de Xestión</h5>
+                          <div style={{ fontSize: "1rem", marginBottom: 10 }}>
+                            {fmtGastos
+                              ? <>
+                                  <div>Queres aplicar os gastos de xestión ao prezo final de venta?</div>
+                                  <div style={{ color: "#666", fontSize: "0.85em" }}>{gastosBase.toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€ (5%) + {gastosIVE.toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€ (IVE da xestión 21%) = <strong>{fmtGastos} €</strong></div>
+                                </>
+                              : `O organizador asume os gastos de xestión (5%) + IVE (${iveRate !== null ? Math.round(iveRate * 100) : 0}%)`
+                            }
+                          </div>
+                          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", paddingBottom: "15px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setCheckOrganizador(false);
+                                  setGastosDecisionMade(true);
+                                }}
+                                style={{
+                                  border: "none",
+                                  background: "transparent",
+                                  color: !checkOrganizador ? "#ff0093" : "#8e24aa",
+                                  fontWeight: 700,
+                                  cursor: "pointer",
+                                }}
+                              >
+                                SI
+                              </button>
+                              <label style={{ position: "relative", display: "inline-block", width: 60, height: 32, background: !checkOrganizador ? "#ff0093" : "#ccc", borderRadius: 999, cursor: "pointer" }}>
+                                <input
+                                  type="checkbox"
+                                  checked={!checkOrganizador}
+                                  onChange={e => {
+                                    setCheckOrganizador(!e.target.checked);
+                                    setGastosDecisionMade(true);
+                                  }}
+                                  style={{ display: "none" }}
+                                />
+                                <span style={{
+                                  position: "absolute",
+                                  top: 2,
+                                  left: !checkOrganizador ? 2 : 30,
+                                  width: 28,
+                                  height: 28,
+                                  background: "#fff",
+                                  borderRadius: "50%",
+                                  transition: "left 0.2s ease",
+                                }} />
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setCheckOrganizador(true);
+                                  setGastosDecisionMade(true);
+                                }}
+                                style={{
+                                  border: "none",
+                                  background: "transparent",
+                                  color: checkOrganizador ? "#ff0093" : "#222222",
+                                  fontWeight: 700,
+                                  cursor: "pointer",
+                                }}
+                              >
+                                NON
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                        {gastosDecisionMade && (
+                          <div className="mt-3" style={{ paddingTop: 14, borderTop: "1px solid #dee2e6" }}>
+                            <h5 style={{ marginBottom: 10 }}>IVE</h5>
+                            <Form.Check
+                            type="radio"
+                            id="sen-ive"
+                            name="ive-rate"
+                            label="Non quero aplicar o IVE (0%)"
+                            checked={iveRate === 0}
+                            onChange={() => setIveRate(0)}
+                            className="mb-2"
+                          />
+                          <Form.Check
+                            type="radio"
+                            id="ive-reducido"
+                            name="ive-rate"
+                            label="IVE reducido (10%)"
+                            checked={iveRate === 0.10}
+                            onChange={() => setIveRate(0.10)}
+                            className="mb-2"
+                          />
+                          <Form.Check
+                            type="radio"
+                            id="ive-normal"
+                            name="ive-rate"
+                            label="IVE normal (21%)"
+                            checked={iveRate === 0.21}
+                            onChange={() => setIveRate(0.21)}
+                          />
+                          <div style={{ marginTop: 10, fontSize: "0.95rem", color: "#333" }}>
+                            IVE por entrada = {prezo && !isNaN(Number(prezo.replace(",", "."))) ? (Number(prezo.replace(",", ".")) * (iveRate ?? 0)).toFixed(2).replace(".", ",") : "0,00"} €
+                          </div>
+                        </div>
+                        )}
+                        {iveRate !== null && !isNaN(base) && base > 0 && (() => {
+                          const ivaPrecio = base * iveRate;
+                          const ivaTexto = ivaPrecio > 0
+                            ? ` + ${ivaPrecio.toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} € (IVE da entrada ${Math.round(iveRate * 100)}%)`
+                            : "";
                           const pvpTotal = base
+                            + ivaPrecio
                             + (checkOrganizador ? 0 : gastosTotais)
-                          // Recibes = base - o que SI asume o organizador
+                          // Recibes = base + IVE por entrada - o que SI asume o organizador
                           const recibeTotal = base
+                            + ivaPrecio
                             - (checkOrganizador ? gastosTotais : 0)
                           const fmtPvpTotal = pvpTotal.toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                           const fmtRecibe = recibeTotal.toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                           return (
                             <div style={{ marginTop: 18, borderTop: "2px solid #dee2e6", paddingTop: 14 }}>
-                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#f1e4f7", borderRadius: 8, padding: "10px 14px", marginBottom: 8 }}>
-                                <span style={{ fontSize: "1em" }}>Recibes por entrada</span>
-                                <strong style={{ fontSize: "1.25em", color: "black" }}>{fmtRecibe} €</strong>
+                              <div style={{ display: "flex", flexDirection: "column", background: "#f1e4f7", borderRadius: 8, padding: "10px 14px", marginBottom: 8 }}>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+                                  <span style={{ fontSize: "1em" }}><strong>Recibes por entrada</strong></span>
+                                  <strong style={{ fontSize: "1.25em", color: "black" }}>{fmtRecibe} €</strong>
+                                </div>
+                                <div style={{ marginTop: 6, fontSize: "0.95em", color: "#555" }}>
+                                  {prezo} €{ivaTexto}
+                                  {checkOrganizador && <> - {fmtGastos} € (Xestión)</>}
+                                  = {fmtRecibe}€
+                                </div>
                               </div>
-                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fff0f8", borderRadius: 8, padding: "10px 14px" }}>
-                                <span style={{ fontSize: "1em" }}>Prezo Venta</span>
-                                <strong style={{ fontSize: "1.25em", color: "black" }}>{fmtPvpTotal} €</strong>
-                              </div>
-                              <div className="mt-3" style={{ fontSize: "1.0em", color: "#555" }}>
-                                <span><FaExclamationTriangle style={{ fontSize: "1.3em", color: '#ff0093', marginRight: 8 }} />O organizador é responsable de tramitar o <strong>IVE</strong> do valor recibido por entrada: {fmtRecibe} €</span>
+                              <div style={{ display: "flex", flexDirection: "column", background: "#fff0f8", borderRadius: 8, padding: "10px 14px" }}>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                  <span style={{ fontSize: "1em" }}><strong>Prezo Venta</strong></span>
+                                  <strong style={{ fontSize: "1.25em", color: "black" }}>{fmtPvpTotal} €</strong>
+                                </div>
+                                <div style={{ marginTop: 6, fontSize: "0.95em", color: "#555" }}>
+                                  {prezo} €{ivaTexto}
+                                  {checkOrganizador ? ` = ${fmtPvpTotal}€` : <> + {fmtGastos} € (Xestión) = {fmtPvpTotal}€</>}
+                                </div>
                               </div>
                             </div>
                             
@@ -310,11 +426,115 @@ const PrezoContaBancaria: React.FC = () => {
                       });
                     }}
                   >
-                    Establecer distintos prezos por zona
+                    {mostrarZonas ? "Cerrar" : "Quero establecer distintos prezos por zona"}
                   </Button>
                   </div>
                 );
               })()}
+              {mostrarZonas && isGestionPagina && (
+                <>
+                  <div style={{ marginBottom: 16 }}>
+                    <h5 style={{ marginBottom: 10 }}>Gastos de Xestión</h5>
+                    <div style={{ fontSize: "1rem", marginBottom: 10 }}>
+                      Queres aplicar os gastos de xestión ao prezo final de venta?
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", paddingBottom: "15px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCheckOrganizador(false);
+                            setGastosDecisionMade(true);
+                          }}
+                          style={{
+                            border: "none",
+                            background: "transparent",
+                            color: !checkOrganizador ? "#ff0093" : "#222222",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                          }}
+                        >
+                          SI
+                        </button>
+                        <label style={{ position: "relative", display: "inline-block", width: 60, height: 32, background: !checkOrganizador ? "#ff0093" : "#ccc", borderRadius: 999, cursor: "pointer" }}>
+                          <input
+                            type="checkbox"
+                            checked={!checkOrganizador}
+                            onChange={e => {
+                              setCheckOrganizador(!e.target.checked);
+                              setGastosDecisionMade(true);
+                            }}
+                            style={{ display: "none" }}
+                          />
+                          <span style={{
+                            position: "absolute",
+                            top: 2,
+                            left: !checkOrganizador ? 2 : 30,
+                            width: 28,
+                            height: 28,
+                            background: "#fff",
+                            borderRadius: "50%",
+                            transition: "left 0.2s ease",
+                          }} />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCheckOrganizador(true);
+                            setGastosDecisionMade(true);
+                          }}
+                          style={{
+                            border: "none",
+                            background: "transparent",
+                            color: checkOrganizador ? "#ff0093" : "#222222",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                          }}
+                        >
+                          NON
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  {gastosDecisionMade && (
+                    <div className="mt-4" style={{ marginTop: 24, paddingTop: 14, paddingBottom: 18, marginBottom: 24, borderTop: "1px solid #dee2e6", borderBottom: "1px solid #dee2e6" }}>
+                      <h5 style={{ marginBottom: 10 }}>IVE</h5>
+                      <Form.Check
+                      type="radio"
+                      id="sen-ive-zona-superior"
+                      name="ive-rate-zona"
+                      label="Non quero aplicar o IVE (0%)"
+                      checked={iveRate === 0}
+                      onChange={() => setIveRate(0)}
+                      className="mb-2"
+                    />
+                    <Form.Check
+                      type="radio"
+                      id="ive-reducido-zona-superior"
+                      name="ive-rate-zona"
+                      label="IVE reducido (10%)"
+                      checked={iveRate === 0.10}
+                      onChange={() => setIveRate(0.10)}
+                      className="mb-2"
+                    />
+                    <Form.Check
+                      type="radio"
+                      id="ive-normal-zona-superior"
+                      name="ive-rate-zona"
+                      label="IVE normal (21%)"
+                      checked={iveRate === 0.21}
+                      onChange={() => setIveRate(0.21)}
+                    />
+                  </div>
+                )}
+                  {errorPrezoZona && (
+                    <div className="alert alert-danger" style={{ background: "#ffe6f3", color: "#000", marginTop: 0, display: 'flex', alignItems: 'center' }}>
+                      <FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
+                      {errorPrezoZona}
+                    </div>
+                  )}
+                </>
+              )}
               {/* Inputs dinámicos para prezos por zona, só se está activado */}
               {mostrarZonas && (() => {
                 // Normalizar o nome do auditorio igual que no resto do ficheiro
@@ -356,26 +576,43 @@ const PrezoContaBancaria: React.FC = () => {
                           </InputGroup>
                           {(() => {
                             const baseZona = Number((prezosZona[zona] || "").replace(",", "."));
-                            if (!isGestionPagina || isNaN(baseZona) || baseZona <= 0) return null;
+                            if (!isGestionPagina || iveRate === null || isNaN(baseZona) || baseZona <= 0) return null;
                             const gastosBaseZ = baseZona * 0.05;
                             const gastosIVEZ = gastosBaseZ * 0.21;
                             const gastosTotaisZ = gastosBaseZ + gastosIVEZ;
-                            const pvpZ = baseZona + (checkOrganizador ? 0 : gastosTotaisZ);
-                            const recibeZ = baseZona - (checkOrganizador ? gastosTotaisZ : 0);
+                            const ivaPrecioZ = baseZona * (iveRate ?? 0);
+                            const ivaTextoZ = ivaPrecioZ > 0 ? ` + ${ivaPrecioZ.toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} € (IVE ${Math.round(iveRate * 100)}%)` : "";
+                            const pvpZ = baseZona + ivaPrecioZ + (checkOrganizador ? 0 : gastosTotaisZ);
+                            const recibeZ = baseZona + ivaPrecioZ - (checkOrganizador ? gastosTotaisZ : 0);
                             const fmt = (n: number) => n.toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                             return (
                               <div style={{ marginTop: 8, background: "#fff0f8", borderRadius: 8, padding: "10px 14px", fontSize: "0.9em" }}>
                                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                                  <span style={{ color: "#555" }}>Gastos xestión:</span>
-                                  <span><strong>{fmt(gastosTotaisZ)} €:</strong> <span style={{ color: "#888" }}>{fmt(gastosBaseZ)}€ (5%) + {fmt(gastosIVEZ)}€ (21% IVE)</span></span>
+                                  <span style={{ color: "#555" }}>• Gastos xestión:</span>
+                                  <span><strong style={{ color: "#8e24aa" }}>{fmt(gastosTotaisZ)} €</strong> </span>
                                 </div>
+                                <div style={{ marginTop: 0.5, marginBottom: 8, fontSize: "0.85em", color: "#555" }}>
+                                  {fmt(gastosBaseZ)}€ (5%) + {fmt(gastosIVEZ)}€ (21% IVE)
+                                </div>
+                                
                                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                                  <span style={{ color: "#555" }}>Recibes por entrada:</span>
+                                  <span style={{ color: "#555", fontSize: "0.85rem" }}>
+                                    • Recibes por entrada:
+                                  </span>
                                   <strong style={{ color: "#8e24aa" }}>{fmt(recibeZ)} €</strong>
                                 </div>
+                                <div style={{ marginTop: 0.5, marginBottom: 8, fontSize: "0.85em", color: "#555" }}>
+                                  {baseZona} €{ivaTextoZ}
+                                  {checkOrganizador ? ` - ${fmt(gastosTotaisZ)} € (Xestión)` : ""}
+                                </div>
+                                
                                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                                  <span style={{ color: "#555" }}>Prezo Venta:</span>
+                                  <span style={{ color: "#555" }}>• Prezo Venta:</span>
                                   <strong style={{ color: "black" }}>{fmt(pvpZ)} €</strong>
+                                </div>
+                                <div style={{ marginTop: 1, marginBottom: 8, fontSize: "0.85em", color: "#555" }}>
+                                  {baseZona} €{ivaTextoZ}
+                                  {checkOrganizador ? "" : ` + ${fmt(gastosTotaisZ)} € (Xestión)`} = {fmt(pvpZ)}€
                                 </div>
                               </div>
                             );
@@ -383,30 +620,6 @@ const PrezoContaBancaria: React.FC = () => {
                         </Form.Group>
                       );
                     })}
-                    {isGestionPagina && (
-                      <>
-                        <Form.Check
-                          type="checkbox"
-                          style={{ fontSize: "1rem" }}
-                          id="gastos-organizador"
-                          label={
-                            <span>Queres asumir os gastos de xestión?</span>
-                          }
-                          checked={checkOrganizador}
-                          onChange={() => setCheckOrganizador(prev => !prev)}
-                          className="mb-2"
-                        />
-                        {errorPrezoZona && (
-                          <div className="alert alert-danger" style={{ background: "#ffe6f3", color: "#000", marginTop: 0, display: 'flex', alignItems: 'center' }}>
-                            <FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
-                            {errorPrezoZona}
-                          </div>
-                        )}
-                        <div className="mt-3" style={{ fontSize: "1.0em", color: "#555" }}>
-                          <span><FaExclamationTriangle style={{ fontSize: "1.3em", color: '#ff0093', marginRight: 8 }} />O organizador é responsable de tramitar o <strong>IVE</strong> do valor recibido por entrada</span>
-                        </div>
-                      </>
-                    )}
                   </>
                 );
               })()}
