@@ -10,7 +10,8 @@ interface Evento {
   entradas_venta: number;
   entradas_vendidas?: number;
   entradas_reservadas?: number;
-  prezo_evento?: number;
+  prezo_venta?: number;
+  prezo_recibe_organizador?: number;
   gastos_xestion?: number;
   email_organizador?: string;
   evento_cobrado?: boolean;
@@ -100,7 +101,13 @@ export default function CobroEvento() {
   if (error) return <div className="container py-4 text-danger">{error}</div>;
   if (!evento) return <div className="container py-4">Evento non encontrado</div>;
 
-  const importeRecaudadoBruto = (evento.entradas_vendidas || 0) * (evento.prezo_evento || 0);
+  const parsePrice = (value: number | string | undefined | null) => {
+    if (value === undefined || value === null || value === "") return 0;
+    const parsed = typeof value === "string" ? Number(value.replace(",", ".")) : Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+  const prezoUnitario = parsePrice(evento.prezo_venta ?? evento.prezo_recibe_organizador ?? 0);
+  const importeRecaudadoBruto = (evento.entradas_vendidas || 0) * prezoUnitario;
 
   const formatDataCompleta = (dateString: string) => {
     const date = new Date(dateString);
@@ -131,7 +138,7 @@ export default function CobroEvento() {
 
   // Usar comisión do backend (gastos_xestion)
   const comisionPct = (evento.gastos_xestion ?? 5) / 100;
-  const comisionPorEntrada = (evento.prezo_evento || 0) * comisionPct;
+  const comisionPorEntrada = prezoUnitario * comisionPct;
   const comisionTotal = (evento.entradas_vendidas || 0) * comisionPorEntrada * 1.21; // 21% IVA sobre a comisión
   const importeTotal = importeRecaudadoBruto - comisionTotal;
 
@@ -218,9 +225,9 @@ export default function CobroEvento() {
               <div className="col-md-6">
                 <label className="fw-bold">
                   <FaEuroSign className="me-2" style={{ color: "#ff0093" }}/>
-                  Precio por entrada:
+                  Prezo por entrada:
                 </label>
-                <p>{evento.prezo_evento || 0} €</p>
+                <p>{prezoUnitario.toFixed(2)} €</p>
               </div>
 
               <div className="col-md-6">

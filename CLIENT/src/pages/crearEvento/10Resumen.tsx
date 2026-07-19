@@ -92,9 +92,13 @@ const Resumen: React.FC = () => {
           .filter(([, prezo]) => parseFloat((prezo as string).replace(',', '.')) > 0)
           .map(([zona, prezo]) => {
             const baseZ = parseFloat((prezo as string).replace(',', '.'));
-            const gastos = baseZ * 0.05 * 1.21;
-            const prezoVenta = evento.asumeFees ? baseZ : baseZ + gastos;
-            const recibe = evento.asumeFees ? baseZ - gastos : baseZ;
+            let prezoVenta = baseZ;
+            let recibe = baseZ;
+            if (evento.tipo_gestion_entrada === 'pagina') {
+              const gastos = baseZ * 0.05 * 1.21;
+              prezoVenta = evento.asumeFees ? baseZ : baseZ + gastos;
+              recibe = evento.asumeFees ? baseZ - gastos : baseZ;
+            }
             return [zona, {
               prezo_recibe_organizador: recibe.toFixed(2).replace('.', ','),
               prezo_venta: prezoVenta.toFixed(2).replace('.', ','),
@@ -290,7 +294,7 @@ const Resumen: React.FC = () => {
                   <tbody>
                     {evento.prezo_recibe_organizador && parseFloat(evento.prezo_recibe_organizador) > 0 && (
                       <tr>
-                        <th style={{ width: '50%' }}>Recibes por entrada</th>
+                        <th style={{ width: '50%' }}>{evento.tipo_gestion_entrada === "manual" ? "Prezo" : "Recibes por entrada"}</th>
                         <td>{evento.prezo_recibe_organizador} €</td>
                       </tr>
                     )}

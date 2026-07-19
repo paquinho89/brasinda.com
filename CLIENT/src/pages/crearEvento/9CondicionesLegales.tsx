@@ -150,8 +150,8 @@ const CondicionesLegales: React.FC = () => {
 
               <h5 style={{marginTop: '0.5rem'}}>EXPOÑEN</h5>
               que a Plataforma ofrece un servizo tecnolóxico de publicación e venda/reserva de entradas para eventos a través dunha páxina web.
-              que o Organizador é responsable da planificación, xestión e execución do evento descrito.
-              que ambas partes desexan regular a súa relación de colaboración exclusivamente para a venda ou reserva de entradas do evento.
+              Que o Organizador é responsable da planificación, xestión e execución do evento descrito.
+              Que ambas partes desexan regular a súa relación de colaboración exclusivamente para a venda ou reserva de entradas do evento.
 
               <div style={{marginTop: '2.5rem'}} />
               <h4>CLÁUSULAS</h4>

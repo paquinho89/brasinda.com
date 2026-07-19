@@ -19,6 +19,13 @@ interface Evento {
   localizacion: string;
   localidade?: string;
   entradas_venta: number;
+  prezo_evento?: number | null;
+  prezo_venta?: number | null;
+  prezo_recibe_organizador?: number | null;
+  tipo_gestion_entrada?: "pagina" | "manual" | "gratis" | null;
+  evento_cobrado?: boolean;
+  factura_pdf?: string | null;
+  slug?: string;
 }
 
 export default function PanelOrganizador() {

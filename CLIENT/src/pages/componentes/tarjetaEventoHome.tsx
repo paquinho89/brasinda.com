@@ -138,6 +138,9 @@ export default function TarjetaEventoHome({ evento, modoPublicacionExitosa }: Ev
   // Mostrar 'Dende:' se prezo_areas é true
   // O campo prezo_areas debe estar dispoñible no obxecto evento
   const prezoAreas = (evento as any).prezo_areas === true || (evento as any).prezo_areas === 'true';
+  const prezoManual = Number((evento as any).prezo_recibe_organizador ?? (evento as any).prezo_venta ?? 0);
+  const prezoPagina = Number((evento as any).prezo_venta ?? 0);
+  const prezoMostrar = evento.tipo_gestion_entrada === 'manual' ? prezoManual : prezoPagina;
 
   return (
     <div className="card shadow-sm h-100 position-relative tarjeta-evento" style={{ overflow: "hidden", cursor: "pointer" }} onClick={handleReservation}>
@@ -167,9 +170,9 @@ export default function TarjetaEventoHome({ evento, modoPublicacionExitosa }: Ev
           <FaEuroSign style={{ marginRight: "6px", color: rosa }} />
           <span style={{ fontWeight: 700 }}>
             {prezoAreas
-              ? <><span style={{ color: '#000', fontWeight: 'normal' }}>Dende:</span> {Number((evento as any).prezo_venta ?? 0) > 0 ? `${Number((evento as any).prezo_venta) % 1 === 0 ? Number((evento as any).prezo_venta) : Number((evento as any).prezo_venta).toFixed(2)} €` : "Evento de Balde"}</>
-              : (Number((evento as any).prezo_venta ?? 0) > 0
-                  ? `${Number((evento as any).prezo_venta) % 1 === 0 ? Number((evento as any).prezo_venta) : Number((evento as any).prezo_venta).toFixed(2)} €`
+              ? <><span style={{ color: '#000', fontWeight: 'normal' }}>Dende:</span> {prezoMostrar > 0 ? `${prezoMostrar % 1 === 0 ? prezoMostrar : prezoMostrar.toFixed(2)} €` : "Evento de Balde"}</>
+              : (prezoMostrar > 0
+                  ? `${prezoMostrar % 1 === 0 ? prezoMostrar : prezoMostrar.toFixed(2)} €`
                   : "Evento de Balde")}
           </span>
         </p>

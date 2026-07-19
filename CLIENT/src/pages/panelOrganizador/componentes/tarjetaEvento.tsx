@@ -13,6 +13,8 @@ interface EventoProps {
     localidade?: string;
     entradas_venta: number;
     prezo_evento?: number | null;
+    prezo_venta?: number | null;
+    prezo_recibe_organizador?: number | null;
     tipo_gestion_entrada?: "pagina" | "manual" | "gratis" | null;
     evento_cobrado?: boolean;
     factura_pdf?: string | null;
@@ -79,8 +81,11 @@ export default function TarjetaEvento({ evento, isPast = false }: EventoProps) {
     navigate(`/panel-organizador/cobro/${evento.id}`);
   };
 
+  const prezoMostrar =
+    evento.prezo_evento ?? evento.prezo_venta ?? evento.prezo_recibe_organizador;
+  const eventoPrezo = Number(prezoMostrar ?? 0);
   const isEventoGratuito =
-    evento.tipo_gestion_entrada === "gratis" || Number(evento.prezo_evento ?? 0) <= 0;
+    evento.tipo_gestion_entrada === "gratis" || eventoPrezo <= 0;
 
   const textoXestionImporte =
     evento.tipo_gestion_entrada === "pagina"
@@ -116,10 +121,10 @@ export default function TarjetaEvento({ evento, isPast = false }: EventoProps) {
           Entradas á venda: {evento.entradas_venta}
         </p>
 
-        {evento.prezo_evento != null && (
+        {prezoMostrar != null && (
           <p className="card-text mb-2">
             <FaEuroSign style={{ marginRight: "6px" }} />
-            Prezo: {Number(evento.prezo_evento) > 0 ? `${evento.prezo_evento} €` : "Evento de Balde"}
+            Prezo: {eventoPrezo > 0 ? `${eventoPrezo} €` : "Evento de Balde"}
           </p>
         )}
 

@@ -21,6 +21,9 @@ const PrezoContaBancaria: React.FC = () => {
   const [errorPrezo, setErrorPrezo] = useState<string>("");
   const navigate = useNavigate();
   const isGestionPagina = evento.tipo_gestion_entrada === "pagina";
+  const prezoValido = prezo !== "" && !isNaN(Number(prezo.replace(",", "."))) && Number(prezo.replace(",", ".")) > 0;
+  const hasZonaPrecio = mostrarZonas && Object.values(prezosZona).some(v => v.trim() !== "");
+  const continuarDisabled = isGestionPagina && iveRate === null && (prezoValido || hasZonaPrecio);
 
   // Removed unused prezoNumericoVista
   // Novo cálculo: Prezo venta público = prezo + 5%
@@ -126,8 +129,9 @@ const PrezoContaBancaria: React.FC = () => {
           return acc;
         }, {} as { [zona: string]: string });
       }
+      const base = Number(prezo.replace(",", "."));
+      const formattedRawBase = !isNaN(base) && base > 0 ? base.toFixed(2).replace(".", ",") : prezo;
       const pvpCalculado = (() => {
-        const base = Number(prezo.replace(",", "."));
         const ivaRate = iveRate ?? 0;
         if (!isNaN(base) && base > 0) {
           const ivaPrecio = base * ivaRate;
@@ -140,7 +144,6 @@ const PrezoContaBancaria: React.FC = () => {
       })();
       // O que realmente recibe o organizador = base + IVE por entrada - gastos que asume
       const recibeCalculado = (() => {
-        const base = Number(prezo.replace(",", "."));
         const ivaRate = iveRate ?? 0;
         if (!isNaN(base) && base > 0) {
           const ivaPrecio = base * ivaRate;
@@ -152,24 +155,27 @@ const PrezoContaBancaria: React.FC = () => {
         return prezo;
       })();
       const gastosAsumeValor: "organizador" | "comprador" = checkComprador ? "comprador" : "organizador";
+      const isManualGestion = !isGestionPagina;
       if (todasZonasCubertas) {
         setEvento({
           ...evento,
           prezo_base: prezo,
           prezo_recibe_organizador: '',
-          prezo_venta: pvpCalculado,
+          prezo_venta: isManualGestion ? formattedRawBase : pvpCalculado,
           precios_zona: prezosZonaGardar,
           gastosAsume: gastosAsumeValor,
           asumeFees: checkOrganizador,
         });
       } else {
-        setEvento({ ...evento, 
-                    prezo_base: prezo, 
-                    prezo_recibe_organizador: recibeCalculado, 
-                    precios_zona: prezosZonaGardar, 
-                    gastosAsume: gastosAsumeValor, 
-                    asumeFees: checkOrganizador, 
-                    prezo_venta: pvpCalculado });
+        setEvento({
+          ...evento,
+          prezo_base: prezo,
+          prezo_recibe_organizador: isManualGestion ? formattedRawBase : recibeCalculado,
+          precios_zona: prezosZonaGardar,
+          gastosAsume: gastosAsumeValor,
+          asumeFees: checkOrganizador,
+          prezo_venta: isManualGestion ? formattedRawBase : pvpCalculado,
+        });
       }
       // Limpar prezosZona do localStorage ao avanzar
       localStorage.removeItem("prezosZona");
@@ -211,7 +217,7 @@ const PrezoContaBancaria: React.FC = () => {
                         const regex = /^\d*(,\d{0,2})?$/;
                         if (regex.test(value)) {
                           setPrezo(value);
-                          setGastosDecisionMade(false);
+                          setGastosDecisionMade(value.trim() !== "");
                         }
                       }}
                       onBlur={() => {
@@ -316,10 +322,9 @@ const PrezoContaBancaria: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                        {gastosDecisionMade && (
-                          <div className="mt-3" style={{ paddingTop: 14, borderTop: "1px solid #dee2e6" }}>
-                            <h5 style={{ marginBottom: 10 }}>IVE</h5>
-                            <Form.Check
+                        <div className="mt-3" style={{ paddingTop: 14, borderTop: "1px solid #dee2e6" }}>
+                          <h5 style={{ marginBottom: 10 }}>IVE</h5>
+                          <Form.Check
                             type="radio"
                             id="sen-ive"
                             name="ive-rate"
@@ -349,7 +354,6 @@ const PrezoContaBancaria: React.FC = () => {
                             IVE por entrada = {prezo && !isNaN(Number(prezo.replace(",", "."))) ? (Number(prezo.replace(",", ".")) * (iveRate ?? 0)).toFixed(2).replace(".", ",") : "0,00"} €
                           </div>
                         </div>
-                        )}
                         {iveRate !== null && !isNaN(base) && base > 0 && (() => {
                           const ivaPrecio = base * iveRate;
                           const ivaTexto = ivaPrecio > 0
@@ -496,37 +500,35 @@ const PrezoContaBancaria: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  {gastosDecisionMade && (
                     <div className="mt-4" style={{ marginTop: 24, paddingTop: 14, paddingBottom: 18, marginBottom: 24, borderTop: "1px solid #dee2e6", borderBottom: "1px solid #dee2e6" }}>
                       <h5 style={{ marginBottom: 10 }}>IVE</h5>
                       <Form.Check
-                      type="radio"
-                      id="sen-ive-zona-superior"
-                      name="ive-rate-zona"
-                      label="Non quero aplicar o IVE (0%)"
-                      checked={iveRate === 0}
-                      onChange={() => setIveRate(0)}
-                      className="mb-2"
-                    />
-                    <Form.Check
-                      type="radio"
-                      id="ive-reducido-zona-superior"
-                      name="ive-rate-zona"
-                      label="IVE reducido (10%)"
-                      checked={iveRate === 0.10}
-                      onChange={() => setIveRate(0.10)}
-                      className="mb-2"
-                    />
-                    <Form.Check
-                      type="radio"
-                      id="ive-normal-zona-superior"
-                      name="ive-rate-zona"
-                      label="IVE normal (21%)"
-                      checked={iveRate === 0.21}
-                      onChange={() => setIveRate(0.21)}
-                    />
-                  </div>
-                )}
+                        type="radio"
+                        id="sen-ive-zona-superior"
+                        name="ive-rate-zona"
+                        label="Non quero aplicar o IVE (0%)"
+                        checked={iveRate === 0}
+                        onChange={() => setIveRate(0)}
+                        className="mb-2"
+                      />
+                      <Form.Check
+                        type="radio"
+                        id="ive-reducido-zona-superior"
+                        name="ive-rate-zona"
+                        label="IVE reducido (10%)"
+                        checked={iveRate === 0.10}
+                        onChange={() => setIveRate(0.10)}
+                        className="mb-2"
+                      />
+                      <Form.Check
+                        type="radio"
+                        id="ive-normal-zona-superior"
+                        name="ive-rate-zona"
+                        label="IVE normal (21%)"
+                        checked={iveRate === 0.21}
+                        onChange={() => setIveRate(0.21)}
+                      />
+                    </div>
                   {errorPrezoZona && (
                     <div className="alert alert-danger" style={{ background: "#ffe6f3", color: "#000", marginTop: 0, display: 'flex', alignItems: 'center' }}>
                       <FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
@@ -561,7 +563,10 @@ const PrezoContaBancaria: React.FC = () => {
                               onChange={e => {
                                 const value = e.target.value.replace(".", ",");
                                 const regex = /^\d*(,\d{0,2})?$/;
-                                if (regex.test(value)) setPrezosZona(prev => ({ ...prev, [zona]: value }));
+                                if (regex.test(value)) {
+                                  setPrezosZona(prev => ({ ...prev, [zona]: value }));
+                                  setGastosDecisionMade(value.trim() !== "");
+                                }
                               }}
                               onBlur={() => {
                                 const val = prezosZona[zona];
@@ -633,8 +638,9 @@ const PrezoContaBancaria: React.FC = () => {
                   Volver
                 </Button>
                 <Button
-                  className="boton-avance"
+                  className="reserva-entrada-btn"
                   type="submit"
+                  disabled={continuarDisabled}
                 >
                   Continuar
                 </Button>

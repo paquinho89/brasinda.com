@@ -116,16 +116,25 @@ def xerar_pdf_contrato(evento, organizador):
     if prezos_zonas_lines:
         contrato_text.extend(prezos_zonas_lines)
     else:
-        partes = []
-        if prezo_evento:
-            partes.append(f"{prezo_evento} €")
-        if prezo_pvp:
+        def price_equal(a, b):
             try:
-                pvp_fmt = f"{float(prezo_pvp):.2f} € (PVP)"
+                return float(str(a).replace(",", ".")) == float(str(b).replace(",", "."))
             except Exception:
-                pvp_fmt = f"{prezo_pvp} € (PVP)"
-            partes.append(pvp_fmt)
-        prezo_str = ', '.join(partes) if partes else "-"
+                return str(a) == str(b)
+
+        if tipo_gestion == "manual" or prezo_pvp is None or price_equal(prezo_evento, prezo_pvp):
+            prezo_str = f"{prezo_evento} €"
+        else:
+            partes = []
+            if prezo_evento:
+                partes.append(f"{prezo_evento} €")
+            if prezo_pvp:
+                try:
+                    pvp_fmt = f"{float(prezo_pvp):.2f} € (PVP)"
+                except Exception:
+                    pvp_fmt = f"{prezo_pvp} € (PVP)"
+                partes.append(pvp_fmt)
+            prezo_str = ', '.join(partes) if partes else "-"
         contrato_text.append(f"• Prezo evento: {prezo_str}")
     contrato_text.extend([
         f"• Gastos xestión: {gastos_xestion} %",
