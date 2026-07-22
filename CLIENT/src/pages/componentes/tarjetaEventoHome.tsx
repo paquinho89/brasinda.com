@@ -27,6 +27,7 @@ interface EventoHomeProps {
     localidade: string;
     entradas_venta: number;
     prezo_evento?: number;
+    tipo_gestion_entrada?: "pagina" | "manual" | "gratis" | null;
     evento_verificado: boolean;
     contrato_pdf_url?: string | null;
   };

@@ -12,7 +12,6 @@ const PrezoContaBancaria: React.FC = () => {
   const { evento, setEvento } = useOutletContext<OutletContext>();
   const [prezo, setPrezo] = useState<string>("");
   const [checkOrganizador, setCheckOrganizador] = useState<boolean>(evento.asumeFees ?? false);
-  const [gastosDecisionMade, setGastosDecisionMade] = useState<boolean>(evento.asumeFees !== undefined);
   const [checkComprador] = useState<boolean>(false);
   const [iveRate, setIveRate] = useState<number | null>(null);
   // Estados dinámicos para prezos por zona
@@ -217,7 +216,6 @@ const PrezoContaBancaria: React.FC = () => {
                         const regex = /^\d*(,\d{0,2})?$/;
                         if (regex.test(value)) {
                           setPrezo(value);
-                          setGastosDecisionMade(value.trim() !== "");
                         }
                       }}
                       onBlur={() => {
@@ -270,7 +268,6 @@ const PrezoContaBancaria: React.FC = () => {
                                 type="button"
                                 onClick={() => {
                                   setCheckOrganizador(false);
-                                  setGastosDecisionMade(true);
                                 }}
                                 style={{
                                   border: "none",
@@ -288,7 +285,6 @@ const PrezoContaBancaria: React.FC = () => {
                                   checked={!checkOrganizador}
                                   onChange={e => {
                                     setCheckOrganizador(!e.target.checked);
-                                    setGastosDecisionMade(true);
                                   }}
                                   style={{ display: "none" }}
                                 />
@@ -307,7 +303,6 @@ const PrezoContaBancaria: React.FC = () => {
                                 type="button"
                                 onClick={() => {
                                   setCheckOrganizador(true);
-                                  setGastosDecisionMade(true);
                                 }}
                                 style={{
                                   border: "none",
@@ -448,7 +443,7 @@ const PrezoContaBancaria: React.FC = () => {
                           type="button"
                           onClick={() => {
                             setCheckOrganizador(false);
-                            setGastosDecisionMade(true);
+
                           }}
                           style={{
                             border: "none",
@@ -466,7 +461,6 @@ const PrezoContaBancaria: React.FC = () => {
                             checked={!checkOrganizador}
                             onChange={e => {
                               setCheckOrganizador(!e.target.checked);
-                              setGastosDecisionMade(true);
                             }}
                             style={{ display: "none" }}
                           />
@@ -485,7 +479,7 @@ const PrezoContaBancaria: React.FC = () => {
                           type="button"
                           onClick={() => {
                             setCheckOrganizador(true);
-                            setGastosDecisionMade(true);
+
                           }}
                           style={{
                             border: "none",
@@ -565,7 +559,6 @@ const PrezoContaBancaria: React.FC = () => {
                                 const regex = /^\d*(,\d{0,2})?$/;
                                 if (regex.test(value)) {
                                   setPrezosZona(prev => ({ ...prev, [zona]: value }));
-                                  setGastosDecisionMade(value.trim() !== "");
                                 }
                               }}
                               onBlur={() => {
