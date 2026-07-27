@@ -15,12 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from .views import crear_organizador, verificar_email, login_organizador, recuperar_contrasena, reset_contrasena, perfil_organizador, google_auth, stripe_onboarding_status, stripe_onboarding_link, stripe_dashboard_link, stripe_onboarding_prefill_debug
+from .views import crear_organizador, verificar_email, login_organizador, verify_login_code, recuperar_contrasena, reset_contrasena, perfil_organizador, google_auth, stripe_onboarding_status, stripe_onboarding_link, stripe_dashboard_link, stripe_onboarding_prefill_debug
 
 urlpatterns = [
     path('crear-organizador/', crear_organizador, name="nuevo_organizador"),
     path("verificar/<uidb64>/<token>/", verificar_email),
     path("login/", login_organizador, name="login_organizador"),
+    path("login/verify/", verify_login_code, name="verify_login_code"),
     path("recuperar-contrasena/", recuperar_contrasena),
     path("reset-password/<uidb64>/<token>/", reset_contrasena, name="reset_contrasena"),
     path("perfil/", perfil_organizador, name="perfil_organizador"),

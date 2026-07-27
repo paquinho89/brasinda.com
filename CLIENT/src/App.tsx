@@ -144,6 +144,7 @@ function App() {
             <Route path="panel-organizador/cobro/:id" element={<CobroEvento />} />
             <Route path="/panelOrganizador/cobroExitoso" element={<CobroExitoso />} />
             <Route path="panel-organizador/settings" element={<SettingsOrganizador />} />
+            <Route path="verificacion" element={<VerificacionEmailPage />} />
             <Route path="verificacion/:uid/:token" element={<VerificacionEmailPage />} />
             <Route path="reset-password/:uid/:token" element={<IntroducirNuevaContraseñaWrapper />} />
             <Route path="sobre-nos" element={<Nosotros />} />

@@ -1,13 +1,11 @@
-import { Modal, Button, Form, InputGroup } from "react-bootstrap";
+import { Modal, Button, Form } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from '@react-oauth/google';
 import type { CredentialResponse } from '@react-oauth/google';
 import { useState } from "react";
 import API_BASE_URL from "../../utils/api";
-import CreateAccountModal from "./CreacionCuentaCuadro";
 import axios from "axios";
-import RecuperarContraseñaModal from "./RecuperarContraseña";
-import { FaEnvelope, FaLock, FaSignInAlt, FaExclamationTriangle } from "react-icons/fa";
+import { FaEnvelope, FaSignInAlt, FaExclamationTriangle } from "react-icons/fa";
 import "../../estilos/TarjetaEventoHome.css";
 import "../../estilos/Botones.css";
 import { useAuth } from "../AuthContext";
@@ -23,71 +21,52 @@ interface LoginModalProps {
 function LoginModalCrearEvento({ show, onClose, redirectTo = "/crear-evento/tipo" }: LoginModalProps) {
     const { login } = useAuth();
     const navigate = useNavigate();
-    const [showCreateAccount, setShowCreateAccount] = useState(false);
-    const handleOpenCreateAccount = () => setShowCreateAccount(true);
-    const handleCloseCreateAccount = () => setShowCreateAccount(false);
-
-
-    const [showRecuperarContraseña, setShowRecuperarContraseña] = useState(false);
-    const handleOpenRecuperarContraseña = () => setShowRecuperarContraseña(true);
-    const handleCloseRecuperarContraseña = () => setShowRecuperarContraseña(false);
 
     const [email, setEmail] = useState("");
     const [errorEmail, setErrorEmail] = useState(""); // Pode tomar valor "invalido"
-    // const validarEmail = (email: string) => {
-    //     const expresionRegular = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    //     return expresionRegular.test(email);
-    // };
     const [errorEmailLogin, setErrorEmailLogin] = useState("");
-
-
-    const [contraseña, setContraseña] = useState("");
-    const [showContraseña, setShowContraseña] = useState(false);
-    const [errorPasswordLogin, setErrorPasswordLogin] = useState("");
-
     const [errorLogin, setErrorLogin] = useState("");
 
     // Limpa todos os estados do modal
     const handleCloseModal = () => {
         setEmail("");
-        setContraseña("");
         setErrorEmail("");
         setErrorEmailLogin("");
-        setErrorPasswordLogin("");
         setErrorLogin("");
-        setShowContraseña(false);
         onClose();
     };
 
     const handleLogin = async () => {
         setErrorEmailLogin("");
-        setErrorPasswordLogin("");
         setErrorLogin("");
+
+        const normalizedEmail = email.trim().toLowerCase();
+        if (!normalizedEmail) {
+            setErrorEmail("Introduce un correo electrónico.");
+            return;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(normalizedEmail)) {
+            setErrorEmail("Introduce un correo electrónico válido.");
+            return;
+        }
+
         try {
             const response = await axios.post(`${API_BASE_URL}/organizador/login/`, {
-                email: email.toLowerCase(),
-                password:contraseña,
+                email: normalizedEmail,
             });
-            const accessToken = response.data.access_token || response.data.access;
-            const refreshToken = response.data.refresh_token || response.data.refresh;
-            const organizadorData = response.data.organizador;
-
-            if (!accessToken || !organizadorData) {
+            const token = response.data.token;
+            if (!token) {
                 throw new Error("Resposta de login inválida");
             }
 
-            login(organizadorData, accessToken);
-            if (refreshToken) {
-                localStorage.setItem("refresh_token", refreshToken);
-            }
+            const verifyUrl = `/verificacion?email=${encodeURIComponent(normalizedEmail)}&token=${encodeURIComponent(token)}&next=${encodeURIComponent(redirectTo)}`;
             onClose();
-            navigate(redirectTo);
+            window.location.href = verifyUrl;
         } catch (err: any) {
-            const msg = err.response?.data?.error || "";
+            const msg = err.response?.data?.error || "Erro no envío do código de verificación.";
             if (msg.toLowerCase().includes("email")) {
                 setErrorEmailLogin(msg);
-            } else if (msg.toLowerCase().includes("contraseña")) {
-                setErrorPasswordLogin(msg);
             } else {
                 setErrorLogin(msg);
             }
@@ -130,7 +109,7 @@ function LoginModalCrearEvento({ show, onClose, redirectTo = "/crear-evento/tipo
             <Modal.Title className="d-flex align-items-center">
                 {/* Iconos rosas antes do texto */}
                 <FaSignInAlt style={{ color: '#ff0093', fontSize: '1.5rem', marginRight: '8px' }} />
-                {redirectTo === "/panel-organizador" ? "Iniciar Sesión" : "Inicio de sesión requerido"}
+                {redirectTo === "/panel-organizador" ? "Área organizadores" : "Área organizadores"}
             </Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -138,7 +117,7 @@ function LoginModalCrearEvento({ show, onClose, redirectTo = "/crear-evento/tipo
                 <FaEnvelope style={{ marginRight: "6px", color: "#ff0093" }} />
                 <Form.Label>Correo electrónico</Form.Label>
                 <Form.Control
-                    type="text"
+                    type="email"
                     placeholder="email"
                     value={email}
                     onChange={(e) => {
@@ -148,10 +127,10 @@ function LoginModalCrearEvento({ show, onClose, redirectTo = "/crear-evento/tipo
                     }}
                 />
             </Form.Group>
-            {errorEmail === "invalido" && (
+            {errorEmail && (
                 <div className="alert alert-danger" style={{ background: "#ffe6f3", color: "#000", marginTop: 0, display: 'flex', alignItems: 'center' }}>
                     <FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
-                    Por favor, introduce un email válido
+                    {errorEmail}
                 </div>
             )}
             {errorEmailLogin && (
@@ -160,43 +139,7 @@ function LoginModalCrearEvento({ show, onClose, redirectTo = "/crear-evento/tipo
                     {errorEmailLogin}
                 </div>
             )}
-            <Form.Group>
-                <FaLock style={{ marginRight: "6px", color: "#ff0093" }} />
-                <Form.Label>Contraseña</Form.Label>
-                <InputGroup>
-                    <Form.Control
-                        type={showContraseña ? "text" : "password"}
-                        placeholder="Mín 8 caracteres"
-                        value={contraseña}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            setContraseña(value);
-                        }}
-                    />
-                    <Button
-                        variant="outline-secondary"
-                        onClick={() => setShowContraseña(!showContraseña)}
-                    >
-                        {showContraseña ? "🙈" : "👁️"}
-                    </Button>
-                </InputGroup>
-                {errorPasswordLogin && (
-                    <div className="alert alert-danger mt-2" style={{ background: "#ffe6f3", color: "#000", marginTop: 0, display: 'flex', alignItems: 'center' }}>
-                        <FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
-                        {errorPasswordLogin}
-                    </div>
-                )}
-                <div className="d-grid gap-2 mt-2">
-                    <Button
-                        className="badge-prezo mt-2"
-                        onClick={() => { handleOpenRecuperarContraseña(); handleCloseModal(); }}
-                    >
-                        Recuperar contraseña
-                    </Button>
-                    <Button className="badge-prezo mt-2" onClick={() => { handleOpenCreateAccount(); handleCloseModal(); }}>
-                        Non teño conta
-                    </Button>
-                </div>
+            <Form.Group className="mb-3">
                 {/* GOOGLE BUTTON */}
                 <div style={{ display: "flex", justifyContent: "center", marginTop: 20 }}>
                     <GoogleLogin
@@ -222,20 +165,10 @@ function LoginModalCrearEvento({ show, onClose, redirectTo = "/crear-evento/tipo
                         Cerrar
                     </Button>
                     <Button variant="primary" onClick={() => {handleLogin()}} className="reserva-entrada-btn">
-                    Iniciar sesión
+                    Entrar
                     </Button>
                 </Modal.Footer>
                 </Modal>
-                <CreateAccountModal
-                    show={showCreateAccount}
-                    onClose={handleCloseCreateAccount}
-                />
-                <RecuperarContraseñaModal
-                    show={showRecuperarContraseña}
-                    onClose={handleCloseRecuperarContraseña}
-                    initialEmail={email}
-                    entryPoint={redirectTo === "/panel-organizador" ? "panel" : "publish"}
-                />
             </>
   );
 }

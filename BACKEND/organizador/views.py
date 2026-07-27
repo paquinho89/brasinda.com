@@ -6,11 +6,13 @@ from .serializers import OrganizadorSerializer
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
+from django.core.signing import dumps, loads, BadSignature, SignatureExpired
 from django.conf import settings
 import resend
 import os
 import re
 import ipaddress
+import random
 from urllib.parse import urlparse
 from .models import Organizador
 from django.db.models import Q
@@ -156,60 +158,152 @@ def verificar_email(request, uidb64, token):
 
 #Entrar na conta do organizador
 @api_view(['POST'])
-def login_organizador (request):
+def login_organizador(request):
     email = request.data.get("email")
     password = request.data.get("password")
+    email = email.strip().lower() if isinstance(email, str) else None
 
-    if not email or not password:
+    if not email:
         return Response(
-            {"error": "Email y contraseña obligatorios"},
-            status = status.HTTP_400_BAD_REQUEST
+            {"error": "Email obrigatorio"},
+            status=status.HTTP_400_BAD_REQUEST
         )
+
+    if password:
+        try:
+            organizador = Organizador.objects.get(email=email)
+        except Organizador.DoesNotExist:
+            return Response(
+                {"error": "Este email non está rexistrado. Crea unha conta"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        if not organizador.check_password(password):
+            return Response(
+                {"error": "Contrasinal incorrecto"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        if not organizador.is_active:
+            organizador.is_active = True
+            organizador.save(update_fields=["is_active"])
+
+        refresh = RefreshToken.for_user(organizador)
+        if organizador.foto_organizador:
+            foto_url = request.build_absolute_uri(organizador.foto_organizador.url)
+        else:
+            foto_url = None
+
+        return Response(
+            {"message": "Login correcto",
+             "access_token": str(refresh.access_token),
+             "refresh_token": str(refresh),
+             "organizador": {
+                 "id": organizador.id,
+                 "email": organizador.email,
+                 "nome_organizador": organizador.nome_organizador,
+                 "foto_url": foto_url
+             }},
+            status=status.HTTP_200_OK
+        )
+
+    # Passwordless login flow: create or reuse organizador and send 3-digit code
+    organizador = Organizador.objects.filter(email=email).first()
+    created = False
+    if not organizador:
+        username = email
+        nome = email.split("@")[0] if "@" in email else email
+        organizador = Organizador(email=email, username=username, nome_organizador=nome, is_active=True)
+        random_password = Organizador.objects.make_random_password()
+        organizador.set_password(random_password)
+        organizador.save()
+        created = True
+    elif not organizador.is_active:
+        organizador.is_active = True
+        organizador.save(update_fields=["is_active"])
+
+    code = f"{random.randint(0, 999):03d}"
+    token = dumps({"email": email, "code": code}, salt="organizador-otp")
+
+    resend.api_key = settings.RESEND_API_KEY
+    verification_url = f"{settings.FRONTEND_URL}/verificacion?email={email}"
+    html_message = (
+        f"<p>O teu código de acceso para brasinda.com é <strong>{code}</strong>.</p>"
+        f"<p>É válido durante 10 minutos.</p>"
+        f"<p>Se non pediches este código, ignora esta mensaxe.</p>"
+        f"<p>Podes usar este enlace para continuar: <a href=\"{verification_url}\">{verification_url}</a></p>"
+    )
+    try:
+        resend.Emails.send({
+            "from": settings.DEFAULT_FROM_EMAIL,
+            "to": [email],
+            "subject": "brasinda.com - Código de acceso",
+            "html": html_message,
+        })
+    except Exception as e:
+        print(f"[ERRO RESEND] código de acceso: {e}")
+
+    return Response(
+        {"message": "Enviamos un código de acceso ao teu email.",
+         "email": email,
+         "token": token,
+         "created": created},
+        status=status.HTTP_200_OK
+    )
+
+@api_view(['POST'])
+def verify_login_code(request):
+    email = request.data.get("email")
+    code = request.data.get("code")
+    token = request.data.get("token")
+
+    email = email.strip().lower() if isinstance(email, str) else None
+    code = str(code).strip() if code is not None else None
+    token = token.strip() if isinstance(token, str) else None
+
+    if not email or not code or not token:
+        return Response({"error": "Email, código e token son obrigatorios."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        payload = loads(token, salt="organizador-otp", max_age=600)
+    except SignatureExpired:
+        return Response({"error": "O código expirou."}, status=status.HTTP_400_BAD_REQUEST)
+    except BadSignature:
+        return Response({"error": "Token de verificación inválido."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if payload.get("email") != email or payload.get("code") != code:
+        return Response({"error": "Código incorrecto."}, status=status.HTTP_400_BAD_REQUEST)
+
     try:
         organizador = Organizador.objects.get(email=email)
     except Organizador.DoesNotExist:
-        return Response(
-            {"error": "Este email non está rexistrado. Crea unha conta"},
-            status=status.HTTP_404_NOT_FOUND
-        )
-    if not organizador.check_password(password):
-        return Response(
-            {"error": "Contrasinal incorrecto"},
-            status=status.HTTP_401_UNAUTHORIZED
-        )
+        username = email
+        nome = email.split("@")[0] if "@" in email else email
+        organizador = Organizador(email=email, username=username, nome_organizador=nome, is_active=True)
+        random_password = Organizador.objects.make_random_password()
+        organizador.set_password(random_password)
+        organizador.save()
 
-    if organizador is None:
-        return Response(
-            {"error": "Credenciales incorrectas"},
-            status=status.HTTP_401_UNAUTHORIZED
-        )
     if not organizador.is_active:
-        return Response(
-            {"error": "Debes verficar tu email primero"},
-            status=status.HTTP_403_FORBIDDEN
-        )
-    
-    # Generar tokens JWT
-    refresh = RefreshToken.for_user(organizador)
+        organizador.is_active = True
+        organizador.save(update_fields=["is_active"])
 
-    # URL da foto (ou default)
+    refresh = RefreshToken.for_user(organizador)
     if organizador.foto_organizador:
         foto_url = request.build_absolute_uri(organizador.foto_organizador.url)
     else:
-        foto_url = None  # ou "/default-avatar.png"
-    
-    return Response(
-        {"message":"Login correcto",
-         "access_token": str(refresh.access_token),
-         "refresh_token": str(refresh),
-         "organizador" : {
-             "id": organizador.id,
-             "email": organizador.email,
-             "nome_organizador": organizador.nome_organizador,
-             "foto_url": foto_url
-         }},
-        status=status.HTTP_200_OK
-    )
+        foto_url = None
+
+    return Response({
+        "message": "Login correcto",
+        "access_token": str(refresh.access_token),
+        "refresh_token": str(refresh),
+        "organizador": {
+            "id": organizador.id,
+            "email": organizador.email,
+            "nome_organizador": organizador.nome_organizador,
+            "foto_url": foto_url,
+        }
+    }, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 def recuperar_contrasena(request):
