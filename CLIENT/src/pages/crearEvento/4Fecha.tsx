@@ -1,4 +1,4 @@
-import { Container, Card, Form, Button, InputGroup } from "react-bootstrap";
+import { Container, Card, Form, Button } from "react-bootstrap";
 import { useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa";
@@ -41,7 +41,7 @@ export default function Fecha() {
   const [showEndHour, setShowEndHour] = useState(false);
   const [showEndMinute, setShowEndMinute] = useState(false);
   // Duración do evento (opcional)
-  const [duracion, setDuracion] = useState(evento.duracion || "");
+  const [duracion] = useState(evento.duracion || "");
   const fechaValida = fecha instanceof Date && !isNaN(fecha.getTime());
   const horaValida = /^\d{2}:\d{2}$/.test(hora);
   const horaFinValida = horaFin === "" || /^\d{2}:\d{2}$/.test(horaFin);

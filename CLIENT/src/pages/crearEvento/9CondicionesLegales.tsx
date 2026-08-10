@@ -90,7 +90,6 @@ const CondicionesLegales: React.FC = () => {
   const [apelidosOrganizador, setApelidosOrganizador] = useState(evento.apelidos_organizador || "");
   const [tipoOrganizador, setTipoOrganizador] = useState(evento.tipo_organizador || "");
   const [nomeEmpresa, setNomeEmpresa] = useState(evento.nome_empresa || "");
-  const [maiorIdade, setMaiorIdade] = useState<boolean>(evento.dataNacemento ? true : false);
   const [touched, setTouched] = useState<{[key: string]: boolean}>({});
   const navigate = useNavigate();
 

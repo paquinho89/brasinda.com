@@ -9,11 +9,9 @@ import { FaSignInAlt, FaTicketAlt } from "react-icons/fa";
 
 function ToggleHamburguer() {
   const [open, setOpen] = useState(false);
-  const [showCreateAccount, setShowCreateAccount] = useState(false);
   const [showLogIn, setShowLogIn] = useState(false);
   const [showRecuperacionEntradas, setShowRecuperacionEntradas] = useState(false);
  
-  const handleCloseCreateAccount = () => setShowCreateAccount(false);
   const handleOpenLogIn = () => { setShowLogIn(true); setOpen(false); };
   const handleCloseLogIn = () => setShowLogIn(false);
   const handleOpenRecuperacionEntradas = () => { setShowRecuperacionEntradas(true); setOpen(false); };
