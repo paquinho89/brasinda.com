@@ -226,17 +226,36 @@ def login_organizador(request):
 
     resend.api_key = settings.RESEND_API_KEY
     verification_url = f"{settings.FRONTEND_URL}/verificacion?email={email}"
-    html_message = (
-        f"<p>O teu código de acceso para brasinda.com é <strong>{code}</strong>.</p>"
-        f"<p>É válido durante 10 minutos.</p>"
-        f"<p>Se non pediches este código, ignora esta mensaxe.</p>"
-        f"<p>Podes usar este enlace para continuar: <a href=\"{verification_url}\">{verification_url}</a></p>"
-    )
+    template_path = os.path.abspath(os.path.join(
+        os.path.dirname(__file__),
+        '..',
+        'eventos',
+        'plantilla_email',
+        'area_organizador_codigo.html'
+    ))
+    html_message = ''
+    try:
+        with open(template_path, encoding='utf-8') as f:
+            html_template = f.read()
+        html_message = html_template.replace('{{ validation_code }}', code)
+        html_message = html_message.replace('{{ evento_info.url_panel }}', verification_url)
+        html_message = html_message.replace('{{ evento_info.url_publico }}', verification_url)
+        html_message = html_message.replace('{{ evento_info.data_evento }}', 'Acceso a Área Organizador')
+        html_message = html_message.replace('{{ evento_info.lugar_evento }}', 'brasinda.com')
+    except Exception as e:
+        print(f"[ERRO TEMPLATE] area_organizador_codigo: {e}")
+        html_message = (
+            f"<p>O teu código de acceso para brasinda.com é <strong>{code}</strong>.</p>"
+            f"<p>É válido durante 10 minutos.</p>"
+            f"<p>Se non pediches este código, ignora esta mensaxe.</p>"
+            f"<p>Podes usar este enlace para continuar: <a href=\"{verification_url}\">{verification_url}</a></p>"
+        )
+
     try:
         resend.Emails.send({
             "from": settings.DEFAULT_FROM_EMAIL,
             "to": [email],
-            "subject": "brasinda.com - Código de acceso",
+            "subject": "🔐 brasinda.com - Código de acceso",
             "html": html_message,
         })
     except Exception as e:

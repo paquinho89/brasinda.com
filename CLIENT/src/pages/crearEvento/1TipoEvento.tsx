@@ -8,6 +8,7 @@ import { useContext } from "react";
 import { NavBarMessageContext } from "../componentes/NavBar";
 
 const TIPOS_EVENTO = [
+  "Cata de Viños",
   "Concerto",
   "Obra de Teatro",
   "Musical",

@@ -12,6 +12,7 @@ import {
   FaCommentDots,  // Coloquio / Charla
   FaUtensils,     // Comida/Cena Popular
   FaGlassCheers,  // Festa Popular
+  FaWineGlassAlt, // Cata de Viños
   FaGuitar,     // Festival
   FaStore,        // Feira
   FaStar   } from "react-icons/fa";
@@ -130,6 +131,8 @@ export default function TarjetaEventoHome({ evento, modoPublicacionExitosa }: Ev
         return <FaGuitar style={{ marginRight: "6px", color: rosa }} />;
       case "Feira":
         return <FaStore style={{ marginRight: "6px", color: rosa }} />;
+      case "Cata de Viños":
+        return <FaWineGlassAlt style={{ marginRight: "6px", color: rosa }} />;
       default:
         return <FaStar style={{ marginRight: "6px", color: rosa }} />;
     }

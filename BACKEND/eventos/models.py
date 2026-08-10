@@ -68,7 +68,9 @@ class Evento(models.Model):
     descripcion_evento = models.TextField()
     imaxe_evento = models.ImageField(upload_to='eventos/', blank=True, null=True)
     data_evento = models.DateTimeField()
-    duracion = models.PositiveIntegerField(default=0)
+    data_evento_inicio = models.DateTimeField(null=True, blank=True)
+    data_evento_fin = models.DateTimeField(null=True, blank=True)
+
     localizacion = models.CharField(max_length=200, blank=True, null=True)
     localidade = models.CharField(max_length=100, blank=True, null=True)
     nota_lugar = models.CharField(max_length=100, blank=True, null=True)
@@ -110,6 +112,13 @@ class Evento(models.Model):
         self.total_gastos_xestion = (self.prezo_recibe_organizador*self.gastos_xestion/Decimal('100.0'))*self.entradas_vendidas if self.gastos_xestion else 0
         self.total_gastos_xestion_iva = (self.prezo_venta-self.prezo_recibe_organizador)*self.entradas_vendidas if self.total_gastos_xestion else 0
         self.total_a_pagar_ao_organizador = self.total_dinheiro_recadado - self.total_gastos_xestion_iva
+        if self.data_evento_inicio is None and self.data_evento is not None:
+            self.data_evento_inicio = self.data_evento
+        if self.data_evento is None and self.data_evento_inicio is not None:
+            self.data_evento = self.data_evento_inicio
+        if self.data_evento_fin is None:
+            self.data_evento_fin = self.data_evento_inicio
+
         if self.prezo_venta is not None:
             porcentaxe = self.gastos_xestion if self.gastos_xestion is not None else Decimal('5.0')
             prezo = self.prezo_venta if isinstance(self.prezo_venta, Decimal) else Decimal(str(self.prezo_venta))

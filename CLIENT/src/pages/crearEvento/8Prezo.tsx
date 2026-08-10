@@ -52,6 +52,9 @@ const PrezoContaBancaria: React.FC = () => {
     } else {
       setPrezo("");
     }
+    if (evento.iveRate !== undefined && evento.iveRate !== null) {
+      setIveRate(evento.iveRate);
+    }
     // Detectar se é auditorio e activar prezos por zona automaticamente
     // Usar sempre a mesma función de normalización
     const normalizeAuditorio = (str: string) => (str || "").normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "").toLowerCase().trim();
@@ -164,6 +167,7 @@ const PrezoContaBancaria: React.FC = () => {
           precios_zona: prezosZonaGardar,
           gastosAsume: gastosAsumeValor,
           asumeFees: checkOrganizador,
+          iveRate: iveRate ?? 0,
         });
       } else {
         setEvento({
@@ -174,6 +178,7 @@ const PrezoContaBancaria: React.FC = () => {
           gastosAsume: gastosAsumeValor,
           asumeFees: checkOrganizador,
           prezo_venta: isManualGestion ? formattedRawBase : pvpCalculado,
+          iveRate: iveRate ?? 0,
         });
       }
       // Limpar prezosZona do localStorage ao avanzar

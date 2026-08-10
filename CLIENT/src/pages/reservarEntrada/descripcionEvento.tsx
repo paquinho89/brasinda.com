@@ -18,6 +18,7 @@ import {
   FaCommentDots,
   FaUtensils,
   FaGlassCheers,
+  FaWineGlassAlt, // Cata de Viños
   FaGuitar,
   FaStore,
   FaStar,
@@ -68,6 +69,8 @@ const getTipoIcon = (tipo?: string) => {
       return <FaGuitar className="me-2" />;
     case "Feira":
       return <FaStore className="me-2" />;
+    case "Cata de Viños":
+      return <FaWineGlassAlt className="me-2" />;
     default:
       return <FaStar className="me-2" />;
   }

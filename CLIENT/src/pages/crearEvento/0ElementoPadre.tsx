@@ -10,6 +10,8 @@ export interface Evento {
   descripcionEvento: string;
   imagen: File | null;
   fecha: string;
+  data_evento_inicio?: string;
+  data_evento_fin?: string;
   duracion: number | null;
   lugar: string;
   ubicacion: string;
@@ -28,6 +30,11 @@ export interface Evento {
   precios_zona?: { [zona: string]: string };
   gastosAsume?: "organizador" | "comprador";
   asumeFees?: boolean;
+  iveRate?: number | null;
+  nome_organizador?: string;
+  apelidos_organizador?: string;
+  tipo_organizador?: string;
+  nome_empresa?: string;
   nomeCompleto?: string; // Para contrato
   nifCif?: string; // Para contrato
   dataNacemento?: string; // Para contrato
@@ -47,6 +54,8 @@ export function CreateEventLayout() {
     descripcionEvento: "",
     imagen: null as File | null,
     fecha: "",
+    data_evento_inicio: "",
+    data_evento_fin: "",
     duracion: 0,
     lugar: "",
     ubicacion: "",
@@ -64,11 +73,11 @@ export function CreateEventLayout() {
     condicionesConfirmacion: false,
     gastosAsume: "organizador",
     asumeFees: false,
-    nomeCompleto: "",
-    nifCif: "",
-    dataNacemento: "",
-    enderezoFiscal: "",
-    telefono: "",
+    iveRate: null,
+    nome_organizador: "",
+    apelidos_organizador: "",
+    tipo_organizador: "",
+    nome_empresa: "",
   };
 
   const [evento, setEvento] = useState<Evento>(() => {

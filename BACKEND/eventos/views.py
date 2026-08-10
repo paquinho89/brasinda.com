@@ -1082,7 +1082,7 @@ def enviar_entradas_recuperadas(request):
         evento_id__in=evento_ids,
         estado=ReservaButaca.ESTADO_CONFIRMADO,
         evento__evento_cancelado=False
-    ).select_related('evento').order_by('evento__data_evento', 'zona', 'fila', 'butaca')
+    ).select_related('evento').order_by('evento__data_evento_inicio', 'zona', 'fila', 'butaca')
     
     if not reservas.exists():
         return Response({

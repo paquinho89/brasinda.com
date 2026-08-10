@@ -9,6 +9,7 @@ import musicalImg from "../../estilos/fotosEvento/musical.jpg";
 import outrosImg from "../../estilos/fotosEvento/outros.jpg";
 import coloquioImg from "../../estilos/fotosEvento/coloquio.jpg";
 import cenaComidaImg from "../../estilos/fotosEvento/cena_comida.webp";
+import cataImg from "../../estilos/fotosEvento/cata.png";
 
 export function getDefaultImage(tipo: string) {
   if (!tipo) return outrosImg;
@@ -23,6 +24,7 @@ export function getDefaultImage(tipo: string) {
   if (normalized === "musical") return musicalImg;
   if (normalized === "coloquio") return coloquioImg;
   if (normalized === "xantar/cea popular" || normalized.includes("cea") || normalized.includes("xantar")) return cenaComidaImg;
+  if (normalized === "cata" || normalized === "cata de viños" || normalized === "cata de vinos") return cataImg;
   if (normalized === "outros") return outrosImg;
   return outrosImg;
 }

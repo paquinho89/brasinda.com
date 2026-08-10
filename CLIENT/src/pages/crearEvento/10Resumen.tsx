@@ -70,7 +70,11 @@ const Resumen: React.FC = () => {
         formData.append("imaxe_evento", defaultImgFile);
       }
     }
-    formData.append("data_evento", evento.fecha);
+    const dataEventoInicio = evento.data_evento_inicio || evento.fecha;
+    const dataEventoFin = evento.data_evento_fin || evento.fecha;
+    formData.append("data_evento_inicio", dataEventoInicio);
+    formData.append("data_evento_fin", dataEventoFin);
+    formData.append("data_evento", dataEventoInicio);
     // Gardar datos de contrato se existen
     formData.append("localizacion", evento.lugar);
     formData.append("tipo_localizacion", evento.ubicacion);
