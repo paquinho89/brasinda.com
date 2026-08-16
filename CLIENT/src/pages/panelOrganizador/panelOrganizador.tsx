@@ -8,7 +8,6 @@ import API_BASE_URL from "../../utils/api";
 import "../../estilos/PanelEventos.css"
 import { FaCalendarCheck, FaHistory } from "react-icons/fa";
 import CrearEventoBoton from "../componentes/CrearEventoBoton";
-import LoginModalCrearEvento from "../componentes/InicioSesionCrearEventoCuadro";
 import UserAvatarToggle from "../componentes/UserAvatarToggle";
 
 interface Evento {
@@ -32,7 +31,6 @@ export default function PanelOrganizador() {
   const [allEventos, setAllEventos] = useState<Evento[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showLoginModal, setShowLoginModal] = useState(false);
 
   // Fetch eventos al montar
   const { apiFetch } = useApi();
@@ -41,7 +39,11 @@ export default function PanelOrganizador() {
       try {
         setLoading(true);
         setError(null);
-        const resp = await apiFetch(`${API_BASE_URL}/crear-eventos/`);
+        const resp = await apiFetch(`${API_BASE_URL}/crear-eventos/`, undefined, { promptOnAuthFailure: true, redirectTo: "/panel-organizador" });
+        if (resp.status === 401 || resp.status === 403) {
+          setError("Necesitas iniciar sesión para acceder ao panel de organizador.");
+          return;
+        }
         if (!resp.ok) throw new Error(`Erro ao cargar eventos: ${resp.status}`);
         const data = await resp.json();
         setAllEventos(data);
@@ -156,11 +158,6 @@ export default function PanelOrganizador() {
       </div>
 
     </Container>
-    <LoginModalCrearEvento 
-      show={showLoginModal} 
-      onClose={() => setShowLoginModal(false)} 
-      redirectTo="/panel-organizador" 
-    />
   </>
 );
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
+import { useAuthModal } from "../../context/AuthModalContext";
 import MainNavbar from "../componentes/NavBar";
 import { FaUser, FaEnvelope, FaGlobe, FaLock, FaExclamationTriangle, FaArrowLeft, FaSave, FaPhone, FaEye, FaEyeSlash, FaIdCard, FaMapMarkerAlt, FaTag, FaBriefcase } from "react-icons/fa";
 import API_BASE_URL from "../../utils/api";
@@ -24,6 +25,7 @@ interface OrganizadorData {
 export default function SettingsOrganizador() {
   const navigate = useNavigate();
   const { token, logout } = useAuth();
+  const { showLogin } = useAuthModal();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -75,6 +77,12 @@ export default function SettingsOrganizador() {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      if (response.status === 401 || response.status === 403) {
+        showLogin("/panel-organizador/settings");
+        setError("Necesitas iniciar sesión para acceder ao teu perfil.");
+        return;
+      }
 
       if (!response.ok) {
         throw new Error("Error ao cargar datos do organizador");
@@ -128,6 +136,11 @@ export default function SettingsOrganizador() {
         body: JSON.stringify(payload),
       });
 
+      if (response.status === 401 || response.status === 403) {
+        showLogin("/panel-organizador/settings");
+        throw new Error("Necesitas iniciar sesión para gardar os cambios.");
+      }
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Error ao gardar cambios");
@@ -166,6 +179,11 @@ export default function SettingsOrganizador() {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      if (response.status === 401 || response.status === 403) {
+        showLogin("/panel-organizador/settings");
+        throw new Error("Necesitas iniciar sesión para eliminar a conta.");
+      }
 
       if (!response.ok) {
         throw new Error("Error ao eliminar conta");

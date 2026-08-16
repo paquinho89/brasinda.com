@@ -52,9 +52,78 @@ const CondicionesLegales: React.FC = () => {
   const ivaTexto = !Number.isNaN(ivaAmountNum)
     ? `${formatEuro(ivaAmountNum)} (${Math.round(ivaRate * 100)}%)`
     : "[por cubrir]";
+  const ivaTextoSolo = !Number.isNaN(ivaAmountNum)
+    ? formatEuro(ivaAmountNum)
+    : "[por cubrir]";
+  const prezoBaseFormatted = !Number.isNaN(prezoBaseNum)
+    ? prezoBaseNum.toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : "[por cubrir]";
+  const gastosBaseNum = !Number.isNaN(prezoBaseNum)
+    ? prezoBaseNum * 0.05
+    : NaN;
+  const gastosIveNum = !Number.isNaN(gastosBaseNum)
+    ? gastosBaseNum * 0.21
+    : NaN;
+  const gastosBaseTexto = !Number.isNaN(gastosBaseNum)
+    ? gastosBaseNum.toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "€"
+    : "[por cubrir]";
+  const gastosIveTexto = !Number.isNaN(gastosIveNum)
+    ? gastosIveNum.toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "€"
+    : "[por cubrir]";
+  const fmtGastos = !Number.isNaN(gastosBaseNum) && !Number.isNaN(gastosIveNum)
+    ? (gastosBaseNum + gastosIveNum).toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : "[por cubrir]";
   const prezoVentaTexto = !Number.isNaN(precioVentaNum)
     ? formatEuro(precioVentaNum)
     : "[por cubrir]";
+
+  const isGratis = evento.tipo_gestion_entrada === "gratis" || (
+    (!evento.prezo_recibe_organizador || parseFloat(String(evento.prezo_recibe_organizador).replace(",", ".")) === 0) &&
+    (!evento.precios_zona || Object.values(evento.precios_zona).every(p => parseFloat(String(p).replace(",", ".")) === 0))
+  );
+
+  const organizerAsumeGastos = evento.asumeFees === true;
+  const isManualGestion = evento.tipo_gestion_entrada === "manual";
+  const prezoBaseTexto = !Number.isNaN(prezoBaseNum)
+    ? formatEuro(prezoBaseNum)
+    : "[por cubrir]";
+  const formulaRecibe = organizerAsumeGastos
+    ? `${prezoBaseTexto} + ${ivaTexto} - ${gastosXestion}`
+    : `${prezoBaseTexto} + ${ivaTexto}`;
+  const formulaVenta = organizerAsumeGastos
+    ? `${prezoBaseTexto} + ${ivaTexto}`
+    : `${prezoBaseTexto} + ${ivaTexto} + ${gastosXestion}`;
+
+  const formatEventoFecha = (fecha: string) => {
+    const data = new Date(fecha);
+    if (Number.isNaN(data.getTime())) return "[por cubrir]";
+
+    const day = String(data.getDate()).padStart(2, "0");
+    const monthNames = [
+      "Xan",
+      "Feb",
+      "Mar",
+      "Abr",
+      "Mai",
+      "Xuñ",
+      "Xul",
+      "Ago",
+      "Set",
+      "Out",
+      "Nov",
+      "Dec",
+    ];
+    const month = monthNames[data.getMonth()] || "";
+    const year = data.getFullYear();
+
+    let hora = "";
+    if (fecha.includes("T")) {
+      const partes = fecha.split("T");
+      if (partes[1]) hora = partes[1].slice(0, 5);
+    }
+
+    return `${day}-${month}-${year}${hora ? " ás " + hora + " horas" : ""}`;
+  };
 
   // Recuperar enderezo fiscal descomposto se existe
   let estradaDefault = "", numeroDefault = "", portaPisoDefault = "", localidadeDefault = "", codigoPostalDefault = "";
@@ -196,7 +265,7 @@ const CondicionesLegales: React.FC = () => {
 
             <div className="mb-4" style={{ whiteSpace: "pre-line" }}>
               <h4>REUNIDOS</h4>
-              Dunha parte, Francisco Álvarez González, maior de idade e con enderezo fiscal Estrada de Castela Nº 151 Verín (Ourense) e representante de Eventos Brasinda, en adiante “a Plataforma”.
+              Dunha parte, Francisco Álvarez González, con NIF 34628886V, maior de idade e con enderezo fiscal Estrada de Castela Nº 151 Verín (Ourense) e representante de Eventos Brasinda, en adiante “a Plataforma”.
               E doutra parte, {(organizador && organizador.nome_organizador) ? organizador.nome_organizador : "[por cubrir]"}, maior de idade e con email {(organizador && organizador.email) ? organizador.email : "[por cubrir]"}, en adiante “o Organizador”.
               Ambas partes recoñécense capacidade legal suficiente e
 
@@ -213,21 +282,41 @@ const CondicionesLegales: React.FC = () => {
 
               <ul>
                 <li>Nome do evento: <strong>{evento.tituloEvento || "[por cubrir]"}</strong></li>
-                <li>Data e hora: <strong>{evento.fecha ? (() => {
-                  const data = new Date(evento.fecha);
-                  const dataStr = data.toLocaleDateString("gl-ES");
-                  let hora = "";
-                  if (evento.fecha.includes("T")) {
-                    const partes = evento.fecha.split("T");
-                    if (partes[1]) hora = partes[1].slice(0,5);
-                  }
-                  return `${dataStr}${hora ? " ás " + hora : ""}`;
-                })() : "[por cubrir]"}</strong></li>
+                <li>Data e hora: <strong>{evento.fecha ? formatEventoFecha(evento.fecha) : "[por cubrir]"}</strong></li>
                 <li>Lugar: <strong>{evento.lugar || "[por cubrir]"}</strong></li>
-                <li>Importe recibido por entrada para o organizador: <strong>{importeRecibidoPorEntrada}</strong></li>
-                <li>Gastos de xestión: <strong>{gastosXestion}</strong></li>
-                <li>IVE aplicable: <strong>{ivaTexto}</strong></li>
-                <li>Prezo venta: <strong>{prezoVentaTexto}</strong></li>
+                {!isGratis && !isManualGestion && (
+                  <>
+                    <li>Prezo base: <strong>{!Number.isNaN(prezoBaseNum) ? formatEuro(prezoBaseNum) : "[por cubrir]"}</strong></li>
+                    <li>
+                      Gastos de xestión: <strong>{gastosXestion}</strong>
+                      <span style={{ fontSize: "0.9rem", color: "#6c757d", marginLeft: "0.75rem" }}>
+                        &rarr; {gastosBaseTexto} (5%) + {gastosIveTexto} (IVE da xestión 21%)
+                      </span>
+                    </li>
+                    <li>IVE: <strong>{ivaTexto}</strong></li>
+                    <li>
+                      Importe recibido: <strong>{importeRecibidoPorEntrada}</strong>
+                      <span style={{ fontSize: "0.9rem", color: "#6c757d", marginLeft: "0.75rem" }}>
+                        &rarr; {prezoBaseFormatted} € + {ivaTexto}
+                        {organizerAsumeGastos && <> - {fmtGastos} € (Xestión)</>}
+                      </span>
+                    </li>
+                    <li>
+                      Prezo venta: <strong>{prezoVentaTexto}</strong>
+                      <span style={{ fontSize: "0.9rem", color: "#6c757d", marginLeft: "0.75rem" }}>&rarr; {formulaVenta}</span>
+                    </li>
+                  </>
+                )}
+                {!isGratis && isManualGestion && (
+                  <li>
+                    Prezo venta: <strong>{prezoVentaTexto}</strong>
+                  </li>
+                )}
+                {isGratis && (
+                  <li>
+                    <strong style={{ color: '#28a745' }}>Evento Gratuíto</strong>
+                  </li>
+                )}
                 <li>Número de entradas á venda: <strong>{evento.entradas ?? "[por cubrir]"}</strong></li>
               </ul>
 
@@ -245,7 +334,8 @@ const CondicionesLegales: React.FC = () => {
               <h5>3. RESPONSABILIDADE DO ORGANIZADOR</h5>
               O Organizador é o único responsable da:
               <ul>
-                <li>A legalidade do evento, permisos necesarios así como dereitos de propiedade intelectual se aplicasen</li>
+                <li>Legalidade do evento e permisos necesarios</li>
+                <li>No caso de tratarse de eventos con contido musical, audiovisual ou artístico, cumprir coas obrigas de propiedade intelectual que apliquen</li>
                 <li>Seguridade, licenzas, seguros e cumprimento normativo</li>
                 <li>Execución e realización do evento</li>
                 <li>Contido, artistas ou actividades do evento</li>
@@ -257,25 +347,25 @@ const CondicionesLegales: React.FC = () => {
               <ul>
                 <li>Recollidos a través do noso proveedor financiero Stripe, págandose a reserva coas tarxetas Euro 600, Visa, Mastercard ou Bizum</li>
                 <li>Transferidos ao Organizador descontando as comisións acordadas</li>
-                <li>No prazo de 4 días contados a partir das 23:59 horas do día no que finaliza do evento, o Organizador poderá realizar a liquidación do evento a través do noso proveedor financeiro (Stripe).</li>
+                <li>No prazo de 4 días contados a partir das 23:59 horas do día no que finaliza o evento, o Organizador poderá realizar a liquidación do evento a través do noso proveedor financeiro (Stripe).</li>
               </ul>
 
               <h5>5. CANCELACIÓNS E DEVOLUCIÓNS</h5>
               <ul>
-                <li>No caso da cancelación ou calquera tipo de cambio (data, local, artistas...), aplazamento ou descrición significativamente distinta ao evento real, o Organizador será responsable de informar á plataforma.</li>
+                <li>No caso de cancelación ou calquera tipo de cambio (data, local, artistas...), aplazamento ou descrición significativamente distinta ao evento real, o Organizador será responsable de informar á plataforma.</li>
                 <li>No caso de cancelación, aplazamento ou descrición significativamente distinta ao evento real, o importe da entrada será reembolsado ao comprador utilizando o mesmo método de pago utilizado para a compra sempre que a plataforma o considere necesario. Este punto aplica a aqueles eventos cuxo importe da entrada se xestione a través da páxina web.</li>
                 <li>No caso de cancelación, aplazamento ou descrición significativamente distinta ao evento real, o proceso de reembolso será xestionado polo Organizador. Este punto aplica aos eventos cuxo importe da entrada se xestione directamente co organizador.</li>
                 <li>Para as reservas cuxo importe da venta se xestiona a través da páxina web, devolverase o importe íntegro da entrada ao comprador</li>
                 <li>Para todas as disputas relacionadas con reembolsos, a Plataforma terá o dereito de realizar reembolsos en nome do Organizador e sen necesidad da súa autorización.</li>
                 <li>A Plataforma podrá esixir ao Organizador que sexa o principal punto de contacto dos consumidores.</li>
-                <li>En caso de calquera cancelación, o Organizador asumirá os gastos de xestión.</li>
+                <li>En caso de cancelacións cuxo importe da entrada se xestione a través da web, o Organizador asumirá os gastos de xestión.</li>
               </ul>
 
               <div style={{marginTop: '2.5rem'}} />
               <h5>6. PROTECCIÓN E INDEMNIZACIÓN</h5>
               O Organizador comprométese a manter indemne á Plataforma fronte a:
               <ul>
-                <li>Reclamacións de asistentes</li>
+                <li>Reclamacións de asistentes ou terceiros</li>
                 <li>Sancións administrativas derivadas do evento</li>
                 <li>Danos ou incidentes durante o evento</li>
                 <li>Incumprimentos legais do Organizador</li>
@@ -286,17 +376,13 @@ const CondicionesLegales: React.FC = () => {
               O Organizador declara que toda a información proporcionada é veraz e que dispón de autorizacións, seguros e permisos necesarios.
 
               <div style={{marginTop: '2.5rem'}} />
-              <h5>8. DEREITOS DE AUTOR</h5>
-              No caso de tratarse de eventos con contido musical, audiovisual ou artístico, o Organizador comprométese a cumprir coas obrigas de propiedade intelectual e a pagar as taxas correspondentes a SGAE ou entidades similares no caso de que aplique.
-
-              <div style={{marginTop: '2.5rem'}} />
-              <h5>9. PROPIEDADE E USO DA PLATAFORMA</h5>
+              <h5>8. PROPIEDADE E USO DA PLATAFORMA</h5>
                 A Plataforma mantén todos os dereitos sobre o software e sistema de venda e reserva de entradas.
                 A Plataforma non responderá por incidencias que poidan repercutir negativamente na venda de entradas e que sexan debidas a causas alleas tales como caídas de servidores de Internet ou calquera outra causa de forza maior.
               
               
               <div style={{marginTop: '2.5rem'}} />
-              <h5>10. PROTECCIÓN DE DATOS</h5>
+              <h5>9. PROTECCIÓN DE DATOS</h5>
               <p>
                 De conformidade co Regulamento (UE) 2016/679, relativo ao tratamento dos datos persoais (RGPD), ambas as Partes quedan informadas de maneira inequívoca e precisa de que os datos de carácter persoal que se faciliten no presente Contrato, 
                 así como calquera outro dato que sexa facilitado ao longo da relación establecida no mesmo, serán tratados con total confidencialidade e estarán destinados á xestión e ao adecuado cumprimento do presente Contrato.
@@ -311,11 +397,11 @@ const CondicionesLegales: React.FC = () => {
               </p>
 
               <div style={{marginTop: '2.5rem'}} />
-              <h5>11. DURACIÓN</h5>
+              <h5>10. DURACIÓN</h5>
               Este contrato é válido exclusivamente para o evento indicado e remata tras a súa finalización e liquidación.
 
               <div style={{marginTop: '2.5rem'}} />
-              <h5>12. LEI APLICABLE</h5>
+              <h5>11. LEI APLICABLE</h5>
               Este contrato rexerase pola lexislación española.
             </div>
 
@@ -378,6 +464,7 @@ const CondicionesLegales: React.FC = () => {
                     onBlur={() => setTouched(t => ({ ...t, tipoOrganizador: true }))}
                   >
                     <option value="">Selecciona un tipo</option>
+                    <option value="Particular">Particular</option>
                     <option value="Autónomo">Autónomo</option>
                     <option value="Empresa">Empresa</option>
                     <option value="Asociación">Asociación</option>

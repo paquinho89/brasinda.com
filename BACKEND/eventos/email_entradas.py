@@ -41,13 +41,32 @@ def enviar_publicacion_evento_email(email, evento, url_panel, url_publico):
         org_dict = {'nome_organizador': '', 'nif_cif': '', 'enderezo_fiscal': '', 'telefono': '', 'email': ''}
     pdf_buffer, pdf_filename = xerar_pdf_contrato(evento, org_dict)
     pdf_buffer.seek(0)
-    import base64
     pdf_b64 = base64.b64encode(pdf_buffer.getvalue()).decode("utf-8")
     attachments = [{
         "filename": pdf_filename,
         "content": pdf_b64,
         "contentType": "application/pdf"
     }]
+
+    logos_dir = os.path.join(settings.BASE_DIR, 'BACKEND', 'media', 'logos')
+    if not os.path.isdir(logos_dir):
+        logos_dir = os.path.join(settings.MEDIA_ROOT, 'logos')
+    if os.path.isdir(logos_dir):
+        for filename in sorted(os.listdir(logos_dir)):
+            logo_path = os.path.join(logos_dir, filename)
+            if not os.path.isfile(logo_path):
+                continue
+            with open(logo_path, 'rb') as logo_file:
+                logo_data = logo_file.read()
+            content_type, _ = mimetypes.guess_type(logo_path)
+            if not content_type:
+                content_type = 'application/octet-stream'
+            attachments.append({
+                "filename": filename,
+                "content": base64.b64encode(logo_data).decode("utf-8"),
+                "contentType": content_type,
+            })
+
     try:
         resend.Emails.send({
             "from": settings.DEFAULT_FROM_EMAIL,
@@ -62,6 +81,7 @@ def enviar_publicacion_evento_email(email, evento, url_panel, url_publico):
 import resend
 import qrcode
 import os
+import mimetypes
 import base64
 from io import BytesIO
 from django.conf import settings

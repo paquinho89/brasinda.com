@@ -47,7 +47,7 @@ def xerar_pdf_contrato(evento, organizador):
     data_sinatura = datetime.datetime.now().strftime('%d/%m/%Y')
     email_organizador = (organizador.get('email', '') or '').strip() or 'non hai email'
     # Recoller datos extra do evento
-    tipo_gestion = getattr(evento, 'tipo_gestion_entrada', '') or getattr(evento, 'tipo_gestion', '') or ''
+    tipo_gestion = (getattr(evento, 'tipo_gestion_entrada', '') or getattr(evento, 'tipo_gestion', '') or '').strip().lower()
     procedemento_cobro_manual = getattr(evento, 'procedimiento_cobro_manual', None)
     tipo_xestion_text = tipo_gestion
     if procedemento_cobro_manual:
@@ -56,7 +56,56 @@ def xerar_pdf_contrato(evento, organizador):
     prezo_pvp = getattr(evento, 'prezo_venta', '')
     entradas_venta = getattr(evento, 'entradas_venta', '')
     gastos_xestion = getattr(evento, 'gastos_xestion', '')
+    ive_rate = getattr(evento, 'iveRate', 0) or 0
+    organizer_asume_gastos = getattr(evento, 'asumeFees', False)
+    def safe_number(value):
+        try:
+            return float(str(value).replace(',', '.'))
+        except Exception:
+            return None
+    is_gratis = tipo_gestion == 'gratis' or (
+        safe_number(prezo_evento) == 0 and safe_number(prezo_pvp) == 0
+    )
+    is_manual_gestion = tipo_gestion == 'manual'
 
+    def format_value(value):
+        try:
+            n = float(str(value).replace(',', '.'))
+            return f"{n:.2f}".replace('.', ',')
+        except Exception:
+            return str(value or "[por cubrir]")
+
+    def format_euro(value):
+        try:
+            n = float(str(value).replace(',', '.'))
+            return f"{n:.2f}".replace('.', ',') + " €"
+        except Exception:
+            return str(value or "[por cubrir]")
+
+    prezo_base_text = format_value(getattr(evento, 'prezo_base', ''))
+    prezo_base_euro_text = format_euro(getattr(evento, 'prezo_base', ''))
+    prezo_recibe_text = format_euro(prezo_evento)
+    prezo_pvp_text = format_euro(prezo_pvp)
+    iva_amount = None
+    try:
+        base = float(str(getattr(evento, 'prezo_base', '')).replace(',', '.'))
+        iva_amount = base * float(ive_rate)
+    except Exception:
+        base = None
+    iva_text = format_euro(iva_amount) + f" ({int(ive_rate * 100)}%)" if iva_amount is not None else "[por cubrir]"
+    gastos_base_num = base * 0.05 if base is not None else None
+    gastos_ive_num = gastos_base_num * 0.21 if gastos_base_num is not None else None
+    gastos_base_text = format_euro(gastos_base_num)
+    gastos_ive_text = format_euro(gastos_ive_num)
+    gastos_xestion_total_text = format_euro((gastos_base_num + gastos_ive_num) if gastos_base_num is not None and gastos_ive_num is not None else None)
+    importe_recibido_formula = f"→ {prezo_base_text} € + {iva_text}"
+    if organizer_asume_gastos:
+        importe_recibido_formula += f" - {gastos_xestion_total_text} (Xestión)"
+    importe_recibido_formula += f" = {prezo_recibe_text}"
+    prezo_venta_formula = f"→ {prezo_base_text} € + {iva_text}"
+    if not organizer_asume_gastos:
+        prezo_venta_formula += f" + {gastos_xestion_total_text} (Xestión)"
+    
 
     # Buscar zonas e prezos se existen (fix: non usar 'all' como valor por defecto)
     zonas = []
@@ -94,8 +143,8 @@ def xerar_pdf_contrato(evento, organizador):
         lugar_text = f"{lugar_text} ({nota_lugar})"
     contrato_text = [
         "REUNIDOS",
-        "Dunha parte, Eventos Brasinda, con NIF [●], titular da web brasinda.com, en adiante 'a Plataforma'.",
-        f"E doutra parte, {organizador.get('nome_organizador', '')}, con NIF/CIF {organizador.get('nif_cif', '')}, domicilio en {organizador.get('enderezo_fiscal', '')} e email {email_organizador}, en adiante 'o Organizador'.",
+        "Dunha parte, Francisco Álvarez González, con NIF 34628886V, maior de idade e con enderezo fiscal Estrada de Castela Nº 151 Verín (Ourense) e representante de Eventos Brasinda, en adiante “a Plataforma”.",
+        f"E doutra parte, {organizador.get('nome_organizador', '')}, maior de idade, con NIF {organizador.get('nif_cif', '')}, domicilio en {organizador.get('enderezo_fiscal', '')} e email {email_organizador}, en adiante 'o Organizador'.",
         "Ambas partes recoñecen a capacidade legal suficiente e",
         "",
         "",
@@ -115,6 +164,10 @@ def xerar_pdf_contrato(evento, organizador):
     ]
     if prezos_zonas_lines:
         contrato_text.extend(prezos_zonas_lines)
+    elif is_gratis:
+        contrato_text.append("• Evento Gratuíto")
+    elif is_manual_gestion:
+        contrato_text.append(f"• Prezo venta: {prezo_pvp_text}")
     else:
         def price_equal(a, b):
             try:
@@ -122,7 +175,7 @@ def xerar_pdf_contrato(evento, organizador):
             except Exception:
                 return str(a) == str(b)
 
-        if tipo_gestion == "manual" or prezo_pvp is None or price_equal(prezo_evento, prezo_pvp):
+        if prezo_pvp is None or price_equal(prezo_evento, prezo_pvp):
             prezo_str = f"{prezo_evento} €"
         else:
             partes = []
@@ -136,16 +189,28 @@ def xerar_pdf_contrato(evento, organizador):
                 partes.append(pvp_fmt)
             prezo_str = ', '.join(partes) if partes else "-"
         contrato_text.append(f"• Prezo evento: {prezo_str}")
+
+    if not is_gratis and not is_manual_gestion:
+        contrato_text.extend([
+            f"• Prezo Base: {prezo_base_euro_text}",
+            f"• Gastos de xestión: {gastos_xestion_total_text}",
+            f"   → {gastos_base_text} (5%) + {gastos_ive_text} (IVE da xestión 21%)",
+            f"• IVE: {iva_text}",
+            f"• Importe recibido: {prezo_recibe_text}",
+            f"   → {prezo_base_text} € + {iva_text}" + (f" - {gastos_xestion_total_text} (Xestión)" if organizer_asume_gastos else "") + f" = {prezo_recibe_text}",
+            f"• Prezo venta: {prezo_pvp_text}",
+            f"   → {prezo_venta_formula}",
+        ])
     contrato_text.extend([
-        f"• Gastos xestión: {gastos_xestion} %",
-        f"• Entradas á venda: {entradas_venta}",
+        f"• Número de entradas á venda: {entradas_venta}",
         "",
         "",
         "2. ROL DA PLATAFORMA",
         "A Plataforma actúa unicamente como intermediario tecnolóxico, proporcionando:",
-            "• Publicación do evento na web",
+            "• Publicación do evento na web (brasinda.com)",
             "• Sistema de venda ou reserva de entradas",
-            "• Xestión técnica dos pagos, no caso de que o organizador así o solicite",
+            "• Liquidación dos pagos ao organizador, descontando os gastos de xestión acordados",
+            "• Xestión dos reembolsos, no caso de que o organizador así o solicite",
         "",
         "",
         "A Plataforma non é organizadora nin a promotora do evento.",
@@ -153,6 +218,7 @@ def xerar_pdf_contrato(evento, organizador):
         "3. RESPONSABILIDADE DO ORGANIZADOR",
         "O Organizador é o único responsable da:",
             "• Legalidade do evento e permisos necesarios",
+            "• No caso de tratarse de eventos con contido musical, audiovisual ou artístico, cumprir coas obrigas de propiedade intelectual que apliquen",
             "• Seguridade, licenzas, seguros e cumprimento normativo",
             "• Execución e realización do evento",
             "• Contido, artistas ou actividades do evento",
@@ -160,22 +226,23 @@ def xerar_pdf_contrato(evento, organizador):
         "",
         "4. PAGOS E LIQUIDACIÓN",
         "No caso de que os pagos se realicen a través da páxina web, os ingresos pola venda de entradas serán:",
-            "• Recollidos a través da plataforma de pagamento",
+            "• Recollidos a través do noso proveedor financiero Stripe, págandose a reserva coas tarxetas Euro 600, Visa, Mastercard ou Bizum",
             "• Transferidos ao Organizador descontando as comisións acordadas",
-            "• A Plataforma realizará a liquidación no prazo de 4 días contados a partir das 23:59 horas do día no que finaliza do evento.",
+            "• No prazo de 4 días contados a partir das 23:59 horas do día no que finaliza o evento, o Organizador poderá realizar a liquidación do evento a través do noso proveedor financeiro (Stripe).",
         "",
         "5. CANCELACIÓNS E DEVOLUCIÓNS",
         "• No caso da cancelación ou calquera tipo de cambio (data, local, artistas...), o Organizador será responsable de informar á plataforma.",
-        "• No caso de cancelación, e o importe da entrada sexa xestionado a través da páxina, éste será reembolsado ao comprador utilizando o mesmo método de pago utilizado para a compra.",
-        "• No caso de cancelación e o importe da entrada sexa xestionado directamente co organizador, o proceso de reembolso será xestionado polo Organizador.",
-        "• Os gastos derivados das devolucións serán asumidos polo Organizador.",
-        "",
-        "A Plataforma executará as devolucións unicamente segundo instrucións do Organizador ou obrigas legais.",
+        "• No caso de cancelación, aplazamento ou descrición significativamente distinta ao evento real, o importe da entrada será reembolsado ao comprador utilizando o mesmo método de pago utilizado para a compra sempre que a plataforma o considere necesario. Este punto aplica a aqueles eventos cuxo importe da entrada se xestione a través da páxina web.",
+        "• No caso de cancelación, aplazamento ou descrición significativamente distinta ao evento real, o proceso de reembolso será xestionado polo Organizador. Este punto aplica aos eventos cuxo importe da entrada se xestione directamente co organizador.",
+        "• Para as reservas cuxo importe da venta se xestione a través da páxina web, devolverase o importe íntegro da entrada ao comprador",
+        "• Para todas as disputas relacionadas con reembolsos, a Plataforma terá o dereito de realizar reembolsos en nome do Organizador e sen necessidade da súa autorización.",
+        "• A Plataforma podrá esixir ao Organizador que sexa o principal punto de contacto dos consumidores.",
+        "• En caso de cancelacións cuxo importe da entrada se xestione a través da web, o Organizador asumirá os gastos de xestión.",
         "",
         "6. PROTECCIÓN E INDEMNIZACIÓN",
         "O Organizador comprométese a manter indemne á Plataforma fronte a: ",
             "• Reclamacións de asistentes ou terceiros",
-            "• Multas ou sancións por incumprimento normativo",
+            "• Sancións administrativas derivadas do evento",
             "• Danos ou incidentes durante o evento",
             "• Incumprimentos legais do Organizador",
         "",
@@ -184,11 +251,17 @@ def xerar_pdf_contrato(evento, organizador):
         "",
         "8. PROPIEDADE E USO DA PLATAFORMA",
         "A Plataforma mantén todos os dereitos sobre o software e sistema de venda e reserva de entradas.",
+        "A Plataforma non responderá por incidencias que poidan repercutir negativamente na venda de entradas e que sexan debidas a causas alleas tales como caídas de servidores de Internet ou calquera outra causa de forza maior.",
         "",
-        "9. DURACIÓN",
+        "9. PROTECCIÓN DE DATOS",
+        "De conformidade co Regulamento (UE) 2016/679, relativo ao tratamento dos datos persoais (RGPD), ambas as Partes quedan informadas de maneira inequívoca e precisa de que os datos de carácter persoal que se faciliten no presente Contrato, así como calquera outro dato que sexa facilitado ao longo da relación establecida no mesmo, serán tratados con total confidencialidade e estarán destinados á xestión e ao adecuado cumprimento do presente Contrato.",
+        "Se, por necesidades relacionadas coa celebración do EVENTO, fose necesario facilitar ao ORGANIZADOR datos persoais dos compradores ou asistentes, o ORGANIZADOR será debidamente identificado e informarase aos interesados sobre a finalidade para a que serán utilizados os seus datos.",
+        "Unha vez realizada a cesión, o ORGANIZADOR será considerado Responsable do Tratamento para todos os efectos, comprometéndose a cumprir coa normativa aplicable en materia de protección de datos persoais e eximindo a plataforma de calquera responsabilidade derivada dos tratamentos realizados á marxe dos orixinados no marco do presente Contrato.",
+        "",
+        "10. DURACIÓN",
         "Este contrato é válido exclusivamente para o evento indicado e remata tras a súa finalización e liquidación.",
         "",
-        "10. LEI APLICABLE",
+        "11. LEI APLICABLE",
         "Este contrato rexerase pola lexislación española."
     ])
     p.setFont("Helvetica", 11)
@@ -205,8 +278,9 @@ def xerar_pdf_contrato(evento, organizador):
         "6. PROTECCIÓN E INDEMNIZACIÓN",
         "7. DATOS E VERACIDADE",
         "8. PROPIEDADE E USO DA PLATAFORMA",
-        "9. DURACIÓN",
-        "10. LEI APLICABLE",
+        "9. PROTECCIÓN DE DATOS",
+        "10. DURACIÓN",
+        "11. LEI APLICABLE",
     ]
     def draw_footer():
         p.setFont("Helvetica", 8)
@@ -554,6 +628,39 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
     p.drawString(0, 0, text)
     p.restoreState()
     p.setFillColorRGB(0, 0, 0)
+
+    # Mostrar watermark se o evento é xestionado manualmente / polo organizador
+    tipo_gestion = getattr(evento, "tipo_gestion_entrada", None)
+    if tipo_gestion is None:
+        tipo_gestion = getattr(evento, "tipo_gestion", None)
+    if tipo_gestion is not None:
+        tipo_gestion = str(tipo_gestion).strip().lower()
+    procedemento_cobro_manual = getattr(reserva, "procedemento_cobro_manual", None)
+    if procedemento_cobro_manual is None:
+        procedemento_cobro_manual = getattr(evento, "procedimiento_cobro_manual", None)
+
+    show_non_pagado = (
+        tipo_gestion == "manual" or
+        tipo_gestion == "a través do organizador" or
+        tipo_gestion == "organizador" or
+        bool(procedemento_cobro_manual)
+    )
+
+    if show_non_pagado:
+        p.saveState()
+        p.setFont("Helvetica-Bold", 48)
+        p.setFillColorRGB(0.65, 0.1, 0.1)
+        p.setStrokeColorRGB(0.65, 0.1, 0.1)
+        try:
+            p.setFillAlpha(0.18)
+            p.setStrokeAlpha(0.18)
+        except AttributeError:
+            pass
+        p.setLineWidth(1)
+        p.translate(width / 2, height / 2)
+        p.rotate(45)
+        p.drawCentredString(0, 0, "Non Pagado")
+        p.restoreState()
 
     # Reducir marxe superior para subir o texto
     y = height - 24  # Máis preto do header

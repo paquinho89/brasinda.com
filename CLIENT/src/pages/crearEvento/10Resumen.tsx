@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useApi } from "../../hooks/useApi";
-import LoginModalCrearEvento from "../componentes/InicioSesionCrearEventoCuadro";
 import { getDefaultImageFile } from "./3Imagen";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import { Button, Container, Card } from "react-bootstrap";
@@ -12,7 +11,6 @@ const Resumen: React.FC = () => {
   const { evento } = useOutletContext<OutletContext>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [showLoginModal, setShowLoginModal] = useState(false);
   const navigate = useNavigate();
 
   // Limpeza de prezos de zona se o evento é gratuíto
@@ -128,10 +126,20 @@ const Resumen: React.FC = () => {
     );
 
     try {
-      let response = await apiFetch(`${API_BASE_URL}/crear-eventos/`, {
-        method: "POST",
-        body: formData,
-      });
+      let response = await apiFetch(
+        `${API_BASE_URL}/crear-eventos/`,
+        {
+          method: "POST",
+          body: formData,
+        },
+        { promptOnAuthFailure: true, redirectTo: window.location.pathname }
+      );
+
+          if (response.status === 401 || response.status === 403) {
+        setError("Necesitas iniciar sesión para publicar o evento.");
+        setIsSubmitting(false);
+        return;
+      }
 
       if (!response.ok) throw new Error("Erro ao crear o evento");
 
@@ -144,7 +152,6 @@ const Resumen: React.FC = () => {
       setIsSubmitting(false);
     }
   };
-  <LoginModalCrearEvento show={showLoginModal} onClose={() => setShowLoginModal(false)} />
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "-";

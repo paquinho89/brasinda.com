@@ -2,7 +2,8 @@ import React, { createContext, useContext, useState, useCallback } from "react";
 
 interface AuthModalContextType {
   showLoginModal: boolean;
-  showLogin: () => void;
+  loginRedirectTo?: string;
+  showLogin: (redirectTo?: string) => void;
   hideLogin: () => void;
 }
 
@@ -10,12 +11,19 @@ const AuthModalContext = createContext<AuthModalContextType | undefined>(undefin
 
 export const AuthModalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginRedirectTo, setLoginRedirectTo] = useState<string | undefined>(undefined);
 
-  const showLogin = useCallback(() => setShowLoginModal(true), []);
-  const hideLogin = useCallback(() => setShowLoginModal(false), []);
+  const showLogin = useCallback((redirectTo?: string) => {
+    setLoginRedirectTo(redirectTo);
+    setShowLoginModal(true);
+  }, []);
+  const hideLogin = useCallback(() => {
+    setShowLoginModal(false);
+    setLoginRedirectTo(undefined);
+  }, []);
 
   return (
-    <AuthModalContext.Provider value={{ showLoginModal, showLogin, hideLogin }}>
+    <AuthModalContext.Provider value={{ showLoginModal, loginRedirectTo, showLogin, hideLogin }}>
       {children}
     </AuthModalContext.Provider>
   );
