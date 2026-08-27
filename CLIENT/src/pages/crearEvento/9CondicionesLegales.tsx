@@ -64,9 +64,6 @@ const CondicionesLegales: React.FC = () => {
   const gastosIveTexto = !Number.isNaN(gastosIveNum)
     ? gastosIveNum.toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "€"
     : "[por cubrir]";
-  const fmtGastos = !Number.isNaN(gastosBaseNum) && !Number.isNaN(gastosIveNum)
-    ? (gastosBaseNum + gastosIveNum).toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    : "[por cubrir]";
   const prezoVentaTexto = !Number.isNaN(precioVentaNum)
     ? formatEuro(precioVentaNum)
     : "[por cubrir]";
