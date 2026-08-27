@@ -41,7 +41,7 @@ function CookieFloatingButton() {
         title="Configurar cookies"
         style={{
           position: "fixed",
-          right: "1rem",
+          left: "1rem",
           bottom: "1rem",
           zIndex: 1200,
           border: "none",

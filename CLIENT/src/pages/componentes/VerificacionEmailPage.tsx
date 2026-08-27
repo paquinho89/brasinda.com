@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import API_BASE_URL from "../../utils/api";
@@ -6,7 +6,7 @@ import API_BASE_URL from "../../utils/api";
 export default function VerificacionEmailPage() {
   const [searchParams] = useSearchParams();
   const email = searchParams.get("email") || "";
-  const token = searchParams.get("token") || "";
+  const [token, setToken] = useState(searchParams.get("token") || "");
   const next = searchParams.get("next") || "/panel-organizador";
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -14,21 +14,45 @@ export default function VerificacionEmailPage() {
   const [estado, setEstado] = useState<"idle" | "submitting" | "ok" | "erro">("idle");
   const [mensaxe, setMensaxe] = useState("");
 
+  const [resendEstado, setResendEstado] = useState<"idle" | "sending" | "sent" | "erro">("idle");
+  const autoSubmitTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const firstDigitRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    const codeString = code.join("");
+    if (/^[0-9]{3}$/.test(codeString)) {
+      if (autoSubmitTimeout.current) {
+        clearTimeout(autoSubmitTimeout.current);
+      }
+      autoSubmitTimeout.current = setTimeout(() => {
+        handleVerify();
+      }, 200);
+    }
+    return () => {
+      if (autoSubmitTimeout.current) {
+        clearTimeout(autoSubmitTimeout.current);
+      }
+    };
+  }, [code]);
+
   const handleVerify = async () => {
     const codeString = code.join("");
     setMensaxe("");
     if (!email || !token) {
       setEstado("erro");
       setMensaxe("Faltan o email ou o token de verificación.");
+      setCode(["", "", ""]);
+      firstDigitRef.current?.focus();
       return;
     }
     if (!/^[0-9]{3}$/.test(codeString)) {
       setEstado("erro");
       setMensaxe("Introduce un código de 3 cifras recibido no teu email.");
+      setCode(["", "", ""]);
+      firstDigitRef.current?.focus();
       return;
     }
 
-    setEstado("submitting");
     try {
       const resp = await fetch(`${API_BASE_URL}/organizador/login/verify/`, {
         method: "POST",
@@ -50,10 +74,47 @@ export default function VerificacionEmailPage() {
       } else {
         setEstado("erro");
         setMensaxe(data.error || "Código incorrecto.");
+        setCode(["", "", ""]);
+        firstDigitRef.current?.focus();
       }
     } catch {
       setEstado("erro");
       setMensaxe("Erro de conexión ao servidor.");
+      setCode(["", "", ""]);
+      firstDigitRef.current?.focus();
+    }
+  };
+
+  const handleResendCode = async () => {
+    if (!email) {
+      setEstado("erro");
+      setMensaxe("Non hai email dispoñible para reenviar o código.");
+      return;
+    }
+
+    setResendEstado("sending");
+    try {
+      const resp = await fetch(`${API_BASE_URL}/organizador/login/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+      const data = await resp.json();
+      if (resp.ok) {
+        setResendEstado("sent");
+        setMensaxe("Código reenviado. Revisa o teu email.");
+        if (data.token) {
+          setToken(data.token);
+        }
+      } else {
+        setResendEstado("erro");
+        setMensaxe(data.error || "Non se puido reenviar o código.");
+      }
+    } catch {
+      setResendEstado("erro");
+      setMensaxe("Erro de conexión ao servidor ao reenviar o código.");
     }
   };
 
@@ -73,6 +134,7 @@ export default function VerificacionEmailPage() {
             {code.map((digit, index) => (
               <span key={index} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <input
+                  ref={index === 0 ? firstDigitRef : null}
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
@@ -130,6 +192,15 @@ export default function VerificacionEmailPage() {
           <p className="mt-2 text-center text-muted" style={{ fontSize: 14 }}>
             Se non recibes o código, revisa o correo non desexado e verifica que o teu email esté ben escrito.
           </p>
+          <button
+            type="button"
+            className="btn btn-link p-0 mt-2"
+            onClick={handleResendCode}
+            disabled={resendEstado === "sending"}
+            style={{ fontSize: 14 }}
+          >
+            {resendEstado === "sending" ? "Reenviando..." : "Volver a enviar o código"}
+          </button>
         </div>
       </div>
     </div>

@@ -67,6 +67,7 @@ import AuditorioVigoAnfiteatro from './pages/planoAuditorios/Planos/auditorioVig
 // import { useLocation } from 'react-router-dom';
 import IntroducirNuevaContraseña from './pages/componentes/IntroducirNuevaContraseña';
 import CookieFloatingButton from './pages/componentes/CookieFloatingButton';
+import SupportFloatingButton from './pages/componentes/SupportFloatingButton';
 import AvisoLegal from './pages/componentes/Políticas/AvisoLegal';
 import Nosotros from './pages/componentes/Políticas/Nosotros';
 import PoliticaPrivacidad from './pages/componentes/Políticas/PoliticaPrivacidad';
@@ -170,6 +171,7 @@ function App() {
           </Routes>
 
           <CookieFloatingButtonWrapper />
+          <SupportFloatingButton />
         </>
       </Router>
     </AuthModalProvider>

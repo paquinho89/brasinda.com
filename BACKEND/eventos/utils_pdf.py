@@ -629,28 +629,42 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
     p.restoreState()
     p.setFillColorRGB(0, 0, 0)
 
-    # Mostrar watermark se o evento é xestionado manualmente / polo organizador
+    # Mostrar watermark dependendo do tipo de entrada e estado do pago
     tipo_gestion = getattr(evento, "tipo_gestion_entrada", None)
     if tipo_gestion is None:
         tipo_gestion = getattr(evento, "tipo_gestion", None)
     if tipo_gestion is not None:
         tipo_gestion = str(tipo_gestion).strip().lower()
-    procedemento_cobro_manual = getattr(reserva, "procedemento_cobro_manual", None)
+    procedemento_cobro_manual = getattr(reserva, "procedimiento_cobro_manual", None)
     if procedemento_cobro_manual is None:
         procedemento_cobro_manual = getattr(evento, "procedimiento_cobro_manual", None)
 
+    is_invitacion = str(getattr(reserva, "tipo_reserva", "")).strip().lower() == "invitacion"
+    is_paga_en_pagina = tipo_gestion in ("pagina", "a través da páxina")
+    is_de_balde = tipo_gestion == "gratis"
     show_non_pagado = (
         tipo_gestion == "manual" or
         tipo_gestion == "a través do organizador" or
         tipo_gestion == "organizador" or
         bool(procedemento_cobro_manual)
     )
+    show_pagado = is_paga_en_pagina
 
-    if show_non_pagado:
+    if is_invitacion or is_de_balde or show_non_pagado or show_pagado:
         p.saveState()
         p.setFont("Helvetica-Bold", 48)
-        p.setFillColorRGB(0.65, 0.1, 0.1)
-        p.setStrokeColorRGB(0.65, 0.1, 0.1)
+        if is_invitacion:
+            p.setFillColorRGB(0.1, 0.35, 0.65)
+            p.setStrokeColorRGB(0.1, 0.35, 0.65)
+        elif is_de_balde:
+            p.setFillColorRGB(0.15, 0.55, 0.55)
+            p.setStrokeColorRGB(0.15, 0.55, 0.55)
+        elif show_pagado:
+            p.setFillColorRGB(0.15, 0.55, 0.15)
+            p.setStrokeColorRGB(0.15, 0.55, 0.15)
+        else:
+            p.setFillColorRGB(0.65, 0.1, 0.1)
+            p.setStrokeColorRGB(0.65, 0.1, 0.1)
         try:
             p.setFillAlpha(0.18)
             p.setStrokeAlpha(0.18)
@@ -659,7 +673,13 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
         p.setLineWidth(1)
         p.translate(width / 2, height / 2)
         p.rotate(45)
-        p.drawCentredString(0, 0, "Non Pagado")
+        if is_invitacion:
+            watermark_text = "Invitación"
+        elif is_de_balde:
+            watermark_text = "De Balde"
+        else:
+            watermark_text = "Pagado" if show_pagado else "Non Pagado"
+        p.drawCentredString(0, 0, watermark_text)
         p.restoreState()
 
     # Reducir marxe superior para subir o texto
