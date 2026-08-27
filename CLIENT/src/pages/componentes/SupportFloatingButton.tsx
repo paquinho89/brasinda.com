@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FaPhoneAlt, FaWhatsapp, FaTimes } from "react-icons/fa";
+import { FaPhoneAlt, FaWhatsapp } from "react-icons/fa";
 
 const RAW_WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER as string | undefined;
 const WHATSAPP_NUMBER = RAW_WHATSAPP_NUMBER ? RAW_WHATSAPP_NUMBER.replace(/\D/g, "") : "";
@@ -21,10 +21,6 @@ export default function SupportFloatingButton() {
     }
     const url = formatWhatsAppUrl(message);
     window.open(url, "_blank");
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
   };
 
   return (
