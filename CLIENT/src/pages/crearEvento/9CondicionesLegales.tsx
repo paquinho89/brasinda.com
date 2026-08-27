@@ -52,9 +52,6 @@ const CondicionesLegales: React.FC = () => {
   const ivaTexto = !Number.isNaN(ivaAmountNum)
     ? `${formatEuro(ivaAmountNum)} (${Math.round(ivaRate * 100)}%)`
     : "[por cubrir]";
-  const prezoBaseFormatted = !Number.isNaN(prezoBaseNum)
-    ? prezoBaseNum.toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    : "[por cubrir]";
   const gastosBaseNum = !Number.isNaN(prezoBaseNum)
     ? prezoBaseNum * 0.05
     : NaN;
