@@ -1,5 +1,6 @@
 // useApi.ts
 import { useAuthModal } from "../context/AuthModalContext";
+import { useAuth } from "../pages/AuthContext";
 
 interface ApiFetchOptions {
   promptOnAuthFailure?: boolean;
@@ -8,6 +9,7 @@ interface ApiFetchOptions {
 
 export function useApi() {
   const { showLogin } = useAuthModal();
+  const { logout } = useAuth();
 
   // Wrapper for fetch
   const apiFetch = async (input: RequestInfo, init?: RequestInit, options?: ApiFetchOptions) => {
@@ -22,16 +24,29 @@ export function useApi() {
       const response = await fetch(input, { ...init, headers });
 
       if ([401, 403].includes(response.status)) {
+        if (token) {
+          logout();
+        }
         if (options?.promptOnAuthFailure) {
           showLogin(options.redirectTo);
         }
+
+        if (token) {
+          const retryHeaders = new Headers(init?.headers || {});
+          retryHeaders.delete("Authorization");
+          return await fetch(input, { ...init, headers: retryHeaders });
+        }
+
         return response;
       }
 
       if (options?.promptOnAuthFailure && response.status === 400) {
         let data;
-        try { data = await response.json(); } catch {}
+        try {
+          data = await response.json();
+        } catch {}
         if (data && (data.detail?.toLowerCase().includes("autentic") || data.detail?.toLowerCase().includes("login") || data.detail?.toLowerCase().includes("token"))) {
+          logout();
           showLogin(options.redirectTo);
         }
       }
