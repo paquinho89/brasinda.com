@@ -52,9 +52,6 @@ const CondicionesLegales: React.FC = () => {
   const ivaTexto = !Number.isNaN(ivaAmountNum)
     ? `${formatEuro(ivaAmountNum)} (${Math.round(ivaRate * 100)}%)`
     : "[por cubrir]";
-  const ivaTextoSolo = !Number.isNaN(ivaAmountNum)
-    ? formatEuro(ivaAmountNum)
-    : "[por cubrir]";
   const prezoBaseFormatted = !Number.isNaN(prezoBaseNum)
     ? prezoBaseNum.toLocaleString("gl-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     : "[por cubrir]";
@@ -297,8 +294,7 @@ const CondicionesLegales: React.FC = () => {
                     <li>
                       Importe recibido: <strong>{importeRecibidoPorEntrada}</strong>
                       <span style={{ fontSize: "0.9rem", color: "#6c757d", marginLeft: "0.75rem" }}>
-                        &rarr; {prezoBaseFormatted} € + {ivaTexto}
-                        {organizerAsumeGastos && <> - {fmtGastos} € (Xestión)</>}
+                        &rarr; {formulaRecibe}
                       </span>
                     </li>
                     <li>
