@@ -1,11 +1,29 @@
 import { useState } from "react";
-import { FaPhoneAlt } from "react-icons/fa";
+import { FaPhoneAlt, FaWhatsapp, FaTimes } from "react-icons/fa";
+
+const RAW_WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER as string | undefined;
+const WHATSAPP_NUMBER = RAW_WHATSAPP_NUMBER ? RAW_WHATSAPP_NUMBER.replace(/\D/g, "") : "";
+const numberConfigured = WHATSAPP_NUMBER.length > 0;
+
+const formatWhatsAppUrl = (message: string) => {
+  const encodedMessage = encodeURIComponent(message || "Boas, qué che pasa?");
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
+};
 
 export default function SupportFloatingButton() {
   const [showModal, setShowModal] = useState(false);
+  const [message, setMessage] = useState("Boas, qué che pasa?");
 
-  const handleSupportSelect = (type: "Organizador" | "Asistente") => {
-    console.log("Soporte seleccionado:", type);
+  const handleOpenWhatsApp = () => {
+    if (!numberConfigured) {
+      window.alert("Por favor configura o número de WhatsApp en VITE_WHATSAPP_NUMBER no ficheiro .env.");
+      return;
+    }
+    const url = formatWhatsAppUrl(message);
+    window.open(url, "_blank");
+  };
+
+  const closeModal = () => {
     setShowModal(false);
   };
 
@@ -80,8 +98,13 @@ export default function SupportFloatingButton() {
                   Soporte
                 </h2>
                 <p style={{ margin: "0.35rem 0 0", color: "#4b5563" }}>
-                  Selecciona o teu tipo de usuario.
+                  Escribe a túa mensaxe e abre Whatsapp para contactar co noso equipo.
                 </p>
+                {!numberConfigured && (
+                  <p style={{ margin: "0.75rem 0 0", color: "#b91c1c", fontWeight: 600 }}>
+                    Aviso: non hai número de WhatsApp configurado. Engade `VITE_WHATSAPP_NUMBER` no ficheiro `.env`.
+                  </p>
+                )}
               </div>
             </div>
             <button
@@ -115,22 +138,35 @@ export default function SupportFloatingButton() {
               ✕
             </button>
 
-            <div style={{ display: "grid", gap: "0.75rem", marginTop: "1rem" }}>
+            <div style={{ display: "grid", gap: "1rem", marginTop: "1rem" }}>
+              <div style={{ display: "grid", gap: "0.5rem" }}>
+                <label style={{ fontWeight: 600, color: "#111827" }} htmlFor="support-message-input">
+                  Mensaxe
+                </label>
+                <textarea
+                  id="support-message-input"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  rows={4}
+                  style={{
+                    width: "100%",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "12px",
+                    padding: "0.75rem",
+                    fontSize: "0.95rem",
+                    color: "#111827",
+                    resize: "vertical",
+                  }}
+                />
+              </div>
               <button
                 type="button"
-                onClick={() => handleSupportSelect("Organizador")}
+                onClick={handleOpenWhatsApp}
                 className="reserva-entrada-btn"
-                style={{ width: "100%" }}
+                style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
               >
-                Organizador
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSupportSelect("Asistente")}
-                className="reserva-entrada-btn"
-                style={{ width: "100%" }}
-              >
-                Asistente
+                <FaWhatsapp size={18} />
+                Enviar e abrir Whatsapp
               </button>
             </div>
           </div>
