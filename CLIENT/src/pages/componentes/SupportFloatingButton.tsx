@@ -1,22 +1,22 @@
 import { useState } from "react";
 import { FaPhoneAlt, FaWhatsapp } from "react-icons/fa";
 
-const RAW_WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER as string | undefined;
+const RAW_WHATSAPP_NUMBER = import.meta.env.WHATSAPP_NUMBER as string | undefined;
 const WHATSAPP_NUMBER = RAW_WHATSAPP_NUMBER ? RAW_WHATSAPP_NUMBER.replace(/\D/g, "") : "";
 const numberConfigured = WHATSAPP_NUMBER.length > 0;
 
 const formatWhatsAppUrl = (message: string) => {
-  const encodedMessage = encodeURIComponent(message || "Boas, qué che pasa?");
+  const encodedMessage = encodeURIComponent(message || "Boas, preciso axuda.");
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
 };
 
 export default function SupportFloatingButton() {
   const [showModal, setShowModal] = useState(false);
-  const [message, setMessage] = useState("Boas, qué che pasa?");
+  const [message, setMessage] = useState("Boas, preciso axuda.");
 
   const handleOpenWhatsApp = () => {
     if (!numberConfigured) {
-      window.alert("Por favor configura o número de WhatsApp en VITE_WHATSAPP_NUMBER no ficheiro .env.");
+      window.alert("Por favor configura o número de WhatsApp en WHATSAPP_NUMBER no ficheiro .env.");
       return;
     }
     const url = formatWhatsAppUrl(message);
@@ -93,12 +93,10 @@ export default function SupportFloatingButton() {
                 <h2 style={{ margin: 0, fontSize: "1.6rem", fontWeight: 800, color: "#111827" }}>
                   Soporte
                 </h2>
-                <p style={{ margin: "0.35rem 0 0", color: "#4b5563" }}>
-                  Escribe a túa mensaxe e abre Whatsapp para contactar co noso equipo.
-                </p>
+                
                 {!numberConfigured && (
                   <p style={{ margin: "0.75rem 0 0", color: "#b91c1c", fontWeight: 600 }}>
-                    Aviso: non hai número de WhatsApp configurado. Engade `VITE_WHATSAPP_NUMBER` no ficheiro `.env`.
+                    Aviso: non hai número de WhatsApp configurado. Engade `WHATSAPP_NUMBER` no ficheiro `.env`.
                   </p>
                 )}
               </div>
