@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FaPhoneAlt, FaWhatsapp } from "react-icons/fa";
+import { FaHeadset, FaWhatsapp } from "react-icons/fa";
 
 const RAW_WHATSAPP_NUMBER = import.meta.env.WHATSAPP_NUMBER as string | undefined;
 const WHATSAPP_NUMBER = RAW_WHATSAPP_NUMBER ? RAW_WHATSAPP_NUMBER.replace(/\D/g, "") : "";
@@ -54,7 +54,7 @@ export default function SupportFloatingButton() {
           e.currentTarget.style.backgroundColor = "#171717";
         }}
       >
-        <FaPhoneAlt size={22} />
+        <FaHeadset size={22} />
       </button>
 
       {showModal && (
