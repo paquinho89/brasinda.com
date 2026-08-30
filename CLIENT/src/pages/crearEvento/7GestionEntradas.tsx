@@ -21,7 +21,7 @@ const GestionEntradas: React.FC = () => {
         {!tipoEntrada && (
           <>
             <h3 className="text-center mb-4">
-              Queres xestionar o importe da entrada a través da páxina?
+              Queres xestionar o diñeiro da entrada a través da páxina?
             </h3>
             <div className="d-grid gap-3">
               <Button
@@ -31,13 +31,13 @@ const GestionEntradas: React.FC = () => {
                   navigate("/crear-evento/prezo");
                 }}
               >
-                Si, fareino a través da páxina
+                Si (Custo: 5% do valor da entrada)
               </Button>
               <Button
                 className="reserva-entrada-btn"
                 onClick={() => setShowManualModal(true)}
               >
-                Non, fareino eu mesmo
+                Non, fareino eu mesmo (Sen custo)
               </Button>
               {/* Modal para xestión manual do cobro */}
               <Modal show={showManualModal} onHide={() => setShowManualModal(false)} centered>
@@ -116,12 +116,8 @@ const GestionEntradas: React.FC = () => {
                   navigate("/crear-evento/condiciones-legales");
                 }}
               >
-                Non fai falta, o evento é gratuíto
+                Non fai falta, o evento é gratuíto (Sen custo)
               </Button>
-            </div>
-            <div className="mt-3 text-secondary small">
-              <div>*No caso de que a entrada sexa gratuíta ou o importe non se xestione a través da páxina, <strong>NON hai costes de xestión.</strong></div>
-              <div>Para os eventos cuxo importe sexa xestionado pola páxina, o coste será dun 5% sobre o valor da entrada.</div>
             </div>
             <div className="mt-4">
               <Button
