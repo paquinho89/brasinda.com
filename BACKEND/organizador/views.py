@@ -28,6 +28,61 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
 
+
+def _is_superadmin_email(email):
+    return isinstance(email, str) and email.strip().lower() == settings.SUPERADMIN_EMAIL
+
+
+def _organizador_payload(request, organizador):
+    foto_url = request.build_absolute_uri(organizador.foto_organizador.url) if organizador.foto_organizador else None
+    return {
+        "id": organizador.id,
+        "email": organizador.email,
+        "nome_organizador": organizador.nome_organizador,
+        "foto_url": foto_url,
+        "is_superadmin": _is_superadmin_email(organizador.email),
+    }
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def admin_listar_organizadores(request):
+    if not _is_superadmin_email(request.user.email):
+        return Response({"error": "Non autorizado"}, status=status.HTTP_404_NOT_FOUND)
+    organizadores = Organizador.objects.exclude(pk=request.user.pk).order_by('-fecha_creacion')
+    return Response([
+        {
+            "id": o.id,
+            "email": o.email,
+            "nome_organizador": o.nome_organizador,
+            "nome_empresa": o.nome_empresa,
+            "foto_url": request.build_absolute_uri(o.foto_organizador.url) if o.foto_organizador else None,
+            "fecha_creacion": o.fecha_creacion,
+            "is_active": o.is_active,
+        }
+        for o in organizadores
+    ])
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def admin_impersonar_organizador(request, organizador_id):
+    if not _is_superadmin_email(request.user.email):
+        return Response({"error": "Non autorizado"}, status=status.HTTP_404_NOT_FOUND)
+    try:
+        objetivo = Organizador.objects.get(pk=organizador_id)
+    except Organizador.DoesNotExist:
+        return Response({"error": "Organizador non atopado"}, status=status.HTTP_404_NOT_FOUND)
+    if _is_superadmin_email(objetivo.email):
+        return Response({"error": "Non é necesario"}, status=status.HTTP_400_BAD_REQUEST)
+
+    refresh = RefreshToken.for_user(objetivo)
+    return Response({
+        "access_token": str(refresh.access_token),
+        "refresh_token": str(refresh),
+        "organizador": _organizador_payload(request, objetivo),
+    })
+
 @api_view(['POST'])
 def google_auth(request):
     token = request.data.get("token")
@@ -45,6 +100,9 @@ def google_auth(request):
         name = idinfo.get('name', '')
         if not email:
             return Response({"error": "Email non proporcionado polo token de Google"}, status=400)
+        email = email.strip().lower()
+        if _is_superadmin_email(email) and not idinfo.get('email_verified'):
+            return Response({"error": "Email de Google non verificado"}, status=403)
 
         # Buscar organizador por email
         organizador = Organizador.objects.filter(email=email).first()
@@ -90,7 +148,8 @@ def google_auth(request):
                 "id": organizador.id,
                 "email": organizador.email,
                 "nome_organizador": organizador.nome_organizador,
-                "foto_url": foto_url
+                "foto_url": foto_url,
+                "is_superadmin": _is_superadmin_email(organizador.email)
             }
         }, status=status.HTTP_200_OK)
 
@@ -207,6 +266,11 @@ def login_organizador(request):
         )
 
     # Passwordless login flow: create or reuse organizador and send 3-digit code
+    if _is_superadmin_email(email):
+        return Response(
+            {"error": "Esta conta só pode acceder con Google."},
+            status=status.HTTP_403_FORBIDDEN
+        )
     organizador = Organizador.objects.filter(email=email).first()
     created = False
     if not organizador:
@@ -281,6 +345,9 @@ def verify_login_code(request):
 
     if not email or not code or not token:
         return Response({"error": "Email, código e token son obrigatorios."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if _is_superadmin_email(email):
+        return Response({"error": "Esta conta só pode acceder con Google."}, status=status.HTTP_403_FORBIDDEN)
 
     try:
         payload = loads(token, salt="organizador-otp", max_age=600)

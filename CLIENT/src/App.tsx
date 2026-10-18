@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { AuthModalProvider } from './context/AuthModalContext';
 import GlobalLoginModal from './pages/componentes/GlobalLoginModal';
+import SuperAdminBanner from './pages/componentes/SuperAdminBanner';
+import SuperAdmin from './pages/SuperAdmin';
 import { useLocation } from 'react-router-dom';
 // Limpa as seleccións de butacas cando se navega a páxinas non permitidas
 function useLimparSeleccionButacas() {
@@ -112,6 +114,7 @@ function App() {
       <Router>
         <LimparSeleccionButacasWrapper />
         <GlobalLoginModal />
+        <SuperAdminBanner />
         <>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -140,6 +143,7 @@ function App() {
             <Route path="auditorio-vigo-anfiteatro" element={<AuditorioVigoAnfiteatro />}></Route>
 
             <Route path="panel-organizador" element={<PanelOrganizador />} />
+            <Route path="superadmin" element={<SuperAdmin />} />
             <Route path="panel-organizador/evento/:id" element={<EventoDetalle />} />
             <Route path="panel-organizador/evento/:id/entradas" element={<ListadoEntradas />} />
             <Route path="panel-organizador/cobro/:id" element={<CobroEvento />} />

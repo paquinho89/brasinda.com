@@ -20,8 +20,19 @@ def xerar_pdf_contrato(evento, organizador):
     import os
     from django.conf import settings
     logo_path = os.path.join(settings.BASE_DIR, "BACKEND", "organizador", "formato_email", "branding", "logo.png")
-    if os.path.exists(logo_path):
-        p.drawInlineImage(logo_path, 40, height - 90, width=100, height=60)
+    def draw_logo():
+        from PIL import Image
+        if not os.path.exists(logo_path):
+            return
+        img = Image.open(logo_path).convert("RGBA")
+        bg = Image.new("RGBA", img.size, (255, 255, 255, 255))
+        bg.alpha_composite(img)
+        img = bg.convert("RGB")
+        logo_h = 60
+        logo_w = logo_h * img.width / img.height  # manter proporción
+        p.drawInlineImage(img, 40, height - 90, width=logo_w, height=logo_h)
+
+    draw_logo()
 
     # Título centrado
     p.setFont("Helvetica-Bold", 18)
@@ -290,9 +301,7 @@ def xerar_pdf_contrato(evento, organizador):
         p.setFillColorRGB(0, 0, 0)
 
     def draw_header():
-        # Logo brasinda á esquerda no alto
-        if os.path.exists(logo_path):
-            p.drawInlineImage(logo_path, 40, height - 90, width=100, height=60)
+        draw_logo()
         # Título centrado
         p.setFont("Helvetica-Bold", 18)
         p.drawCentredString(width/2, height - 60, "Contrato de colaboración")
@@ -600,9 +609,14 @@ def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
 
     # Logo brasinda pequeno arriba esquerda
     logo_path = os.path.join(settings.BASE_DIR, "BACKEND", "organizador", "formato_email", "branding", "logo.png")
-    logo_w, logo_h = 56, 32  # Lixeiramente máis grande
     if os.path.exists(logo_path):
-        p.drawInlineImage(logo_path, 8, height - logo_h - 8, width=logo_w, height=logo_h)
+        logo_img = Image.open(logo_path).convert("RGBA")
+        logo_bg = Image.new("RGBA", logo_img.size, (255, 255, 255, 255))
+        logo_bg.alpha_composite(logo_img)
+        logo_img = logo_bg.convert("RGB")
+        logo_h = 40
+        logo_w = logo_h * logo_img.width / logo_img.height  # manter proporción
+        p.drawInlineImage(logo_img, 8, height - logo_h - 8, width=logo_w, height=logo_h)
 
 
     # nome titular centrado arriba, xusto encima do QR code

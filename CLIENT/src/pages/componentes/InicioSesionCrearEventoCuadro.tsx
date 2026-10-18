@@ -95,7 +95,7 @@ function LoginModalCrearEvento({ show, onClose, redirectTo = "/crear-evento/tipo
             const data = await response.json();
             login(data.organizador, data.access_token || data.access, data.refresh_token);
             onClose();
-            navigate(redirectTo);
+            navigate(data.organizador?.is_superadmin ? "/superadmin" : redirectTo);
         } else {
             const err = await response.json().catch(() => ({}));
             alert("Erro ao rexistrarse con Google: " + (err.error || ""));

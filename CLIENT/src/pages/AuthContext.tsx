@@ -5,6 +5,7 @@ interface OrganizadorType {
   foto_url?: string | null;
   email?: string;
   id?: number;
+  is_superadmin?: boolean;
 }
 
 interface AuthContextType {
@@ -29,6 +30,7 @@ const parseOrganizadorFromStorage = (): OrganizadorType | null => {
       foto_url: parsed.foto_url || parsed.foto_organizador || null,
       email: parsed.email,
       id: parsed.id,
+      is_superadmin: !!parsed.is_superadmin,
     };
   } catch {
     localStorage.removeItem("organizador");
@@ -52,6 +54,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       foto_url: (data as any).foto_url || (data as any).foto_organizador || null,
       email: data.email,
       id: data.id,
+      is_superadmin: !!data.is_superadmin,
     };
 
     localStorage.setItem("organizador", JSON.stringify(normalizedData));
@@ -67,6 +70,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.removeItem("organizador");
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
+    localStorage.removeItem("superadmin_session");
     setOrganizador(null);
     setToken(null);
   };

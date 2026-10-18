@@ -24,6 +24,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173').rstrip('/')
+SUPERADMIN_EMAIL = os.getenv('SUPERADMIN_EMAIL', 'paquinho89@gmail.com').strip().lower()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
