@@ -47,6 +47,7 @@ export default function EventoDetalle() {
   const [cancelReason, setCancelReason] = useState("");
   const [cancelConfirmText, setCancelConfirmText] = useState("");
   const [showErrorModal, setShowErrorModal] = useState(false);
+  const [entradasError, setEntradasError] = useState("");
   const [errorModalMessage, setErrorModalMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [form, setForm] = useState({
@@ -58,6 +59,7 @@ export default function EventoDetalle() {
     imaxe_evento: "",
     nota_lugar: "",
     procedemento_cobro_manual: "",
+    entradas_venta: "",
   });
   const navigate = useNavigate();
 
@@ -139,10 +141,12 @@ export default function EventoDetalle() {
       imaxe_evento: evento.imaxe_evento || "",
       nota_lugar: evento.nota_lugar || "",
       procedemento_cobro_manual: evento.procedemento_cobro_manual !== undefined && evento.procedemento_cobro_manual !== null ? evento.procedemento_cobro_manual : "",
+      entradas_venta: String(evento.entradas_venta ?? ""),
     });
     setImageFileName(evento.imaxe_evento ? evento.imaxe_evento.split("/").pop() || "" : "");
     setImagePreviewUrl(null);
     setImageFile(null);
+    setEntradasError("");
     setIsEditing(true);
   };
   const normalizar = (t: string) =>
@@ -190,11 +194,27 @@ export default function EventoDetalle() {
       const token = localStorage.getItem('access_token');
       let resp: Response;
 
+      const cantidade = Number.parseInt(form.entradas_venta, 10);
+      const editaEntradas = !isAuditorioOurenseOuVerin;
+      if (editaEntradas) {
+        const ocupadas = (evento.entradas_vendidas ?? 0) + (evento.entradas_reservadas ?? 0);
+        if (Number.isNaN(cantidade) || cantidade < 1) {
+          setEntradasError("Introduce un número de entradas válido (polo menos 1).");
+          return;
+        }
+        if (cantidade < ocupadas) {
+          setEntradasError(`Non podes poñer menos de ${ocupadas} entradas: xa hai ${ocupadas} vendidas ou reservadas.`);
+          return;
+        }
+      }
+      setEntradasError("");
+
       if (imageFile) {
         const formData = new FormData();
         formData.append("descripcion_evento", form.descripcion_evento);
         formData.append("imaxe_evento", imageFile);
         formData.append("nota_lugar", form.nota_lugar || "");
+        if (editaEntradas) formData.append("entradas_venta", String(cantidade));
 
         resp = await fetch(`${API_BASE_URL}/crear-eventos/${id}/`, {
           method: 'PATCH',
@@ -209,6 +229,7 @@ export default function EventoDetalle() {
           nota_lugar: form.nota_lugar || "",
           procedemento_cobro_manual: form.procedemento_cobro_manual || "",
         };
+        if (editaEntradas) payload.entradas_venta = cantidade;
 
         resp = await fetch(`${API_BASE_URL}/crear-eventos/${id}/`, {
           method: 'PATCH',
@@ -219,7 +240,14 @@ export default function EventoDetalle() {
           body: JSON.stringify(payload),
         });
       }
-      if (!resp.ok) throw new Error('Erro ao gardar cambios');
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => null);
+        if (err?.entradas_venta) {
+          setEntradasError(Array.isArray(err.entradas_venta) ? err.entradas_venta[0] : String(err.entradas_venta));
+          return;
+        }
+        throw new Error('Erro ao gardar cambios');
+      }
       const data = await resp.json();
       setEvento(data);
       setIsEditing(false);
@@ -645,6 +673,33 @@ export default function EventoDetalle() {
               </>
             ) : (
               <div>
+                {!isAuditorioOurenseOuVerin && (
+                  <div className="mb-3">
+                    <label className="form-label">Número de entradas á venda</label>
+                    <input
+                      type="number"
+                      name="entradas_venta"
+                      min={1}
+                      step={1}
+                      value={form.entradas_venta}
+                      onChange={(e) => {
+                        handleChange(e);
+                        setEntradasError("");
+                      }}
+                      className="form-control"
+                      style={{ maxWidth: 180 }}
+                    />
+                    <small className="text-muted">
+                      Mínimo {(evento.entradas_vendidas ?? 0) + (evento.entradas_reservadas ?? 0)} (entradas xa vendidas e invitacións).
+                    </small>
+                    {entradasError && (
+                      <div className="alert alert-danger mt-2" style={{ background: "#ffe6f3", color: "#000" }}>
+                        <FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
+                        {entradasError}
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div className="mb-3">
                   <label className="form-label">Información sobre o lugar</label>
                   <input

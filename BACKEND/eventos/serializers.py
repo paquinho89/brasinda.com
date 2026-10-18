@@ -117,6 +117,20 @@ class EventoSerializer(serializers.ModelSerializer):
 
         return evento
 
+    def validate_entradas_venta(self, value):
+        if value < 1:
+            raise serializers.ValidationError("Debe haber polo menos unha entrada á venda.")
+        if self.instance is not None:
+            ocupadas = ReservaButaca.objects.filter(
+                evento=self.instance,
+                estado=ReservaButaca.ESTADO_CONFIRMADO,
+            ).count()
+            if value < ocupadas:
+                raise serializers.ValidationError(
+                    f"Non podes poñer menos de {ocupadas} entradas: xa hai {ocupadas} vendidas ou reservadas."
+                )
+        return value
+
     def get_entradas_vendidas(self, obj):
         """Calcula as entradas vendidas dinamicamente desde ReservaButaca"""
         return ReservaButaca.objects.filter(

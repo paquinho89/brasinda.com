@@ -26,6 +26,13 @@ interface InvitacionData {
   codigo_validacion: string | null;
 }
 
+const formatPrezo = (tipo: string, valor: string | null): string => {
+  if (tipo === "invitacion") return "0 €";
+  const n = Number(valor ?? 0);
+  if (!Number.isFinite(n)) return "0 €";
+  return `${Number.isInteger(n) ? n : n.toFixed(2)} €`;
+};
+
 export default function ListadoEntradas() {
   const { organizador } = useAuth();
   const { id } = useParams<{ id: string }>();
@@ -555,7 +562,7 @@ export default function ListadoEntradas() {
                                     : (invitacion.email || "-")}
                                 </td>
                                 <td>{invitacion.codigo_validacion || "-"}</td>
-                                <td>{invitacion.tipo_reserva === "invitacion" ? "0 €" : `${parseInt(invitacion.prezo_entrada ?? "0", 10)} €`}</td>
+                                <td>{formatPrezo(invitacion.tipo_reserva, invitacion.prezo_entrada)}</td>
                                 <td>{formatTipoReservaDisplay(invitacion.tipo_reserva)}</td>
                                 <td className="no-print text-center">
                                   {editingId !== invitacion.id && (
@@ -658,7 +665,7 @@ export default function ListadoEntradas() {
                                     : (invitacion.email || "-")}
                                 </td>
                                 <td>{invitacion.codigo_validacion || "-"}</td>
-                                <td>{invitacion.tipo_reserva === "invitacion" ? "0 €" : `${parseInt(invitacion.prezo_entrada ?? "0", 10)} €`}</td>
+                                <td>{formatPrezo(invitacion.tipo_reserva, invitacion.prezo_entrada)}</td>
                                 <td>{formatTipoReservaDisplay(invitacion.tipo_reserva)}</td>
                                 <td className="no-print text-center">
                                   {invitacion.tipo_reserva === "invitacion" && (

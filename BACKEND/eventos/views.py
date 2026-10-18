@@ -27,7 +27,7 @@ def descargar_pdf_listado(request, evento_id):
     Xera e devolve un PDF co listado de entradas/invitacións do evento.
     """
     evento = get_object_or_404(Evento, id=evento_id)
-    reservas = ReservaButaca.objects.filter(evento=evento).exclude(estado=ReservaButaca.ESTADO_CANCELADO).order_by('zona', 'fila', 'butaca', 'id')
+    reservas = ReservaButaca.objects.filter(evento=evento, estado=ReservaButaca.ESTADO_CONFIRMADO).order_by('zona', 'fila', 'butaca', 'id')
     buffer = xerar_pdf_listado(evento, reservas)
     response = HttpResponse(buffer, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename=listado_evento_{evento_id}.pdf'
