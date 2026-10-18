@@ -29,9 +29,31 @@ class EventoSerializer(serializers.ModelSerializer):
     def get_email_organizador(self, obj):
         return getattr(obj.organizador, 'email', None)
 
+    def _rexenerar_contrato_se_falta(self, obj):
+        # O disco local de Railway é efémero: se o PDF desapareceu, volvemos xeralo cos datos gardados
+        from django.core.files.storage import FileSystemStorage
+        from django.core.files.base import ContentFile
+        storage = obj.contrato_pdf.storage
+        if not isinstance(storage, FileSystemStorage) or storage.exists(obj.contrato_pdf.name):
+            return
+        try:
+            from .utils_pdf import xerar_pdf_contrato
+            org = obj.organizador
+            buffer, nome_pdf = xerar_pdf_contrato(obj, {
+                'nome_organizador': getattr(org, 'nome_organizador', ''),
+                'nif_cif': getattr(org, 'nif_cif', ''),
+                'enderezo_fiscal': getattr(org, 'enderezo_fiscal', ''),
+                'email': getattr(org, 'email', ''),
+            })
+            obj.contrato_pdf.save(nome_pdf, ContentFile(buffer.getvalue()), save=False)
+            type(obj).objects.filter(pk=obj.pk).update(contrato_pdf=obj.contrato_pdf.name)
+        except Exception as e:
+            print(f"[ERRO] rexenerar contrato evento {obj.pk}: {e}")
+
     def get_contrato_pdf_url(self, obj):
         request = self.context.get('request')
         if obj.contrato_pdf:
+            self._rexenerar_contrato_se_falta(obj)
             url = obj.contrato_pdf.url
             if request is not None:
                 return request.build_absolute_uri(url)
