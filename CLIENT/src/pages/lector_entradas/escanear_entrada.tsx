@@ -1,4 +1,4 @@
-
+﻿
 import React, { useState } from 'react';
 import { FaWhatsapp } from 'react-icons/fa';
 // ...existing code...
@@ -22,12 +22,12 @@ const EscanearEntrada: React.FC = () => {
   // O input interno gárdase sen guión, pero para validar engadimos o guión
   const codigoValido = (codigo: string) => /^[0-9]{3}-[A-Z]{3}$/.test(codigo.slice(0, 3) + '-' + codigo.slice(3, 6));
 
-  const handleManualValidate = async () => {
+  const handleManualValidate = async (codigo: string) => {
     setManualError(null);
     setResultado(null);
     setCodigoLido(null);
-    const codigoFormatado = codigoManual.slice(0, 3) + '-' + codigoManual.slice(3, 6);
-    if (!codigoValido(codigoManual)) {
+    const codigoFormatado = codigo.slice(0, 3) + '-' + codigo.slice(3, 6);
+    if (!codigoValido(codigo)) {
       setManualError('O código debe ter o formato 365-LPF (3 números, guión, 3 maiúsculas)');
       return;
     }
@@ -59,12 +59,20 @@ const EscanearEntrada: React.FC = () => {
       false
     );
     let timeoutId: any = null;
+    let validando = false;
+    let ultimo = { codigo: '', time: 0 };
     scanner.render(
       async (decodedText: string) => {
-        setEscaneando(false);
-        scanner.clear();
-        setShowScanTimeout(false);
         const codigo = decodedText.trim();
+        const agora = Date.now();
+        // A cámara segue aberta: evita repetir o mesmo QR mentres segue á vista
+        if (validando || (codigo === ultimo.codigo && agora - ultimo.time < 4000)) {
+          ultimo.time = agora;
+          return;
+        }
+        validando = true;
+        ultimo = { codigo, time: agora };
+        setShowScanTimeout(false);
         setCodigoLido(codigo);
         setResultado('Validando...');
         try {
@@ -81,6 +89,9 @@ const EscanearEntrada: React.FC = () => {
           }
         } catch (e) {
           setResultado('Erro de conexión');
+        } finally {
+          validando = false;
+          ultimo.time = Date.now();
         }
       },
       () => {
@@ -119,7 +130,13 @@ const EscanearEntrada: React.FC = () => {
                 Escanear código QR
               </button>
             )}
+            {escaneando && (
+              <button className="reserva-entrada-btn" onClick={() => setEscaneando(false)}>
+                Pechar cámara
+              </button>
+            )}
           </div>
+          <style>{`#html5-qrcode-button-camera-stop { display: none !important; }`}</style>
           <div id="qr-reader" style={{ width: '100%', minHeight: 180, margin: '16px 0' }} />
 
           {/* Input manual */}
@@ -129,29 +146,32 @@ const EscanearEntrada: React.FC = () => {
               <input
                 type="text"
                 value={(() => {
-                  // Sempre mostra o guión no medio
+                  // O guión só aparece ao escribir a primeira letra, para non desordenar o cursor
                   const raw = codigoManual.replace(/[^0-9A-Z]/g, '').toUpperCase();
                   const nums = raw.slice(0, 3);
                   const lets = raw.slice(3, 6);
-                  return nums + (raw.length > 3 ? '-' : '-') + lets;
+                  return raw.length > 3 ? nums + '-' + lets : nums;
                 })()}
                 onChange={e => {
                   let val = e.target.value.replace(/[^0-9A-Z]/gi, '').toUpperCase();
                   if (val.length > 6) val = val.slice(0, 6);
                   setCodigoManual(val);
                   setManualError(null);
+                  if (val.length === 6) {
+                    if (codigoValido(val)) {
+                      setCodigoManual('');
+                      handleManualValidate(val);
+                    } else {
+                      setManualError('O código debe ter o formato 365-LPF (3 números, guión, 3 maiúsculas)');
+                    }
+                  }
                 }}
                 maxLength={7}
                 pattern="[0-9]{3}-[A-Z]{3}"
-                placeholder="365-LPF"
                 className="form-control"
                 style={{ borderRadius: 8, textAlign: 'center', fontWeight: 600, letterSpacing: 2, fontSize: 18, width: 130 }}
                 autoComplete="off"
               />
-              <span style={{ display: 'inline-block', width: 48 }} />
-              <button className="reserva-entrada-btn" style={{ minWidth: 90 }} onClick={handleManualValidate}>
-                Validar
-              </button>
             </div>
             {manualError && <div style={{ color: '#d90429', marginTop: 6 }}>{manualError}</div>}
           </div>

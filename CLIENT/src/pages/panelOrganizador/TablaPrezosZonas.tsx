@@ -53,23 +53,21 @@ const TablaPrezosZonas: React.FC<Props> = ({ eventoId, mostrarPVP = true }) => {
   return (
     <div className="row mb-3">
       <div className="col-12">
-        <table className="w-100" style={{ background: '#fff', margin: 0, borderCollapse: 'collapse' }}>
+        <table className="table table-bordered w-100" style={{ background: '#f8f9fa', margin: 0 }}>
           <thead>
-            <tr style={{ background: '#f5f5f5' }}>
-              <th style={{ border: 'none', padding: '10px 8px', textAlign: 'left', fontWeight: 600 }}>Área</th>
-              <th style={{ border: 'none', padding: '10px 8px', textAlign: 'left', fontWeight: 600 }}>Prezo</th>
-              {mostrarPVP && (
-                <th style={{ border: 'none', padding: '10px 8px', textAlign: 'left', fontWeight: 600 }}>PVP</th>
-              )}
+            <tr>
+              <th style={{ width: mostrarPVP ? '40%' : '50%' }}>Zona</th>
+              <th style={{ width: mostrarPVP ? '30%' : '50%' }}>{mostrarPVP ? 'Recibes por entrada' : 'Prezo'}</th>
+              {mostrarPVP && <th style={{ width: '30%' }}>Prezo Venta</th>}
             </tr>
           </thead>
           <tbody>
             {zonas.map((zona) => (
               <tr key={zona.nome}>
-                <td style={{ textTransform: "capitalize", border: 'none', padding: '10px 8px' }}>{zona.nome}</td>
-                <td style={{ border: 'none', padding: '10px 8px' }}>{Number(zona.prezo).toFixed(2).replace('.', ',')} €</td>
+                <td style={{ textTransform: "capitalize" }}>{zona.nome}</td>
+                <td>{Number(zona.prezo).toFixed(2).replace('.', ',')} €</td>
                 {mostrarPVP && (
-                  <td style={{ border: 'none', padding: '10px 8px' }}>{zona.prezo_pvp != null ? Number(zona.prezo_pvp).toFixed(2).replace('.', ',') + " €" : "-"}</td>
+                  <td>{zona.prezo_pvp != null ? Number(zona.prezo_pvp).toFixed(2).replace('.', ',') + " €" : "-"}</td>
                 )}
               </tr>
             ))}

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+﻿import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "react-bootstrap";
 import AuditorioSelectorVerin from "../planoAuditorios/auditorioBotonesPanelOrganizador/auditorioVerin";
@@ -591,21 +591,40 @@ export default function EventoDetalle() {
                 {((evento.prezo_recibe_organizador ?? evento.prezo_evento ?? evento.prezo_venta) != null) && Number(evento.prezo_recibe_organizador ?? evento.prezo_evento ?? evento.prezo_venta) > 0 && (
                   <p>
                     <FaCoins className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} />
-                    <strong>Diñeiro recadado:</strong> {formatImporteEuro(Number(evento.prezo_recibe_organizador ?? evento.prezo_evento ?? evento.prezo_venta) * (evento.entradas_vendidas ?? 0))} €
+                    <strong>Diñeiro recadado: </strong>{formatImporteEuro(Number(evento.prezo_recibe_organizador ?? evento.prezo_evento ?? evento.prezo_venta) * (evento.entradas_vendidas ?? 0))} €
                   </p>
                 )}
-                {/* Mostrar título, icono e valor de prezo na mesma liña */}
-                <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.08rem', margin: '10px 0 18px 0' }}>
-                  <FaEuroSign className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} />
-                  <strong>Prezo:</strong>
-                  {(evento.prezo_recibe_organizador ?? evento.prezo_evento ?? evento.prezo_venta) === 0 || evento.tipo_gestion_entrada === 'gratis' ? (
-                    <span style={{ fontWeight: 700, color: '#222' }}>Evento de Balde</span>
-                  ) : (
-                    evento.prezo_areas !== true && (evento.prezo_recibe_organizador ?? evento.prezo_evento ?? evento.prezo_venta) != null ? (
-                      <span style={{ fontWeight: 700, color: '#222' }}>{Number(evento.prezo_recibe_organizador ?? evento.prezo_evento ?? evento.prezo_venta).toFixed(2).replace('.', ',')} €</span>
-                    ) : null
-                  )}
-                </p>
+                {/* Táboa de prezo igual que no resumo de creación */}
+                {(evento.prezo_recibe_organizador ?? evento.prezo_evento ?? evento.prezo_venta) === 0 || evento.tipo_gestion_entrada === 'gratis' ? (
+                  <p>
+                    <FaEuroSign className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} />
+                    <strong>Prezo: </strong>
+                     Evento de Balde
+                  </p>
+                ) : (
+                  evento.prezo_areas !== true && (evento.prezo_recibe_organizador ?? evento.prezo_evento ?? evento.prezo_venta) != null && (
+                    evento.tipo_gestion_entrada === 'pagina' ? (
+                      <>
+                        <p>
+                          <FaEuroSign className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} />
+                          <strong>Recibes por entrada: </strong>
+                           {Number(evento.prezo_recibe_organizador ?? evento.prezo_evento ?? evento.prezo_venta).toFixed(2).replace('.', ',')} €
+                        </p>
+                        <p>
+                          <FaEuroSign className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} />
+                          <strong>Prezo venta: </strong>
+                           {Number(evento.prezo_venta ?? evento.prezo_recibe_organizador ?? evento.prezo_evento).toFixed(2).replace('.', ',')} €
+                        </p>
+                      </>
+                    ) : (
+                      <p>
+                        <FaEuroSign className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} />
+                        <strong>Prezo: </strong>
+                         {Number(evento.prezo_recibe_organizador ?? evento.prezo_evento ?? evento.prezo_venta).toFixed(2).replace('.', ',')} €
+                      </p>
+                    )
+                  )
+                )}
                 {/* Táboa de prezos por zona cando prezo_areas é true */}
                 {evento.prezo_areas === true && (
                   <TablaPrezosZonas eventoId={evento.id} mostrarPVP={evento.tipo_gestion_entrada !== 'manual'} />
