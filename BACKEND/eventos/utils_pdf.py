@@ -416,6 +416,26 @@ from reportlab.lib.units import mm
 import qrcode
 from django.conf import settings
 
+def _data_galego(valor):
+    import datetime
+    dias = ["luns", "martes", "mércores", "xoves", "venres", "sábado", "domingo"]
+    meses = ["xaneiro", "febreiro", "marzo", "abril", "maio", "xuño", "xullo", "agosto", "setembro", "outubro", "novembro", "decembro"]
+    data = None
+    if isinstance(valor, str):
+        try:
+            data = datetime.datetime.fromisoformat(valor)
+        except Exception:
+            try:
+                data = datetime.datetime.strptime(valor, "%Y-%m-%dT%H:%M:%S")
+            except Exception:
+                data = None
+    elif isinstance(valor, datetime.datetime):
+        data = valor
+    if not data:
+        return "Data descoñecida"
+    return f"{dias[data.weekday()].capitalize()}, {data.day:02d} de {meses[data.month - 1]} de {data.year} ás {data.strftime('%H:%M')} h"
+
+
 def xerar_pdf_listado(evento, reservas):
     """
     Xera un PDF cun listado de entradas/invitacións, mostrando o nome do evento, data e lugar no heading.
@@ -423,74 +443,92 @@ def xerar_pdf_listado(evento, reservas):
     from reportlab.platypus import Table, TableStyle
     from reportlab.lib import colors
 
-    buffer = BytesIO()
-    p = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4
-
-    y = height - 60
-
-    # Logo á esquerda no alto
+    from reportlab.platypus import SimpleDocTemplate, Spacer, Paragraph
+    from reportlab.pdfbase.pdfmetrics import stringWidth
     import os
-    logo_path = os.path.join(settings.BASE_DIR, "BACKEND", "organizador", "formato_email", "branding", "logo.png")
-    if os.path.exists(logo_path):
-        # Situalo pegado ao borde esquerdo (mellor aínda que 40)
-        p.drawInlineImage(logo_path, 10, height - 75, width=100, height=60)
-        
-    # Nome do evento
-    p.setFont("Helvetica-Bold", 18)
-    p.setFillColorRGB(0, 0, 0)
-    p.drawCentredString(width/2, y, evento.nome_evento)
-    y -= 24
 
-    # Data do evento (en galego)
-    dias = ["luns", "martes", "mércores", "xoves", "venres", "sábado", "domingo"]
-    meses = ["xaneiro", "febreiro", "marzo", "abril", "maio", "xuño", "xullo", "agosto", "setembro", "outubro", "novembro", "decembro"]
-    import datetime
-    data_evento_val = getattr(evento, "data_evento", None)
-    data = None
-    if isinstance(data_evento_val, str):
-        try:
-            data = datetime.datetime.fromisoformat(data_evento_val)
-        except Exception:
-            try:
-                data = datetime.datetime.strptime(data_evento_val, "%Y-%m-%dT%H:%M:%S")
-            except Exception:
-                data = None
-    elif isinstance(data_evento_val, datetime.datetime):
-        data = data_evento_val
-    if data:
-        dia_semana = dias[data.weekday()]
-        mes = meses[data.month - 1]
-        data_galego = f"{dia_semana.capitalize()}, {data.day:02d} de {mes} de {data.year} ás {data.strftime('%H:%M')} h"
-    else:
-        data_galego = "Data descoñecida"
-    p.setFont("Helvetica", 12)
-    p.drawCentredString(width/2, y, data_galego)
-    y -= 18
+    buffer = BytesIO()
+    width, height = A4
+    left_margin = 40
+    right_margin = 40
+    top_margin = 40
+    bottom_margin = 50
+    header_height = 115
 
-    # Lugar do evento
-    lugar_text = f"{getattr(evento, 'localizacion', '') or ''}"
-    if getattr(evento, "nota_lugar", None):
-        lugar_text += f" ({evento.nota_lugar})"
-    if lugar_text.strip():
-        p.setFont("Helvetica", 12)
-        p.drawCentredString(width/2, y, lugar_text)
+    def fit_centered(p, text, font, size, y, max_width):
+        # Reduce o tamaño da letra e, se aínda non cabe, trunca con "…"
+        while size > 7 and stringWidth(text, font, size) > max_width:
+            size -= 0.5
+        while len(text) > 1 and stringWidth(text, font, size) > max_width:
+            text = text[:-2] + "…"
+        p.setFont(font, size)
+        p.drawCentredString(width / 2, y, text)
+
+    def draw_header(p, doc):
+        y = height - 60
+        max_w = width - 2 * 120  # deixa libre a zona do logo
+
+        logo_path = os.path.join(settings.BASE_DIR, "BACKEND", "organizador", "formato_email", "branding", "logo.png")
+        if os.path.exists(logo_path):
+            # Compoñer sobre fondo branco (a transparencia saía como fondo verde) e manter proporción
+            from PIL import Image
+            logo_img = Image.open(logo_path).convert("RGBA")
+            logo_bg = Image.new("RGBA", logo_img.size, (255, 255, 255, 255))
+            logo_bg.alpha_composite(logo_img)
+            logo_img = logo_bg.convert("RGB")
+            logo_h = 50
+            logo_w = logo_h * logo_img.width / logo_img.height
+            p.drawInlineImage(logo_img, 20, height - logo_h - 15, width=logo_w, height=logo_h)
+
+        p.setFillColorRGB(0, 0, 0)
+        fit_centered(p, str(evento.nome_evento), "Helvetica-Bold", 18, y, max_w)
+        y -= 24
+
+        data_galego = _data_galego(getattr(evento, "data_evento", None))
+        fit_centered(p, data_galego, "Helvetica", 12, y, max_w)
         y -= 18
 
-    # Texto pequeno co organizador
-    nome_organizador = getattr(evento, "organizador", None)
-    if nome_organizador:
-        # Se é un obxecto, colle o nome, se é string, úsao directamente
-        nome_organizador = getattr(nome_organizador, "nome", nome_organizador)
-        p.setFont("Helvetica", 8)
-        p.setFillColorRGB(0.5, 0.5, 0.5)
-        p.drawCentredString(width/2, y, f"Organizador: {nome_organizador}")
-        p.setFillColorRGB(0, 0, 0)
-        y -= 12
+        lugar_text = f"{getattr(evento, 'localizacion', '') or ''}"
+        if getattr(evento, "nota_lugar", None):
+            lugar_text += f" ({evento.nota_lugar})"
+        if lugar_text.strip():
+            fit_centered(p, lugar_text, "Helvetica", 12, y, max_w)
+            y -= 18
 
-    y -= 10
-    
-    data = [["Zona", "Fila", "Butaca", "Nome", "Email", "Tipo", "Prezo", "Código"]]
+        nome_organizador = getattr(evento, "organizador", None)
+        if nome_organizador:
+            nome_organizador = getattr(nome_organizador, "nome", nome_organizador)
+            p.setFillColorRGB(0.5, 0.5, 0.5)
+            fit_centered(p, f"Organizador: {nome_organizador}", "Helvetica", 8, y, max_w)
+            p.setFillColorRGB(0, 0, 0)
+
+    def draw_footer(p, doc):
+        p.setFont("Helvetica", 8)
+        p.setFillColorRGB(0.4, 0.4, 0.4)
+        p.drawCentredString(width / 2, 25, "brasinda.com")
+        p.drawRightString(width - right_margin, 25, f"Páxina {p.getPageNumber()}")
+        p.setFillColorRGB(0, 0, 0)
+
+    def draw_first_page(p, doc):
+        draw_header(p, doc)
+        draw_footer(p, doc)
+
+    cell = ParagraphStyle("cell", fontName="Helvetica", fontSize=9, leading=11, wordWrap="CJK")
+    head = ParagraphStyle("head", parent=cell, fontName="Helvetica-Bold", fontSize=10, leading=12, textColor=colors.HexColor("#222222"))
+
+    def esc(value):
+        from xml.sax.saxutils import escape
+        return escape(str(value))
+
+    reservas = list(reservas)
+    sen_plano = bool(reservas) and all(getattr(r, "zona", None) == "sen-plano" for r in reservas)
+    # Índices das columnas Zona, Fila e Butaca, que non aplican sen plano
+    ocultas = {0, 1, 2} if sen_plano else set()
+
+    def filtrar(valores):
+        return [v for i, v in enumerate(valores) if i not in ocultas]
+
+    data = [[Paragraph(h, head) for h in filtrar(["Zona", "Fila", "Butaca", "Nome", "Email", "Tipo", "Prezo", "Código"])]]
     for r in reservas:
         zona = getattr(r, "zona", "") or "-"
         fila = getattr(r, "fila", "") or "-"
@@ -516,70 +554,34 @@ def xerar_pdf_listado(evento, reservas):
                 except Exception:
                     prezo = f"{prezo_val} €"
         codigo = getattr(r, "codigo_validacion", "") or "-"
-        data.append([str(zona), str(fila), str(butaca), str(nome), str(email), str(tipo), str(prezo), str(codigo)])
+        data.append([Paragraph(esc(v), cell) for v in filtrar([zona, fila, butaca, nome, email, tipo, prezo, codigo])])
 
-    table = Table(data, colWidths=[60, 40, 50, 120, 170, 70, 60, 90])
-    # Calcular ancho dispoñible e repartir proporcionalmente
-    left_margin = 40
-    right_margin = 40
-    total_width = width - left_margin - right_margin  # 595 - 80 = 515pt
-    # Proporcións baseadas en contido típico
-    # Axuste: dar máis ancho a Fila e Butaca, menos a Nome e Email
-    proportions = [0.10, 0.10, 0.10, 0.15, 0.24, 0.10, 0.09, 0.15]  # Zona, Fila, Butaca, Nome, Email, Tipo, Prezo, Código
-    col_widths = [int(p * total_width) for p in proportions]
-    style = TableStyle([
-        # Cabeceira máis clara
+    total_width = width - left_margin - right_margin
+    # Zona, Fila, Butaca, Nome, Email, Tipo, Prezo, Código
+    proportions = filtrar([0.08, 0.07, 0.09, 0.19, 0.23, 0.10, 0.08, 0.16])
+    suma = sum(proportions)
+    col_widths = [p / suma * total_width for p in proportions]
+    table = Table(data, colWidths=col_widths, repeatRows=1)
+    table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f7f7f7")),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#222")),
-        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("FONTSIZE", (0, 0), (-1, 0), 11),
-        ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
-        ("TOPPADDING", (0, 0), (-1, 0), 6),
-        ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
-        ("FONTSIZE", (0, 1), (-1, -1), 9),
-        # Alternancia de filas moi lixeira
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f4f6f8")]),
-        # Liñas horizontais suaves
         ("LINEBELOW", (0, 0), (-1, 0), 0.5, colors.HexColor("#e0e0e0")),
-        ("LINEBELOW", (0, 1), (-1, -2), 0.25, colors.HexColor("#ededed")),
-        # Padding cómodo
-        ("LEFTPADDING", (0, 0), (-1, -1), 8),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-        ("TOPPADDING", (0, 1), (-1, -1), 4),
-        ("BOTTOMPADDING", (0, 1), (-1, -1), 4),
-    ])
-    table = Table(data, colWidths=col_widths)
-    table.setStyle(style)
+        ("LINEBELOW", (0, 1), (-1, -1), 0.25, colors.HexColor("#ededed")),
+        ("LEFTPADDING", (0, 0), (-1, -1), 5),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+    ]))
 
-    # Calcular posición inicial da táboa
-    table_width, table_height = table.wrap(0, 0)
-    x_table = 40
-    y_table = y - 10 - table_height
-    if y_table < 60:
-        y_table = 60
-    table.wrapOn(p, width, height)
-    table.drawOn(p, x_table, y_table)
-
-    # Footer brasinda.com centrado e número de páxina á dereita
-    def draw_footer(canvas, doc):
-        page_num = canvas.getPageNumber()
-        canvas.setFont("Helvetica", 8)
-        canvas.setFillColorRGB(0.4, 0.4, 0.4)
-        # brasinda.com centrado
-        canvas.drawCentredString(width/2, 25, "brasinda.com")
-        # Número de páxina á dereita
-        canvas.drawRightString(width - 40, 25, f"Páxina {page_num}")
-        canvas.setFillColorRGB(0, 0, 0)
-
-    # Se só hai unha páxina, debuxar footer directamente
-    draw_footer(p, None)
-
-    p.save()
+    doc = SimpleDocTemplate(
+        buffer, pagesize=A4,
+        leftMargin=left_margin, rightMargin=right_margin,
+        topMargin=top_margin, bottomMargin=bottom_margin,
+    )
+    doc.build([Spacer(1, header_height), table], onFirstPage=draw_first_page, onLaterPages=draw_footer)
     buffer.seek(0)
     return buffer
-
-
 
 def xerar_pdf_entrada(reserva, evento, tipo_pdf="entrada"):
     print(f"[DEBUG] xerar_pdf_entrada called for reserva id: {getattr(reserva, 'id', None)}, evento id: {getattr(evento, 'id', None)}, tipo_pdf: {tipo_pdf}")

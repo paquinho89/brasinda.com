@@ -133,11 +133,7 @@ export default function ReservarEntradaSinPlano() {
 			setErrorCantidade(`Non podes reservar máis de ${MAX_ENTRADAS} entradas.`);
 			return;
 		}
-		if (!nomearTodas && !emailSuscripcion.trim()) {
-			setErrorEmail("Por favor, introduce un email válido");
-			return;
-		}
-		if (!nomearTodas && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailSuscripcion)) {
+		if (!emailSuscripcion.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailSuscripcion.trim())) {
 			setErrorEmail("Por favor, introduce un email válido");
 			return;
 		}
@@ -328,28 +324,27 @@ export default function ReservarEntradaSinPlano() {
 							)}
 						</div>
 
+						<div className="mb-3" style={{ maxWidth: "400px" }}>
+							<label htmlFor="email-xeral" className="form-label" style={{ display: 'flex', alignItems: 'center', fontWeight: 700 }}>
+								<FaEnvelope style={{ color: '#ff0093', marginRight: 8, fontSize: '1.2em' }} />
+								<span style={{ fontWeight: 700 }}>Email:</span>
+							</label>
+							<input
+								id="email-xeral"
+								type="email"
+								value={emailSuscripcion}
+								onChange={(e) => setEmailSuscripcion(e.target.value)}
+								className="form-control"
+								placeholder="Introduce o teu email"
+							/>
+							{errorEmail && (
+								<div className="alert alert-danger" style={{ background: "#ffe6f3", color: "#000", marginTop: 0, display: 'flex', alignItems: 'center' }}>
+									<FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
+									{errorEmail}
+								</div>
+							)}
+						</div>
 						{!nomearTodas && (
-							<>
-							<div className="mb-3" style={{ maxWidth: "400px" }}>
-								<label htmlFor="email-xeral" className="form-label" style={{ display: 'flex', alignItems: 'center', fontWeight: 700 }}>
-									<FaEnvelope style={{ color: '#ff0093', marginRight: 8, fontSize: '1.2em' }} />
-									<span style={{ fontWeight: 700 }}>Email:</span>
-								</label>
-								<input
-									id="email-xeral"
-									type="email"
-									value={emailSuscripcion}
-									onChange={(e) => setEmailSuscripcion(e.target.value)}
-									className="form-control"
-									placeholder="Introduce o teu email"
-								/>
-								{!nomearTodas && errorEmail && (
-									<div className="alert alert-danger" style={{ background: "#ffe6f3", color: "#000", marginTop: 0, display: 'flex', alignItems: 'center' }}>
-										<FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
-										{errorEmail}
-									</div>
-								)}
-							</div>
 							<div className="mb-3" style={{ maxWidth: "400px" }}>
 								<label htmlFor="nome-xeral" className="form-label" style={{ display: 'flex', alignItems: 'center', fontWeight: 700 }}>
 									<FaUser style={{ color: '#ff0093', marginRight: 8, fontSize: '1.2em' }} />
@@ -370,7 +365,6 @@ export default function ReservarEntradaSinPlano() {
 									</div>
 								)}
 							</div>
-							</>
 						)}
 
 						{cantidadeReservar > 1 && (
