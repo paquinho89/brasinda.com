@@ -13,6 +13,8 @@ export interface Evento {
   data_evento_inicio?: string;
   data_evento_fin?: string;
   duracion: number | null;
+  peche_taquilla_tipo?: "inicio" | "30min" | "2h" | "personalizado" | null;
+  data_peche_taquilla?: string;
   lugar: string;
   ubicacion: string;
   localidade?: string;
@@ -113,6 +115,7 @@ export function CreateEventLayout() {
     "/crear-evento/titulo",
     "/crear-evento/cartel",
     "/crear-evento/fecha",
+    "/crear-evento/peche-taquilla",
     "/crear-evento/lugar",
     "/crear-evento/entradas",
     "/crear-evento/gestion-entradas",

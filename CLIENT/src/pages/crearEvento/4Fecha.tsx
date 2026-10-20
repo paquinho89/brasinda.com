@@ -90,7 +90,7 @@ export default function Fecha() {
       duracion: duracion ? Number(duracion) : 0
     });
 
-    navigate("/crear-evento/lugar");
+    navigate("/crear-evento/peche-taquilla");
   };
 
   // Custom dropdowns para hora e minutos

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import MapaEvento from "../panelOrganizador/componentes/MapaEvento";
 import { useParams, useNavigate } from "react-router-dom";
 import API_BASE_URL from "../../utils/api";
@@ -34,6 +34,7 @@ interface evento {
   localidade: string;
   nota_lugar?: string;
   entradas_venta: number;
+  taquilla_pechada?: boolean;
   prezo_recibe_organizador?: number;
   descripcion_evento?: string;
   tipo_evento?: string;
@@ -230,9 +231,9 @@ export default function DescripcionEvento() {
                   size="lg"
                   className="reserva-entrada-btn"
                   onClick={handleReservation}
-                  disabled={evento.entradas_venta === 0}
+                  disabled={evento.entradas_venta === 0 || !!evento.taquilla_pechada}
                 >
-                  {evento.entradas_venta > 0 ? "Reservar Entrada" : "Agotadas"}
+                  {evento.taquilla_pechada ? "Taquilla pechada" : evento.entradas_venta > 0 ? "Reservar Entrada" : "Agotadas"}
                 </Button>
               )}
               <Button
@@ -310,9 +311,9 @@ export default function DescripcionEvento() {
                   size="lg"
                   className="reserva-entrada-btn"
                   onClick={handleReservation}
-                  disabled={evento.entradas_venta === 0}
+                  disabled={evento.entradas_venta === 0 || !!evento.taquilla_pechada}
                 >
-                  {evento.entradas_venta > 0 ? "Reservar Entrada" : "Agotadas"}
+                  {evento.taquilla_pechada ? "Taquilla pechada" : evento.entradas_venta > 0 ? "Reservar Entrada" : "Agotadas"}
                 </Button>
               </div>
             )}

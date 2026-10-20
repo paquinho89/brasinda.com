@@ -73,6 +73,9 @@ const Resumen: React.FC = () => {
     formData.append("data_evento_inicio", dataEventoInicio);
     formData.append("data_evento_fin", dataEventoFin);
     formData.append("data_evento", dataEventoInicio);
+    if (evento.data_peche_taquilla) {
+      formData.append("data_peche_taquilla", evento.data_peche_taquilla);
+    }
     // Gardar datos de contrato se existen
     formData.append("localizacion", evento.lugar);
     formData.append("tipo_localizacion", evento.ubicacion);
@@ -213,6 +216,14 @@ const Resumen: React.FC = () => {
               <div className="col-md-6">{formatDate(evento.fecha)}</div>
             </div>
 
+            {evento.data_peche_taquilla && (
+              <div className="row mb-3">
+                <div className="col-md-6">
+                  <strong>Peche da taquilla:</strong>
+                </div>
+                <div className="col-md-6">{formatDate(evento.data_peche_taquilla)}</div>
+              </div>
+            )}
             {evento.duracion !== undefined && evento.duracion !== null && evento.duracion !== 0 && (
               <div className="row mb-3">
                 <div className="col-md-6">

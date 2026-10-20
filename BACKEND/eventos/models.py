@@ -70,7 +70,8 @@ class Evento(models.Model):
     data_evento = models.DateTimeField()
     data_evento_inicio = models.DateTimeField(null=True, blank=True)
     data_evento_fin = models.DateTimeField(null=True, blank=True)
-
+    # Momento a partir do cal xa non se poden mercar nin reservar entradas
+    data_peche_taquilla = models.DateTimeField(null=True, blank=True)
     localizacion = models.CharField(max_length=200, blank=True, null=True)
     localidade = models.CharField(max_length=100, blank=True, null=True)
     nota_lugar = models.CharField(max_length=100, blank=True, null=True)
@@ -127,6 +128,11 @@ class Evento(models.Model):
         else:
             self.prezo_pvp = None
         return super().save(*args, **kwargs)
+
+    @property
+    def taquilla_pechada(self):
+        from django.utils import timezone
+        return self.data_peche_taquilla is not None and timezone.now() >= self.data_peche_taquilla
 
     def __str__(self):
         return self.nome_evento

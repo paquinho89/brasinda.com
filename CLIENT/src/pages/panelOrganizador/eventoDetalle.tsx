@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "react-bootstrap";
 import AuditorioSelectorVerin from "../planoAuditorios/auditorioBotonesPanelOrganizador/auditorioVerin";
@@ -8,6 +8,16 @@ import MainNavbar from "../componentes/NavBar";
 import TablaPrezosZonas from "./TablaPrezosZonas";
 import { FaCalendarAlt, FaUsers, FaEuroSign, FaImage, FaRegFileAlt, FaExclamationTriangle, FaArrowLeft, FaTicketAlt, FaMapMarkerAlt, FaCreditCard, FaCoins } from "react-icons/fa";
 import API_BASE_URL from "../../utils/api";
+import DatePicker, { registerLocale } from "react-datepicker";
+import { gl } from "date-fns/locale/gl";
+import "react-datepicker/dist/react-datepicker.css";
+import "../../estilos/datepicker-custom.css";
+
+registerLocale("gl", gl);
+
+const pad2 = (n: number) => String(n).padStart(2, "0");
+const HORAS = Array.from({ length: 24 }, (_, i) => pad2(i));
+const MINUTOS = Array.from({ length: 60 }, (_, i) => pad2(i));
 
 
 interface Evento {
@@ -16,6 +26,9 @@ interface Evento {
   nome_evento: string;
   descripcion_evento?: string;
   data_evento: string;
+  data_evento_fin?: string | null;
+  data_peche_taquilla?: string | null;
+  taquilla_pechada?: boolean;
   localizacion: string;
   nota_lugar?: string;
   entradas_venta: number;
@@ -61,6 +74,9 @@ export default function EventoDetalle() {
     procedemento_cobro_manual: "",
     entradas_venta: "",
   });
+  const [pecheData, setPecheData] = useState<Date | null>(null);
+  const [pecheHora, setPecheHora] = useState("");
+  const [pecheError, setPecheError] = useState("");
   const navigate = useNavigate();
 
   const fetchEvento = async (silent = false) => {
@@ -147,6 +163,15 @@ export default function EventoDetalle() {
     setImagePreviewUrl(null);
     setImageFile(null);
     setEntradasError("");
+    setPecheError("");
+    const pecheActual = evento.data_peche_taquilla ? new Date(evento.data_peche_taquilla) : null;
+    if (pecheActual && !isNaN(pecheActual.getTime())) {
+      setPecheData(pecheActual);
+      setPecheHora(`${pad2(pecheActual.getHours())}:${pad2(pecheActual.getMinutes())}`);
+    } else {
+      setPecheData(null);
+      setPecheHora("");
+    }
     setIsEditing(true);
   };
   const normalizar = (t: string) =>
@@ -209,12 +234,31 @@ export default function EventoDetalle() {
       }
       setEntradasError("");
 
+      let pecheValor: string | null = null;
+      if (pecheData || pecheHora) {
+        if (!pecheData || !/^\d{2}:\d{2}$/.test(pecheHora)) {
+          setPecheError("Selecciona o día e a hora de peche da taquilla.");
+          return;
+        }
+        const [ph, pm] = pecheHora.split(":").map(Number);
+        const peche = new Date(pecheData);
+        peche.setHours(ph, pm, 0, 0);
+        const fin = evento.data_evento_fin ? new Date(evento.data_evento_fin) : new Date(evento.data_evento);
+        if (!isNaN(fin.getTime()) && peche > fin) {
+          setPecheError("A taquilla non pode pechar despois do fin do evento.");
+          return;
+        }
+        pecheValor = `${peche.getFullYear()}-${pad2(peche.getMonth() + 1)}-${pad2(peche.getDate())}T${pad2(ph)}:${pad2(pm)}:00`;
+      }
+      setPecheError("");
+
       if (imageFile) {
         const formData = new FormData();
         formData.append("descripcion_evento", form.descripcion_evento);
         formData.append("imaxe_evento", imageFile);
         formData.append("nota_lugar", form.nota_lugar || "");
         if (editaEntradas) formData.append("entradas_venta", String(cantidade));
+        if (pecheValor) formData.append("data_peche_taquilla", pecheValor);
 
         resp = await fetch(`${API_BASE_URL}/crear-eventos/${id}/`, {
           method: 'PATCH',
@@ -230,6 +274,7 @@ export default function EventoDetalle() {
           procedemento_cobro_manual: form.procedemento_cobro_manual || "",
         };
         if (editaEntradas) payload.entradas_venta = cantidade;
+        if (pecheValor) payload.data_peche_taquilla = pecheValor;
 
         resp = await fetch(`${API_BASE_URL}/crear-eventos/${id}/`, {
           method: 'PATCH',
@@ -594,6 +639,12 @@ export default function EventoDetalle() {
                     <strong>Diñeiro recadado: </strong>{formatImporteEuro(Number(evento.prezo_recibe_organizador ?? evento.prezo_evento ?? evento.prezo_venta) * (evento.entradas_vendidas ?? 0))} €
                   </p>
                 )}
+                {evento.data_peche_taquilla && (
+                  <p>
+                    <FaTicketAlt className="me-1" style={{ color: '#ff0093', fontSize: '1.3em', verticalAlign: 'middle' }} />
+                    <strong>{evento.taquilla_pechada ? "Taquilla pechada:" : "A taquilla pecha:"}</strong> {formatDataCompleta(evento.data_peche_taquilla)}
+                  </p>
+                )}
                 {/* Táboa de prezo igual que no resumo de creación */}
                 {(evento.prezo_recibe_organizador ?? evento.prezo_evento ?? evento.prezo_venta) === 0 || evento.tipo_gestion_entrada === 'gratis' ? (
                   <p>
@@ -719,6 +770,46 @@ export default function EventoDetalle() {
                     )}
                   </div>
                 )}
+                <div className="mb-3">
+                  <label className="form-label">Peche da taquilla</label>
+                  <div className="d-flex flex-wrap gap-2 align-items-center">
+                    <DatePicker
+                      selected={pecheData}
+                      onChange={(d: Date | null) => { setPecheData(d); setPecheError(""); }}
+                      maxDate={new Date(evento.data_evento_fin || evento.data_evento)}
+                      dateFormat="dd/MM/yyyy"
+                      locale="gl"
+                      placeholderText="Data"
+                      className="form-control"
+                      showPopperArrow={false}
+                      onFocus={(e) => ((e.target as HTMLInputElement).readOnly = true)}
+                    />
+                    <select
+                      className="form-select"
+                      style={{ width: 90 }}
+                      value={pecheHora.split(":")[0] || ""}
+                      onChange={(e) => { setPecheHora(`${e.target.value}:${pecheHora.split(":")[1] || "00"}`); setPecheError(""); }}
+                    >
+                      <option value="" disabled>HH</option>
+                      {HORAS.map((h) => <option key={h} value={h}>{h}</option>)}
+                    </select>
+                    <select
+                      className="form-select"
+                      style={{ width: 90 }}
+                      value={pecheHora.split(":")[1] || ""}
+                      onChange={(e) => { setPecheHora(`${pecheHora.split(":")[0] || "00"}:${e.target.value}`); setPecheError(""); }}
+                    >
+                      <option value="" disabled>MM</option>
+                      {MINUTOS.map((m) => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                  </div>
+                  {pecheError && (
+                    <div className="alert alert-danger mt-2" style={{ background: "#ffe6f3", color: "#000" }}>
+                      <FaExclamationTriangle style={{ color: '#ff0093', marginRight: 8 }} />
+                      {pecheError}
+                    </div>
+                  )}
+                </div>
                 <div className="mb-3">
                   <label className="form-label">Información sobre o lugar</label>
                   <input

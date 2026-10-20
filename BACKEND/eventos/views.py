@@ -410,6 +410,8 @@ def eliminar_evento_definitivo_view(request, pk):
 @permission_classes([AllowAny])
 def reservar_entradas(request, evento_id):
     evento = get_object_or_404(Evento, id=evento_id)
+    if evento.taquilla_pechada and not (request.user and request.user.is_authenticated and request.user.id == evento.organizador_id):
+        return Response({"error": "A taquilla deste evento está pechada"}, status=400)
     entradas = request.data.get("entradas")
     zona = request.data.get("zona")
     email = request.data.get("email", "")
@@ -603,6 +605,8 @@ def _calcular_total_evento(evento, zona, entradas):
 @permission_classes([AllowAny])
 def crear_payment_intent_stripe(request, evento_id):
     evento = get_object_or_404(Evento, id=evento_id)
+    if evento.taquilla_pechada and not (request.user and request.user.is_authenticated and request.user.id == evento.organizador_id):
+        return Response({"error": "A taquilla deste evento está pechada"}, status=400)
     entradas = request.data.get("entradas") or []
     zona = (request.data.get("zona") or "").strip()
     email = (request.data.get("email") or "").strip()
@@ -835,6 +839,9 @@ def invitacions_sen_plano(request, evento_id):
 
     if not isinstance(nomes, list):
         return Response({"error": "Formato de nomes inválido"}, status=400)
+
+    if evento.taquilla_pechada and not (request.user and request.user.is_authenticated and request.user.id == evento.organizador_id):
+        return Response({"error": "A taquilla deste evento está pechada"}, status=400)
 
     # Verificar que non se supere o aforo total do evento
     entradas_reservadas_actuales = ReservaButaca.objects.filter(

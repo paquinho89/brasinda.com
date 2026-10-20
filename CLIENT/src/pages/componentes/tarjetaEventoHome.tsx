@@ -27,6 +27,7 @@ interface EventoHomeProps {
     localizacion: string;
     localidade: string;
     entradas_venta: number;
+    taquilla_pechada?: boolean;
     prezo_evento?: number;
     tipo_gestion_entrada?: "pagina" | "manual" | "gratis" | null;
     evento_verificado: boolean;
@@ -243,9 +244,9 @@ export default function TarjetaEventoHome({ evento, modoPublicacionExitosa }: Ev
               variant="success" 
               className="reserva-entrada-btn"
               onClick={handleReservation}
-              disabled={evento.entradas_venta === 0}
+              disabled={evento.entradas_venta === 0 || !!evento.taquilla_pechada}
             >
-              Reservar Entrada
+              {evento.taquilla_pechada ? 'Taquilla pechada' : 'Reservar Entrada'}
             </Button>
           ) : (
             <Button 

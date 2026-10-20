@@ -11,7 +11,7 @@ class EventoSerializer(serializers.ModelSerializer):
     entradas_reservadas = serializers.SerializerMethodField()
     contrato_pdf_url = serializers.SerializerMethodField()
     email_organizador = serializers.SerializerMethodField()
-
+    taquilla_pechada = serializers.BooleanField(read_only=True)
 
 
     class Meta:
