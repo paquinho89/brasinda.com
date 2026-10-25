@@ -15,6 +15,8 @@ export interface Evento {
   duracion: number | null;
   peche_taquilla_tipo?: "inicio" | "30min" | "2h" | "personalizado" | null;
   data_peche_taquilla?: string;
+  apertura_taquilla_tipo?: "hoxe" | "manha" | "pasado" | "personalizado" | null;
+  data_apertura_taquilla?: string;
   lugar: string;
   ubicacion: string;
   localidade?: string;
@@ -33,6 +35,7 @@ export interface Evento {
   gastosAsume?: "organizador" | "comprador";
   asumeFees?: boolean;
   iveRate?: number | null;
+  ive_seleccionado?: 0 | 10 | 21;
   nome_organizador?: string;
   apelidos_organizador?: string;
   tipo_organizador?: string;
@@ -76,6 +79,7 @@ export function CreateEventLayout() {
     gastosAsume: "organizador",
     asumeFees: false,
     iveRate: null,
+    ive_seleccionado: 0,
     nome_organizador: "",
     apelidos_organizador: "",
     tipo_organizador: "",

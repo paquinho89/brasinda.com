@@ -61,6 +61,15 @@ class Evento(models.Model):
         (TIPO_ENTRADA_MANUAL, 'a través do organizador'),
         (TIPO_ENTRADA_GRATIS, 'de balde'),
     ]
+
+    IVE_NINGUN = 0
+    IVE_REDUCIDO = 10
+    IVE_NORMAL = 21
+    IVE_CHOICES = [
+        (IVE_NINGUN, 'Sen IVE'),
+        (IVE_REDUCIDO, 'IVE reducido (10%)'),
+        (IVE_NORMAL, 'IVE normal (21%)'),
+    ]
     
     organizador = models.ForeignKey(User, on_delete=models.CASCADE)
     tipo_evento = models.CharField(max_length=100)
@@ -70,6 +79,8 @@ class Evento(models.Model):
     data_evento = models.DateTimeField()
     data_evento_inicio = models.DateTimeField(null=True, blank=True)
     data_evento_fin = models.DateTimeField(null=True, blank=True)
+    # Só informativo: non abre nin pecha a taquilla automaticamente
+    data_apertura_taquilla = models.DateTimeField(null=True, blank=True)
     # Momento a partir do cal xa non se poden mercar nin reservar entradas
     data_peche_taquilla = models.DateTimeField(null=True, blank=True)
     localizacion = models.CharField(max_length=200, blank=True, null=True)
@@ -81,8 +92,10 @@ class Evento(models.Model):
     entradas_reservadas= models.PositiveIntegerField(default=0)
     entradas_vendidas= models.PositiveIntegerField(default=0)
     prezo_areas = models.BooleanField(default=False)
+    prezo_base = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     prezo_recibe_organizador = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     prezo_venta = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    ive_seleccionado = models.PositiveSmallIntegerField(choices=IVE_CHOICES, default=IVE_NINGUN)
     asume_gastos_organizador = models.BooleanField(default=False)
     tipo_gestion_entrada = models.CharField(max_length=20, choices=TIPO_ENTRADA_CHOICES, null=True, blank=True)
     procedimiento_cobro_manual = models.TextField(blank=True, null=True)

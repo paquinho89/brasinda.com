@@ -523,13 +523,13 @@ def xerar_pdf_listado(evento, reservas):
     reservas = list(reservas)
     sen_plano = bool(reservas) and all(getattr(r, "zona", None) == "sen-plano" for r in reservas)
     # Índices das columnas Zona, Fila e Butaca, que non aplican sen plano
-    ocultas = {0, 1, 2} if sen_plano else set()
+    ocultas = {1, 2, 3} if sen_plano else set()
 
     def filtrar(valores):
         return [v for i, v in enumerate(valores) if i not in ocultas]
 
-    data = [[Paragraph(h, head) for h in filtrar(["Zona", "Fila", "Butaca", "Nome", "Email", "Tipo", "Prezo", "Código"])]]
-    for r in reservas:
+    data = [[Paragraph(h, head) for h in filtrar(["Nº", "Zona", "Fila", "Butaca", "Nome", "Email", "Tipo", "Prezo", "Código"])]]
+    for numero, r in enumerate(reservas, start=1):
         zona = getattr(r, "zona", "") or "-"
         fila = getattr(r, "fila", "") or "-"
         butaca = getattr(r, "butaca", "") or "-"
@@ -554,11 +554,11 @@ def xerar_pdf_listado(evento, reservas):
                 except Exception:
                     prezo = f"{prezo_val} €"
         codigo = getattr(r, "codigo_validacion", "") or "-"
-        data.append([Paragraph(esc(v), cell) for v in filtrar([zona, fila, butaca, nome, email, tipo, prezo, codigo])])
+        data.append([Paragraph(esc(v), cell) for v in filtrar([numero, zona, fila, butaca, nome, email, tipo, prezo, codigo])])
 
     total_width = width - left_margin - right_margin
-    # Zona, Fila, Butaca, Nome, Email, Tipo, Prezo, Código
-    proportions = filtrar([0.08, 0.07, 0.09, 0.19, 0.23, 0.10, 0.08, 0.16])
+    # Nº, Zona, Fila, Butaca, Nome, Email, Tipo, Prezo, Código
+    proportions = filtrar([0.05, 0.08, 0.07, 0.10, 0.18, 0.21, 0.10, 0.08, 0.13])
     suma = sum(proportions)
     col_widths = [p / suma * total_width for p in proportions]
     table = Table(data, colWidths=col_widths, repeatRows=1)

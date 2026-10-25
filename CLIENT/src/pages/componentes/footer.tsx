@@ -47,23 +47,11 @@ function Footer() {
                 onMouseLeave={(e) => e.currentTarget.style.color = "#ff0093"}>
                 <FaFacebook />
               </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer"
-                style={{ color: "#ff0093", fontSize: "1.3rem", transition: "color 0.2s" }}
-                onMouseEnter={(e) => e.currentTarget.style.color = "#d1007a"}
-                onMouseLeave={(e) => e.currentTarget.style.color = "#ff0093"}>
-                <FaTwitter />
-              </a>
               <a href="https://instagram.com" target="_blank" rel="noopener noreferrer"
                 style={{ color: "#ff0093", fontSize: "1.3rem", transition: "color 0.2s" }}
                 onMouseEnter={(e) => e.currentTarget.style.color = "#d1007a"}
                 onMouseLeave={(e) => e.currentTarget.style.color = "#ff0093"}>
                 <FaInstagram />
-              </a>
-              <a href="mailto:eventos@brasinda.com"
-                style={{ color: "#ff0093", fontSize: "1.3rem", transition: "color 0.2s" }}
-                onMouseEnter={(e) => e.currentTarget.style.color = "#d1007a"}
-                onMouseLeave={(e) => e.currentTarget.style.color = "#ff0093"}>
-                <FaEnvelope />
               </a>
             </div>
           </Col>

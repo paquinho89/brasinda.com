@@ -510,6 +510,7 @@ export default function ListadoEntradas() {
                   <table className="table table-striped table-bordered table-hover">
                     <thead className="table-light">
                       <tr>
+                        <th style={{ width: "50px" }}>Nº</th>
                         {esSinPlano ? (
                           <>
                             <th>Nome</th>
@@ -536,8 +537,9 @@ export default function ListadoEntradas() {
                     </thead>
                     <tbody>
                       {invitacionsFiltradas.length > 0 ? (
-                        invitacionsFiltradas.map((invitacion) => (
+                        invitacionsFiltradas.map((invitacion, index) => (
                           <tr key={invitacion.id}>
+                            <td>{index + 1}</td>
                             {esSinPlano ? (
                               <>
                                 <td>
@@ -728,7 +730,7 @@ export default function ListadoEntradas() {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={esSinPlano ? 6 : 9} className="text-center text-muted py-4">
+                          <td colSpan={esSinPlano ? 7 : 10} className="text-center text-muted py-4">
                             Non hai invitacións reservadas
                           </td>
                         </tr>

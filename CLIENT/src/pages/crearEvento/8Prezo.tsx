@@ -158,6 +158,8 @@ const PrezoContaBancaria: React.FC = () => {
       })();
       const gastosAsumeValor: "organizador" | "comprador" = checkComprador ? "comprador" : "organizador";
       const isManualGestion = !isGestionPagina;
+      const iveSeleccionado: 0 | 10 | 21 =
+        iveRate === 0.10 ? 10 : iveRate === 0.21 ? 21 : 0;
       if (todasZonasCubertas) {
         setEvento({
           ...evento,
@@ -168,6 +170,7 @@ const PrezoContaBancaria: React.FC = () => {
           gastosAsume: gastosAsumeValor,
           asumeFees: checkOrganizador,
           iveRate: iveRate ?? 0,
+          ive_seleccionado: iveSeleccionado,
         });
       } else {
         setEvento({
@@ -179,6 +182,7 @@ const PrezoContaBancaria: React.FC = () => {
           asumeFees: checkOrganizador,
           prezo_venta: isManualGestion ? formattedRawBase : pvpCalculado,
           iveRate: iveRate ?? 0,
+          ive_seleccionado: iveSeleccionado,
         });
       }
       // Limpar prezosZona do localStorage ao avanzar
@@ -652,5 +656,3 @@ const PrezoContaBancaria: React.FC = () => {
 }
 
 export default PrezoContaBancaria;
-
-

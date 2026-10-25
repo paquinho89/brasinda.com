@@ -73,6 +73,9 @@ const Resumen: React.FC = () => {
     formData.append("data_evento_inicio", dataEventoInicio);
     formData.append("data_evento_fin", dataEventoFin);
     formData.append("data_evento", dataEventoInicio);
+    if (evento.data_apertura_taquilla) {
+      formData.append("data_apertura_taquilla", evento.data_apertura_taquilla);
+    }
     if (evento.data_peche_taquilla) {
       formData.append("data_peche_taquilla", evento.data_peche_taquilla);
     }
@@ -80,6 +83,10 @@ const Resumen: React.FC = () => {
     formData.append("localizacion", evento.lugar);
     formData.append("tipo_localizacion", evento.ubicacion);
     formData.append("entradas_venta", evento.entradas.toString());
+    if (evento.prezo_base.trim() !== "") {
+      formData.append("prezo_base", evento.prezo_base.replace(",", "."));
+    }
+    formData.append("ive_seleccionado", String(evento.ive_seleccionado ?? 0));
     if (precioEventoBackend !== null) formData.append("prezo_recibe_organizador", precioEventoBackend);
     if (prezoVentaBackend !== null) formData.append("prezo_venta", prezoVentaBackend);
     formData.append("prezo_areas", prezoAreas ? "true" : "false");
@@ -216,6 +223,14 @@ const Resumen: React.FC = () => {
               <div className="col-md-6">{formatDate(evento.fecha)}</div>
             </div>
 
+            {evento.data_apertura_taquilla && (
+              <div className="row mb-3">
+                <div className="col-md-6">
+                  <strong>Apertura da taquilla:</strong>
+                </div>
+                <div className="col-md-6">{formatDate(evento.data_apertura_taquilla)}</div>
+              </div>
+            )}
             {evento.data_peche_taquilla && (
               <div className="row mb-3">
                 <div className="col-md-6">
