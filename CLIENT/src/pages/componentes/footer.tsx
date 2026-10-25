@@ -1,7 +1,7 @@
 import { Container, Row, Col } from "react-bootstrap";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaFacebook, FaTwitter, FaInstagram, FaEnvelope } from "react-icons/fa";
+import { FaFacebook, FaInstagram } from "react-icons/fa";
 import RecuperarEntradaModal from "./RecuperarEntradaCuadro"
 
 function Footer() {
