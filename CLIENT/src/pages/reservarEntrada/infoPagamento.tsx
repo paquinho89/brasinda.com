@@ -563,7 +563,7 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
           </form>
         </div>
       </div>
-      <Modal show={showTimeoutModal} onHide={() => { setShowTimeoutModal(false); navigate(-1); }} centered>
+      <Modal show={showTimeoutModal} onHide={() => { setShowTimeoutModal(false); navigate("/"); }} centered>
         <Modal.Header closeButton>
           <Modal.Title>
             <FaExclamationTriangle style={{ fontSize: 22, color: "#ff0093", marginRight: 8, marginBottom: 3 }} />
@@ -576,7 +576,7 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
           </div>
         </Modal.Body>
         <Modal.Footer style={{ background: "#fff" }}>
-          <button className="reserva-entrada-btn" onClick={() => { setShowTimeoutModal(false); navigate(-1); }}>
+          <button className="reserva-entrada-btn" onClick={() => { setShowTimeoutModal(false); navigate("/"); }}>
             Entendido
           </button>
         </Modal.Footer>

@@ -33,7 +33,17 @@ export default function UserAvatarToggle({ hideLanguages: _hideLanguages = false
   return (
     <div style={{ position: 'relative', display: 'inline-block' }}>
       <Button onClick={() => setOpen(!open)} className="user-avatar-btn border-0 bg-transparent p-0 me-2" style={{ width: 42, height: 42, borderRadius: '50%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', padding: 0, minWidth: 0, minHeight: 0, cursor: 'pointer', outline: 'none' }}>
-        <img src={organizadorUI.foto_url || "/default-avatar.png"} alt="Foto organizador" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', pointerEvents: 'none', display: 'block' }} />
+        <img
+          src={organizadorUI.foto_url || "https://zpwgxnzsxmpzztsmprog.supabase.co/storage/v1/object/public/media/fotos_organizador/foto_por_defecto.jpg"}
+          alt="Foto organizador"
+          onError={(e) => {
+            const target = e.currentTarget;
+            if (!target.src.includes("foto_por_defecto")) {
+              target.src = "https://zpwgxnzsxmpzztsmprog.supabase.co/storage/v1/object/public/media/fotos_organizador/foto_por_defecto.jpg";
+            }
+          }}
+          style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', pointerEvents: 'none', display: 'block' }}
+        />
       </Button>
       {open && (
         <Card className="toggle-card position-absolute mt-2 end-0" style={{ zIndex: 1000, right: 0 }}>
