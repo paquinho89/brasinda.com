@@ -132,6 +132,7 @@ def enviar_recordatorio_compra(modeladmin, request, queryset):
 		data = localtime(evento.data_evento)
 		data_completa = f"{_dias_gl[data.weekday()]}, {data.day} de {_meses_gl[data.month]} de {data.year} ás {data.strftime('%H:%M')}"
 		url_compra = f"{frontend_url}/info-pagamento/{evento.id}/{reserva.zona}?reserva={reserva.id}"
+		prezo_venta = reserva.prezo_pvp or reserva.prezo_entrada
 		html_body = render_to_string(
 			'eventos/plantilla_email/recordatorio_compra.html',
 			{
@@ -140,7 +141,7 @@ def enviar_recordatorio_compra(modeladmin, request, queryset):
 				'data_evento': data_completa,
 				'lugar_evento': evento.localizacion,
 				'lugar_entrada': reserva.lugar_entrada or f"Zona {reserva.zona}",
-				'prezo_entrada': reserva.prezo_entrada,
+				'prezo_entrada': prezo_venta,
 				'url_compra': url_compra,
 			}
 		)
