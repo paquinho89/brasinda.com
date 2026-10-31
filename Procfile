@@ -1,1 +1,1 @@
-web: python BACKEND/manage.py migrate && python BACKEND/manage.py collectstatic --noinput && gunicorn BACKEND.wsgi --bind 0.0.0.0:$PORT
+web: python BACKEND/manage.py fix_ive_column --fix && python BACKEND/manage.py migrate && python BACKEND/manage.py collectstatic --noinput && gunicorn BACKEND.wsgi --bind 0.0.0.0:$PORT
