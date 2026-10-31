@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.timezone import localtime
 from .models import Evento, ZonaPrezo, ReservaButaca, SuscripcionNewsletter
 from .email_entradas import resend, render_to_string
 from django.conf import settings as django_settings
@@ -105,6 +106,67 @@ class EventoAdmin(admin.ModelAdmin):
 class ZonaPrezoAdmin(admin.ModelAdmin):
     list_display = ("id", "nome", "prezo_recibe_organizador", "prezo_venta", "evento")
 
+def enviar_recordatorio_compra(modeladmin, request, queryset):
+	"""Envía un email recordatorio ás reservas temporais para que completen a compra."""
+	reservas = queryset.filter(estado=ReservaButaca.ESTADO_TEMPORAL)
+	excluidas = queryset.count() - reservas.count()
+	if excluidas:
+		modeladmin.message_user(
+			request,
+			f"{excluidas} reserva(s) omitidas por non estar en estado Temporal.",
+			level='warning',
+	)
+
+	enviados = 0
+	erros = 0
+	sen_email = 0
+	_dias_gl = ['Luns', 'Martes', 'Mércores', 'Xoves', 'Venres', 'Sábado', 'Domingo']
+	_meses_gl = ['', 'xaneiro', 'febreiro', 'marzo', 'abril', 'maio', 'xuño', 'xullo', 'agosto', 'setembro', 'outubro', 'novembro', 'decembro']
+	frontend_url = getattr(django_settings, 'FRONTEND_URL', 'http://localhost:5173').rstrip('/')
+
+	for reserva in reservas.select_related('evento'):
+		if not reserva.email:
+			sen_email += 1
+			continue
+		evento = reserva.evento
+		data = localtime(evento.data_evento)
+		data_completa = f"{_dias_gl[data.weekday()]}, {data.day} de {_meses_gl[data.month]} de {data.year} ás {data.strftime('%H:%M')}"
+		url_compra = f"{frontend_url}/info-pagamento/{evento.id}/{reserva.zona}"
+		html_body = render_to_string(
+			'eventos/plantilla_email/recordatorio_compra.html',
+			{
+				'nome_titular': reserva.nome_titular,
+				'nome_evento': evento.nome_evento,
+				'data_evento': data_completa,
+				'lugar_evento': evento.localizacion,
+				'lugar_entrada': reserva.lugar_entrada or f"Zona {reserva.zona}",
+				'prezo_entrada': reserva.prezo_entrada,
+				'url_compra': url_compra,
+			}
+		)
+		try:
+			resend.Emails.send({
+				"from": django_settings.DEFAULT_FROM_EMAIL,
+				"to": [reserva.email],
+				"subject": f"⏳ Completa a túa compra para '{evento.nome_evento}'",
+				"html": html_body,
+			})
+			reserva.recordatorio_compra_enviado = True
+			reserva.save(update_fields=["recordatorio_compra_enviado"])
+			enviados += 1
+		except Exception as e:
+			erros += 1
+			modeladmin.message_user(request, f"Erro ao enviar a {reserva.email}: {e}", level='error')
+
+	if enviados:
+		modeladmin.message_user(request, f"{enviados} recordatorio(s) enviado(s) correctamente.")
+	if sen_email:
+		modeladmin.message_user(request, f"{sen_email} reserva(s) sen email, non se puido enviar.", level='warning')
+	if erros:
+		modeladmin.message_user(request, f"{erros} envío(s) fallaron.", level='error')
+enviar_recordatorio_compra.short_description = "📧 Enviar recordatorio para completar a compra"
+
+
 @admin.register(ReservaButaca)
 class ReservaButacaAdmin(admin.ModelAdmin):
 	list_display = (
@@ -119,12 +181,14 @@ class ReservaButacaAdmin(admin.ModelAdmin):
 		"fila",
 		"butaca",
 		"estado",
+		"recordatorio_compra_enviado",
 		"data_creacion",
 		"codigo_validacion",
 		"entrada_usada_validacion",
 	)
-	list_filter = ("tipo_reserva", "estado", "zona")
+	list_filter = ("tipo_reserva", "estado", "recordatorio_compra_enviado", "zona")
 	search_fields = ("evento__nome_evento", "nome_titular", "email", "codigo_validacion")
+	actions = [enviar_recordatorio_compra]
 
 
 @admin.register(SuscripcionNewsletter)

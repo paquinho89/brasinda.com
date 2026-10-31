@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="gl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Completa a túa compra - brasinda.com</title>
+    <style>
+      body {
+        background: #f7f7fa;
+        font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+        color: #222;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 480px;
+        margin: 40px auto;
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        padding: 32px 28px 28px 28px;
+        text-align: center;
+      }
+      .logo {
+        width: 60px;
+        margin-bottom: 4px;
+      }
+      h1 {
+        color: #ff0093;
+        font-size: 1.6rem;
+        margin: 16px 0 8px 0;
+        font-weight: 700;
+      }
+      p {
+        font-size: 1rem;
+        margin-bottom: 16px;
+        color: #444;
+        line-height: 1.5;
+      }
+      .ticket-icon {
+        font-size: 2.8rem;
+        margin-bottom: 12px;
+      }
+      .event-info {
+        background: #f5f5f7;
+        border-left: 4px solid #ff0093;
+        padding: 16px;
+        margin: 20px 0;
+        border-radius: 6px;
+        text-align: left;
+      }
+      .event-info h3 {
+        margin: 0 0 8px 0;
+        color: #ff0093;
+        font-weight: 600;
+        font-size: 1.05rem;
+      }
+      .event-info p {
+        margin: 4px 0;
+        font-size: 0.95rem;
+      }
+      .cta-button {
+        display: inline-block;
+        background: #ff0093;
+        color: #ffffff !important;
+        text-decoration: none;
+        font-size: 1.1rem;
+        font-weight: 700;
+        padding: 14px 36px;
+        border-radius: 10px;
+        margin: 20px 0;
+      }
+      .warning {
+        background: #fffbf5;
+        border: 1px solid #ffdbea;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin: 16px 0;
+        font-size: 0.9rem;
+        color: #555;
+      }
+      .footer {
+        margin-top: 32px;
+        font-size: 0.95rem;
+        color: #aaa;
+        border-top: 1px solid #f0f0f0;
+        padding-top: 20px;
+      }
+      .footer a {
+        color: #ff0093;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <img src="branding/logo.png" alt="brasinda.com" class="logo" />
+
+      <div class="ticket-icon">🎟️</div>
+      <h1>A túa entrada está a agardar!</h1>
+      <p>
+        {% if nome_titular %}Ola <strong>{{ nome_titular }}</strong>, d{% else %}D{% endif %}etectamos que comezaches a reserva da túa entrada pero non completaches a compra.
+      </p>
+
+      <div class="event-info">
+        <h3>{{ nome_evento }}</h3>
+        <p><strong>Data:</strong> {{ data_evento }}</p>
+        <p><strong>Lugar:</strong> {{ lugar_evento }}</p>
+        <p><strong>Entrada:</strong> {{ lugar_entrada }}</p>
+        {% if prezo_entrada %}<p><strong>Prezo:</strong> {{ prezo_entrada }} €</p>{% endif %}
+      </div>
+
+      <p>Non deixes escapar o teu sitio! Preme no botón para completar a túa compra:</p>
+
+      <a href="{{ url_compra }}" class="cta-button">Completar a miña compra</a>
+
+      <div class="warning">
+        ⏳ <strong>Lembra:</strong> as reservas temporais teñen un tempo límite. Se non completas a compra, a túa butaca podería quedar libre de novo.
+      </div>
+
+      <div class="footer">
+        &copy; 2026 brasinda.com<br />
+        <span style="font-size: 0.85rem;">Preguntas? <a href="mailto:eventos@brasinda.com">Contacta connosco</a></span>
+      </div>
+    </div>
+  </body>
+</html>

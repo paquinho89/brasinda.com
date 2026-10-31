@@ -200,6 +200,10 @@ class ReservaButaca(models.Model):
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default=ESTADO_TEMPORAL)
     codigo_validacion = models.CharField(max_length=20, blank=True, null=True)
     entrada_usada_validacion = models.BooleanField(default=False)
+    recordatorio_compra_enviado = models.BooleanField(
+        default=False,
+        help_text="Indica se xa se enviou un email recordatorio para completar a compra"
+    )
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=["evento", "zona", "fila", "butaca"], name="unique_reserva_butaca")
