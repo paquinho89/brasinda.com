@@ -373,18 +373,24 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
       // Gardar antes de redirixir (necesario para Bizum que sempre redirixe)
       sessionStorage.setItem("brasinda_pending_payment", JSON.stringify(pendingData));
 
+      // Stripe rexeita cadeas baleiras: só enviar phone se ten valor
+      // (Multibanco require billing_details.phone obrigatorio)
+      const telefonoCompleto = telefono ? `${prefixo}${telefono.replace(/\s/g, "")}` : "";
+      const billingDetails: Record<string, unknown> = {
+        email,
+        address: { country: "ES" },
+      };
+      if (telefonoCompleto) {
+        billingDetails.phone = telefonoCompleto;
+      }
+
       const confirmResult = await stripe.confirmPayment({
         elements,
         confirmParams: {
           receipt_email: email,
           return_url: `${window.location.href}`,
           payment_method_data: {
-            billing_details: {
-              name: "",
-              email,
-              phone: telefono ? `${prefixo}${telefono.replace(/\s/g, "")}` : "",
-              address: { country: "ES", postal_code: "", state: "", city: "", line1: "", line2: "" },
-            },
+            billing_details: billingDetails,
           },
         },
         redirect: "if_required",
@@ -513,9 +519,9 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
                       onChange={(e) => setMetodoPago(e.value.type)}
                     />
                   </div>
-                  {metodoPago === "bizum" && (
+                  {(metodoPago === "bizum" || metodoPago === "multibanco") && (
                     <div style={{ padding: "12px 14px" }}>
-                      <label htmlFor="telefono" style={{ display: "block", marginBottom: 6, fontSize: "1rem", color: "#555" }}><strong>Teléfono Bizum</strong></label>
+                      <label htmlFor="telefono" style={{ display: "block", marginBottom: 6, fontSize: "1rem", color: "#555" }}><strong>{metodoPago === "bizum" ? "Teléfono Bizum" : "Teléfono"}</strong></label>
                       <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
                         <select
                           value={prefixo}
