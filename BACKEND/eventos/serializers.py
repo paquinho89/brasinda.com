@@ -30,12 +30,16 @@ class EventoSerializer(serializers.ModelSerializer):
         return getattr(obj.organizador, 'email', None)
 
     def _rexenerar_contrato_se_falta(self, obj):
-        # O disco local de Railway é efémero: se o PDF desapareceu, volvemos xeralo cos datos gardados
-        from django.core.files.storage import FileSystemStorage
+        # Se o PDF non existe no storage (disco efémero de Railway ou ficheiro
+        # que nunca chegou a Supabase), volvemos xeralo cos datos gardados
         from django.core.files.base import ContentFile
         storage = obj.contrato_pdf.storage
-        if not isinstance(storage, FileSystemStorage) or storage.exists(obj.contrato_pdf.name):
-            return
+        try:
+            if storage.exists(obj.contrato_pdf.name):
+                return
+        except Exception:
+            # Se non se pode comprobar (p.e. Supabase devolve erro), intentamos rexenerar igualmente
+            pass
         try:
             from .utils_pdf import xerar_pdf_contrato
             org = obj.organizador
