@@ -37,9 +37,18 @@ DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
 
-# Supabase Storage for production
-if not DEBUG and os.getenv("SUPABASE_URL"):
+# Supabase Storage: actívase sempre que haxa credenciais, independentemente de DEBUG.
+# O disco local de Railway é efémero: os ficheiros gardados en media/ perdense
+# en cada redeploy ou reinicio do contenedor.
+if os.getenv("SUPABASE_URL"):
     DEFAULT_FILE_STORAGE = 'BACKEND.supabase_storage.SupabaseStorage'
+elif not DEBUG:
+    import logging
+    logging.getLogger(__name__).critical(
+        "SUPABASE_URL non configurado e DEBUG=False: os ficheiros subidos gardaranse "
+        "no disco local do contenedor e PERDERÁNSE en cada redeploy/reinicio. "
+        "Configura SUPABASE_URL, SUPABASE_SERVICE_KEY e SUPABASE_STORAGE_BUCKET."
+    )
 
 ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', '.up.railway.app,localhost,127.0.0.1').split(',') if host.strip()]
 

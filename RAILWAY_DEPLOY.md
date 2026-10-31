@@ -22,6 +22,14 @@ Variables mínimas recomendadas:
 - `DATABASE_URL` (xestionada por Railway ao crear Postgres)
 - `EMAIL_USER`
 - `EMAIL_SMTP_PASSWORD`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_KEY`
+- `SUPABASE_STORAGE_BUCKET` (por defecto `media`; o bucket debe ser **público** en Supabase)
+
+> ⚠️ **Importante:** se `DEBUG` non está en `False` ou falta `SUPABASE_URL`, as imaxes e PDFs
+> gárdanse no disco local do contenedor de Railway, que é **efémero**: os ficheiros
+> desaparecen en cada redeploy ou reinicio e as imaxes deixan de cargar (404).
+> Ademais, `DEBUG=True` en produción expón información sensible nas páxinas de erro.
 
 ## 2) Frontend (servizo Node/Vite)
 
