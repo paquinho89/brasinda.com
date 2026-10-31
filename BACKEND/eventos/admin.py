@@ -131,7 +131,7 @@ def enviar_recordatorio_compra(modeladmin, request, queryset):
 		evento = reserva.evento
 		data = localtime(evento.data_evento)
 		data_completa = f"{_dias_gl[data.weekday()]}, {data.day} de {_meses_gl[data.month]} de {data.year} ás {data.strftime('%H:%M')}"
-		url_compra = f"{frontend_url}/info-pagamento/{evento.id}/{reserva.zona}"
+		url_compra = f"{frontend_url}/info-pagamento/{evento.id}/{reserva.zona}?reserva={reserva.id}"
 		html_body = render_to_string(
 			'eventos/plantilla_email/recordatorio_compra.html',
 			{

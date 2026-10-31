@@ -583,6 +583,20 @@ def reservar_entradas(request, evento_id):
 
 
 def _calcular_total_evento(evento, zona, entradas):
+    # Se as entradas teñen id de ReservaButaca, usar o prezo real gardado na reserva
+    reserva_ids = [e.get("id") for e in entradas if isinstance(e, dict) and e.get("id")]
+    if reserva_ids:
+        reservas = ReservaButaca.objects.filter(
+            id__in=reserva_ids,
+            evento=evento,
+            estado=ReservaButaca.ESTADO_TEMPORAL,
+        )
+        if reservas.exists():
+            total = sum(
+                (r.prezo_pvp or r.prezo_entrada or Decimal("0")) for r in reservas
+            )
+            return total, reservas.count()
+
     zona_qs = ZonaPrezo.objects.filter(evento=evento, nome__iexact=zona).first() if zona else None
     if zona_qs and zona_qs.prezo_venta is not None:
         prezo_unitario = zona_qs.prezo_venta

@@ -604,6 +604,16 @@ const InfoPagamentoWrapper: React.FC = () => {
     else if (reservas.length > 0) entradas = reservas.map((id: number) => ({ id }));
     else if (cantidade > 0) entradas = Array.from({ length: cantidade }, (_, i) => ({ idx: i }));
 
+    // Se non hai entradas no state, mirar se vén un ?reserva=ID na URL
+    // (p.e. desde o email de recordatorio de compra)
+    if (entradas.length === 0) {
+      const params = new URLSearchParams(window.location.search);
+      const reservaId = params.get("reserva");
+      if (reservaId) {
+        entradas = [{ id: Number(reservaId) }];
+      }
+    }
+
     if (entradas.length === 0) { setLoadingIntent(false); return; }
 
     fetch(`${API_BASE_URL}/crear-eventos/${eventoId}/stripe/payment-intent/`, {

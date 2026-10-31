@@ -67,8 +67,11 @@ def xerar_pdf_contrato(evento, organizador):
     prezo_pvp = getattr(evento, 'prezo_venta', '')
     entradas_venta = getattr(evento, 'entradas_venta', '')
     gastos_xestion = getattr(evento, 'gastos_xestion', '')
-    ive_rate = getattr(evento, 'iveRate', 0) or 0
-    organizer_asume_gastos = getattr(evento, 'asumeFees', False)
+    # IVE da entrada: porcentaxe seleccionado no modelo (0, 10 ou 21)
+    ive_rate = (getattr(evento, 'ive_seleccionado', 0) or 0) / 100.0
+    # Se o organizador asume os gastos de xestión, réstanse do que recibe;
+    # se non, súmanse ao prezo de venta da entrada
+    organizer_asume_gastos = bool(getattr(evento, 'asume_gastos_organizador', False))
     def safe_number(value):
         try:
             return float(str(value).replace(',', '.'))
@@ -180,37 +183,30 @@ def xerar_pdf_contrato(evento, organizador):
     elif is_manual_gestion:
         contrato_text.append(f"• Prezo venta: {prezo_pvp_text}")
     else:
-        def price_equal(a, b):
-            try:
-                return float(str(a).replace(",", ".")) == float(str(b).replace(",", "."))
-            except Exception:
-                return str(a) == str(b)
-
-        if prezo_pvp is None or price_equal(prezo_evento, prezo_pvp):
-            prezo_str = f"{prezo_evento} €"
-        else:
-            partes = []
-            if prezo_evento:
-                partes.append(f"{prezo_evento} €")
-            if prezo_pvp:
-                try:
-                    pvp_fmt = f"{float(prezo_pvp):.2f} € (PVP)"
-                except Exception:
-                    pvp_fmt = f"{prezo_pvp} € (PVP)"
-                partes.append(pvp_fmt)
-            prezo_str = ', '.join(partes) if partes else "-"
-        contrato_text.append(f"• Prezo evento: {prezo_str}")
+        # O prezo do evento é o prezo de venta ao público (PVP)
+        contrato_text.append(f"• Prezo evento: {prezo_pvp_text}")
 
     if not is_gratis and not is_manual_gestion:
+        # Fórmulas do desglose (texto apagado):
+        # - Se o organizador ASUME os gastos: o comprador paga base + IVE,
+        #   e os gastos réstanse do importe que recibe o organizador.
+        # - Se NON os asume: os gastos súmanse ao prezo de venta,
+        #   e o organizador recibe base + IVE.
+        if organizer_asume_gastos:
+            formula_recibe = f"{prezo_base_text} € + {iva_text} - {gastos_xestion_total_text} (Xestión) = {prezo_recibe_text}"
+            formula_venta = f"{prezo_base_text} € + {iva_text} = {prezo_pvp_text}"
+        else:
+            formula_recibe = f"{prezo_base_text} € + {iva_text} = {prezo_recibe_text}"
+            formula_venta = f"{prezo_base_text} € + {iva_text} + {gastos_xestion_total_text} (Xestión) = {prezo_pvp_text}"
         contrato_text.extend([
             f"• Prezo Base: {prezo_base_euro_text}",
             f"• Gastos de xestión: {gastos_xestion_total_text}",
-            f"   → {gastos_base_text} (5%) + {gastos_ive_text} (IVE da xestión 21%)",
+            f"__MUTED__{gastos_base_text} (5%) + {gastos_ive_text} (IVE da xestión 21%)",
             f"• IVE: {iva_text}",
             f"• Importe recibido: {prezo_recibe_text}",
-            f"   → {prezo_base_text} € + {iva_text}" + (f" - {gastos_xestion_total_text} (Xestión)" if organizer_asume_gastos else "") + f" = {prezo_recibe_text}",
+            f"__MUTED__{formula_recibe}",
             f"• Prezo venta: {prezo_pvp_text}",
-            f"   → {prezo_venta_formula}",
+            f"__MUTED__{formula_venta}",
         ])
     contrato_text.extend([
         f"• Número de entradas á venda: {entradas_venta}",
@@ -310,7 +306,13 @@ def xerar_pdf_contrato(evento, organizador):
     salto_paxina_idx = None
     line_height = 18
     min_y = 80  # marxe inferior
+    muted_color = (0.45, 0.45, 0.45)  # gris apagado para texto secundario
+    last_line_end_x = None  # posición x onde rematou a última liña normal
+    last_line_y = None
     for idx, line in enumerate(contrato_text):
+        is_muted = line.startswith("__MUTED__")
+        if is_muted:
+            line = line[len("__MUTED__"):]
         wrapped = textwrap.wrap(line, width=max_width)
         for wline in wrapped:
             # Se non hai espazo suficiente, nova páxina
@@ -319,12 +321,29 @@ def xerar_pdf_contrato(evento, organizador):
                 p.showPage()
                 draw_header()
                 y = height - 120
+                last_line_end_x = None
             # Poñer títulos en negrita
             if wline.strip().upper() in [t.upper() for t in bold_titles]:
                 p.setFont("Helvetica-Bold", 11)
             else:
                 p.setFont("Helvetica", 11)
-            p.drawString(60, y, wline)
+            if is_muted:
+                # Texto secundario: a continuación da liña anterior, en gris apagado
+                p.setFont("Helvetica", 9)
+                p.setFillColorRGB(*muted_color)
+                if last_line_end_x is not None and last_line_y is not None:
+                    p.drawString(last_line_end_x + 8, last_line_y, wline)
+                else:
+                    p.drawString(60, y, wline)
+                    y -= line_height
+                p.setFillColorRGB(0, 0, 0)
+                p.setFont("Helvetica", 11)
+                continue  # non consume liña propia
+            else:
+                p.drawString(60, y, wline)
+                from reportlab.pdfbase.pdfmetrics import stringWidth
+                last_line_end_x = 60 + stringWidth(wline, "Helvetica", 11)
+                last_line_y = y
             y -= line_height
 
 
