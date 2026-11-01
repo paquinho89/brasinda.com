@@ -291,11 +291,11 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
     return () => clearInterval(timer);
   }, [timeRemaining]);
 
-  // Os erros de pago desaparecen automaticamente aos 10 segundos.
-  // Só cando o evento está cargado: o erro de carga do evento (sen evento)
-  // é unha pantalla completa e non debe limparse.
+  // Os erros desaparecen automaticamente aos 10 segundos.
+  // Excepción: o erro de carga do evento (pantalla completa, sen evento) non se limpa.
   useEffect(() => {
-    if (!error || !evento) return;
+    if (!error) return;
+    if (!evento && error.startsWith("Erro ao cargar o evento")) return;
     const timer = setTimeout(() => setError(""), 10000);
     return () => clearTimeout(timer);
   }, [error, evento]);
