@@ -309,6 +309,11 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
     }
     if (state?.usr?.nome) {
       setNome(state.usr.nome);
+    } else if (state?.usr?.nome_xeral) {
+      // Fluxo sen plano: o nome chega como nome_xeral
+      setNome(state.usr.nome_xeral);
+    } else if (Array.isArray(state?.usr?.nomes) && state.usr.nomes.length > 0) {
+      setNome(state.usr.nomes[0]);
     }
     if (state?.usr?.importeTotal !== undefined) {
       setImporteTotalState(state.usr.importeTotal);
@@ -377,6 +382,9 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
       // (Multibanco require billing_details.phone obrigatorio)
       const telefonoCompleto = telefono ? `${prefixo}${telefono.replace(/\s/g, "")}` : "";
       const billingDetails: Record<string, unknown> = {
+        // Multibanco require billing_details.name obrigatorio. Como o PaymentElement
+        // está configurado con fields.billingDetails="never", hai que pasalo aquí.
+        name: nome.trim() || email,
         email,
         address: { country: "ES" },
       };
