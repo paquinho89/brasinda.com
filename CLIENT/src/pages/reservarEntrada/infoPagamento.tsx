@@ -291,6 +291,15 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
     return () => clearInterval(timer);
   }, [timeRemaining]);
 
+  // Os erros de pago desaparecen automaticamente aos 10 segundos.
+  // Só cando o evento está cargado: o erro de carga do evento (sen evento)
+  // é unha pantalla completa e non debe limparse.
+  useEffect(() => {
+    if (!error || !evento) return;
+    const timer = setTimeout(() => setError(""), 10000);
+    return () => clearTimeout(timer);
+  }, [error, evento]);
+
   // Get seats, email, nome, importeTotal from navigation state
   useEffect(() => {
     const state = window.history.state;
