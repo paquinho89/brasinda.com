@@ -53,13 +53,6 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
   const [prezoZonaPvp, setPrezoZonaPvp] = useState<number | null>(null);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
-  const [telefono, setTelefono] = useState("");
-  const handleTelefonoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const digits = e.target.value.replace(/\D/g, "").slice(0, 9);
-    const formatted = digits.replace(/(\d{3})(?=\d)/g, "$1 ").trim();
-    setTelefono(formatted);
-  };
-  const [prefixo, setPrefixo] = useState("+34");
   const [metodoPago, setMetodoPago] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -378,19 +371,13 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
       // Gardar antes de redirixir (necesario para Bizum/Multibanco que sempre redirixen)
       sessionStorage.setItem("brasinda_pending_payment", JSON.stringify(pendingData));
 
-      // Stripe rexeita cadeas baleiras: só enviar phone se ten valor
-      // (Multibanco require billing_details.phone obrigatorio)
-      const telefonoCompleto = telefono ? `${prefixo}${telefono.replace(/\s/g, "")}` : "";
+      // O PaymentElement recolle name e phone cando o método o require (Multibanco/Bizum)
+      // grazas a fields.billingDetails="auto". Aquí só pasamos os campos marcados como
+      // "never" (email e address), que Stripe esixe pasar manualmente.
       const billingDetails: Record<string, unknown> = {
-        // Multibanco require billing_details.name obrigatorio. Como o PaymentElement
-        // está configurado con fields.billingDetails="never", hai que pasalo aquí.
-        name: nome.trim() || email,
         email,
         address: { country: "ES" },
       };
-      if (telefonoCompleto) {
-        billingDetails.phone = telefonoCompleto;
-      }
 
       const confirmResult = await stripe.confirmPayment({
         elements,
@@ -422,11 +409,28 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
       // no caixeiro/online. Non hai que confirmar reserva nin enviar entradas aínda.
       if (paymentIntent?.status === "requires_action" || paymentIntent?.status === "processing") {
         sessionStorage.removeItem("brasinda_pending_payment");
+        // Datos do voucher Multibanco (entidade, referencia, importe) para mostrar ao comprador
+        const mbDetails = (paymentIntent?.next_action as {
+          multibanco_display_details?: {
+            entity?: string;
+            reference?: string;
+            amount?: number;
+            hosted_voucher_url?: string;
+          };
+        } | null | undefined)?.multibanco_display_details;
         navigate("/reserva-pendente", {
           state: {
             email,
             eventoId,
             metodo: metodoPago,
+            multibanco: mbDetails
+              ? {
+                  entidade: mbDetails.entity || "",
+                  referencia: mbDetails.reference || "",
+                  importe: typeof mbDetails.amount === "number" ? (mbDetails.amount / 100).toFixed(2) : "",
+                  voucherUrl: mbDetails.hosted_voucher_url || "",
+                }
+              : null,
           },
         });
         return;
@@ -538,7 +542,17 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
                   <div style={{ padding: "12px 14px" }}>
                     <PaymentElement
                       options={{
-                        fields: { billingDetails: "never" },
+                        // "auto": Stripe mostra o campo dentro do elemento só cando o
+                        // método de pago o require (Multibanco/Bizum: nome e teléfono).
+                        // "never": non o recolle Stripe; pásase manualmente en confirmParams.
+                        fields: {
+                          billingDetails: {
+                            name: "auto",
+                            email: "never",
+                            phone: "auto",
+                            address: "never",
+                          },
+                        },
                         terms: { card: "never" },
                       }}
                       onChange={(e) => {
@@ -548,38 +562,6 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
                       }}
                     />
                   </div>
-                  {(metodoPago === "bizum" || metodoPago === "multibanco") && (
-                    <div style={{ padding: "12px 14px" }}>
-                      <label htmlFor="telefono" style={{ display: "block", marginBottom: 6, fontSize: "1rem", color: "#555" }}><strong>{metodoPago === "bizum" ? "Teléfono Bizum" : "Teléfono"}</strong></label>
-                      <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
-                        <select
-                          value={prefixo}
-                          onChange={(e) => setPrefixo(e.target.value)}
-                          disabled={loading}
-                          style={{ border: "none", outline: "none", background: "transparent", fontSize: "1rem", color: "#212529", cursor: "pointer", paddingRight: 4, flexShrink: 0 }}
-                        >
-                          <option value="+34">🇪🇸 +34</option>
-                          <option value="+351">🇵🇹 +351</option>
-                          <option value="+33">🇫🇷 +33</option>
-                          <option value="+49">🇩🇪 +49</option>
-                          <option value="+39">🇮🇹 +39</option>
-                          <option value="+44">🇬🇧 +44</option>
-                          <option value="+1">🇺🇸 +1</option>
-                        </select>
-                        <span style={{ color: "#d9d9d9", marginRight: 8 }}>|</span>
-                        <input
-                          id="telefono"
-                          type="tel"
-                          placeholder="600 000 000"
-                          value={telefono}
-                          onChange={handleTelefonoChange}
-                          disabled={loading}
-                          required
-                          style={{ flex: 1, border: "none", outline: "none", fontSize: "1rem", background: "transparent", color: "#212529" }}
-                        />
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>

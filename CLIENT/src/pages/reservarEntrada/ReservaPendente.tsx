@@ -5,7 +5,7 @@ import MainNavbar from "../componentes/NavBar";
 const ReservaPendente: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { email, metodo } = location.state || {};
+  const { email, metodo, multibanco } = location.state || {};
 
   return (
     <>
@@ -24,6 +24,33 @@ const ReservaPendente: React.FC = () => {
                 Para completar a compra, paga coa <strong>entidade e referencia</strong> que che
                 mostramos, no caixeiro automático ou na túa banca online.
               </p>
+              {multibanco && (multibanco.entidade || multibanco.referencia) && (
+                <div style={{ background: '#fff', border: '2px solid #ff0093', borderRadius: 10, padding: '16px 20px', margin: '16px 0', textAlign: 'left' }}>
+                  {multibanco.importe && (
+                    <p style={{ margin: '0 0 8px', fontSize: '1.1rem' }}>
+                      <strong>Importe:</strong> {multibanco.importe} €
+                    </p>
+                  )}
+                  <p style={{ margin: '0 0 8px', fontSize: '1.1rem' }}>
+                    <strong>Entidade:</strong> {multibanco.entidade}
+                  </p>
+                  <p style={{ margin: 0, fontSize: '1.1rem' }}>
+                    <strong>Referencia:</strong> {multibanco.referencia}
+                  </p>
+                </div>
+              )}
+              {multibanco?.voucherUrl && (
+                <p>
+                  <a
+                    href={multibanco.voucherUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: '#ff0093', fontWeight: 700 }}
+                  >
+                    Ver ou descargar o comprobante Multibanco
+                  </a>
+                </p>
+              )}
               <p>
                 Cando o pago se confirme, recibirás as túas entradas no correo
                 {email ? <> <strong style={{ color: '#ff0093' }}>{email}</strong></> : null}.
