@@ -35,6 +35,7 @@ import ReservarEntradaSinPlano from './pages/reservarEntrada/reservarEntradaSinP
 // import InfoPagamento from './pages/reservarEntrada/infoPagamento_tua_version.tsx';
 import InfoPagamento from './pages/reservarEntrada/infoPagamento.tsx';
 import ReservaExitosa from './pages/reservarEntrada/ReservaExitosa';
+import ReservaPendente from './pages/reservarEntrada/ReservaPendente';
 import PanelOrganizador from './pages/panelOrganizador/panelOrganizador';
 import EventoDetalle from './pages/panelOrganizador/eventoDetalle';
 import CobroEvento from './pages/panelOrganizador/cobroEvento';
@@ -130,6 +131,7 @@ function App() {
             <Route path="info-pagamento/:eventoId/:zona" element={<InfoPagamento />} />
 
             <Route path="reserva-exitosa" element={<ReservaExitosa />} />
+            <Route path="reserva-pendente" element={<ReservaPendente />} />
 
             <Route path="auditorio-ourense-central" element={<AuditorioOurenseZonaCentral />}></Route>
             <Route path="auditorio-ourense-dereita" element={<AuditorioOurenseDereita />}></Route>

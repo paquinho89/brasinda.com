@@ -16,6 +16,7 @@ import stripe
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from django.contrib.auth.models import AnonymousUser
+from django.views.decorators.csrf import csrf_exempt
 from .email_entradas import enviar_entrada_email, enviar_entrada_email_multi, enviar_entradas_recuperadas_email
 from .models import Evento, ReservaButaca, SuscripcionNewsletter
 from .models import Evento, ReservaButaca, SuscripcionNewsletter, ZonaPrezo
@@ -638,6 +639,13 @@ def crear_payment_intent_stripe(request, evento_id):
 
     amount_cents = int((total * Decimal("100")).quantize(Decimal("1")))
 
+    # Recoller IDs de reservas temporais para que o webhook poida confirmalas
+    # cando o pago asíncrono (Multibanco) se complete
+    reserva_ids = [
+        str(e.get("id")) for e in entradas
+        if isinstance(e, dict) and e.get("id")
+    ]
+
     try:
         stripe.api_key = stripe_secret
         payment_intent_params: dict = {
@@ -648,6 +656,8 @@ def crear_payment_intent_stripe(request, evento_id):
                 "evento_id": str(evento.id),
                 "zona": zona,
                 "cantidade": str(cantidade),
+                "reserva_ids": ",".join(reserva_ids),
+                "email": email,
             },
         }
         pmc = getattr(settings, "STRIPE_PAYMENT_METHOD_CONFIGURATION", None)
@@ -1265,5 +1275,100 @@ def factura(request):
             "success": False,
             "error": f"Erro ao xerar ou enviar a factura: {str(e)}"
         }, status=500)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+@csrf_exempt
+def stripe_webhook(request):
+    """
+    Webhook de Stripe para pagos asíncronos (Multibanco, etc.).
+    Cando un PaymentIntent pasa a succeeded, confirma as reservas temporais
+    e envía as entradas por email ao comprador.
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+
+    stripe_secret = getattr(settings, "STRIPE_SECRET_KEY", None)
+    webhook_secret = getattr(settings, "STRIPE_WEBHOOK_SECRET", None)
+    if not stripe_secret:
+        return HttpResponse("Stripe non configurado", status=500)
+
+    payload = request.body
+    sig_header = request.META.get("HTTP_STRIPE_SIGNATURE", "")
+    stripe.api_key = stripe_secret
+
+    try:
+        if webhook_secret:
+            event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+        else:
+            # Sen secret configurado: parsear sen verificar (só para probas locais)
+            import json
+            event = json.loads(payload)
+            logger.warning("STRIPE_WEBHOOK_SECRET non configurado: evento sen verificar")
+    except (ValueError, stripe.error.SignatureVerificationError) as e:
+        logger.warning(f"Webhook Stripe rexeitado: {e}")
+        return HttpResponse(status=400)
+
+    if event.get("type") != "payment_intent.succeeded":
+        return HttpResponse(status=200)
+
+    payment_intent = event["data"]["object"]
+    metadata = payment_intent.get("metadata") or {}
+    evento_id = metadata.get("evento_id")
+    reserva_ids = [r for r in (metadata.get("reserva_ids") or "").split(",") if r]
+    email = metadata.get("email") or payment_intent.get("receipt_email") or ""
+    zona = metadata.get("zona") or ""
+
+    logger.info(f"Webhook payment_intent.succeeded: {payment_intent.get('id')} evento={evento_id} reservas={reserva_ids}")
+
+    if not evento_id or not reserva_ids:
+        return HttpResponse(status=200)
+
+    evento = Evento.objects.filter(id=evento_id).first()
+    if not evento:
+        logger.error(f"Webhook: evento {evento_id} non atopado")
+        return HttpResponse(status=200)
+
+    # Confirmar as reservas temporais
+    reservas = ReservaButaca.objects.filter(
+        id__in=[int(r) for r in reserva_ids if r.isdigit()],
+        evento=evento,
+        estado=ReservaButaca.ESTADO_TEMPORAL,
+    )
+    if not reservas.exists():
+        # Xa confirmadas (p.e. pago con tarxeta que tamén dispara o webhook)
+        logger.info(f"Webhook: reservas {reserva_ids} xa confirmadas ou inexistentes")
+        return HttpResponse(status=200)
+
+    confirmed = []
+    with transaction.atomic():
+        for reserva in reservas:
+            reserva.estado = ReservaButaca.ESTADO_CONFIRMADO
+            reserva.fecha_expiracion = None
+            if not reserva.codigo_validacion:
+                letras = ''.join(random.choices(string.ascii_uppercase, k=3))
+                reserva.codigo_validacion = f"{reserva.id}-{letras}"
+            reserva.save(update_fields=["estado", "fecha_expiracion", "codigo_validacion"])
+            confirmed.append(reserva)
+        _actualizar_contadores_evento(evento)
+
+    # Enviar as entradas por email
+    if email and confirmed:
+        try:
+            pdf_buffers = []
+            for reserva in confirmed:
+                try:
+                    buffer = xerar_pdf_entrada(reserva, evento)
+                    pdf_buffers.append((buffer, reserva))
+                except Exception as e:
+                    logger.error(f"Webhook: erro xerando PDF reserva {reserva.id}: {e}")
+            if pdf_buffers:
+                enviar_entrada_email_multi(email, pdf_buffers, evento, confirmed)
+                logger.info(f"Webhook: {len(pdf_buffers)} entradas enviadas a {email}")
+        except Exception as e:
+            logger.error(f"Webhook: erro enviando entradas a {email}: {e}")
+
+    return HttpResponse(status=200)
 
 

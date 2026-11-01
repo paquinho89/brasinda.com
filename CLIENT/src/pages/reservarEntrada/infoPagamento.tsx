@@ -370,7 +370,7 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
         zona,
       };
 
-      // Gardar antes de redirixir (necesario para Bizum que sempre redirixe)
+      // Gardar antes de redirixir (necesario para Bizum/Multibanco que sempre redirixen)
       sessionStorage.setItem("brasinda_pending_payment", JSON.stringify(pendingData));
 
       // Stripe rexeita cadeas baleiras: só enviar phone se ten valor
@@ -396,19 +396,36 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
         redirect: "if_required",
       });
 
-      // Se chegamos aquí, non houbo redirección (pago con tarxeta)
-      sessionStorage.removeItem("brasinda_pending_payment");
-
       if (confirmResult.error) {
+        sessionStorage.removeItem("brasinda_pending_payment");
         setError(confirmResult.error.message || "Non se puido completar o pago");
         return;
       }
 
-      const paymentIntentId = confirmResult.paymentIntent?.id;
+      const paymentIntent = confirmResult.paymentIntent;
+      const paymentIntentId = paymentIntent?.id;
       if (!paymentIntentId) {
+        sessionStorage.removeItem("brasinda_pending_payment");
         setError("Non se puido verificar o pago");
         return;
       }
+
+      // Multibanco: o pago queda pendente ata que o comprador paga a referencia
+      // no caixeiro/online. Non hai que confirmar reserva nin enviar entradas aínda.
+      if (paymentIntent?.status === "requires_action" || paymentIntent?.status === "processing") {
+        sessionStorage.removeItem("brasinda_pending_payment");
+        navigate("/reserva-pendente", {
+          state: {
+            email,
+            eventoId,
+            metodo: metodoPago,
+          },
+        });
+        return;
+      }
+
+      // Se chegamos aquí, o pago completouse sen redirección (pago con tarxeta)
+      sessionStorage.removeItem("brasinda_pending_payment");
 
       // Verificar no backend que o pago é realmente succeeded
       const verif = await fetch(`${API_BASE_URL}/crear-eventos/stripe/payment-intent-status/${paymentIntentId}/`);
@@ -425,7 +442,7 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
       await finalizarReservaDespuesPago(pendingData);
     } catch (err) {
       console.error("Error:", err);
-      setError("Erro de conexión");
+      setError("Erro de conexión: " + (err instanceof Error ? err.message : "descoñecido"));
     } finally {
       setLoading(false);
     }
@@ -516,7 +533,11 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
                         fields: { billingDetails: "never" },
                         terms: { card: "never" },
                       }}
-                      onChange={(e) => setMetodoPago(e.value.type)}
+                      onChange={(e) => {
+                        const tipo = e.value?.type || "";
+                        console.log("Método de pago seleccionado:", tipo);
+                        setMetodoPago(tipo);
+                      }}
                     />
                   </div>
                   {(metodoPago === "bizum" || metodoPago === "multibanco") && (
