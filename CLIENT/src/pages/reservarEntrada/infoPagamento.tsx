@@ -380,12 +380,11 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
       // Gardar antes de redirixir (necesario para Bizum/Multibanco que sempre redirixen)
       sessionStorage.setItem("brasinda_pending_payment", JSON.stringify(pendingData));
 
-      // O PaymentElement recolle name e phone cando o método o require (Multibanco/Bizum)
-      // grazas a fields.billingDetails="auto". Aquí só pasamos os campos marcados como
-      // "never" (email e address), que Stripe esixe pasar manualmente.
+      // O PaymentElement recolle name, phone e address cando o método o require
+      // (Multibanco/Bizum) grazas a fields.billingDetails="auto". Aquí só pasamos
+      // o email, marcado como "never", que Stripe esixe pasar manualmente.
       const billingDetails: Record<string, unknown> = {
         email,
-        address: { country: "ES" },
       };
 
       const confirmResult = await stripe.confirmPayment({
@@ -559,7 +558,9 @@ const InfoPagamento_teu: React.FC<InfoPagamentoProps> = ({ amountTotal }) => {
                             name: "auto",
                             email: "never",
                             phone: "auto",
-                            address: "never",
+                            // "auto": Bizum require postal_code; se o marcamos "never"
+                            // Stripe esixe pasalo manualmente en confirmPayment.
+                            address: "auto",
                           },
                         },
                         terms: { card: "never" },
