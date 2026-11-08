@@ -23,3 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Base de datos local (en produción úsase Postgres via DATABASE_URL)
+db.sqlite3
+*.sqlite3
