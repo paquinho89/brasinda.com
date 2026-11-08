@@ -43,6 +43,7 @@ import CobroExitoso from './pages/panelOrganizador/cobroExitoso';
 import ListadoEntradas from './pages/panelOrganizador/componentes/listadoEntradas';
 import SettingsOrganizador from './pages/panelOrganizador/settingsOrganizador';
 import VerificacionEmailPage from './pages/componentes/VerificacionEmailPage';
+import BaixaNewsletter from './pages/componentes/BaixaNewsletter';
 import { CreateEventLayout } from './pages/crearEvento/0ElementoPadre';
 import TipoEvento from './pages/crearEvento/1TipoEvento';
 import TituloEvento from './pages/crearEvento/2TituloEventoDescripcion';
@@ -154,6 +155,7 @@ function App() {
             <Route path="panel-organizador/settings" element={<SettingsOrganizador />} />
             <Route path="verificacion" element={<VerificacionEmailPage />} />
             <Route path="verificacion/:uid/:token" element={<VerificacionEmailPage />} />
+            <Route path="newsletter/baixa" element={<BaixaNewsletter />} />
             <Route path="reset-password/:uid/:token" element={<IntroducirNuevaContraseñaWrapper />} />
             <Route path="sobre-nos" element={<Nosotros />} />
             <Route path="aviso-legal" element={<AvisoLegal />} />

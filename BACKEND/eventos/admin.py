@@ -1,10 +1,12 @@
 from django.contrib import admin
 from django.utils.timezone import localtime
+from django.utils import timezone
 from .models import Evento, ZonaPrezo, ReservaButaca, SuscripcionNewsletter
 from .email_entradas import resend, render_to_string
 from django.conf import settings as django_settings
 from .utils_pdf import xerar_pdf_factura
 import base64
+import re
 from datetime import datetime
 
 # Register your models here.
@@ -107,60 +109,98 @@ class ZonaPrezoAdmin(admin.ModelAdmin):
     list_display = ("id", "nome", "prezo_recibe_organizador", "prezo_venta", "evento")
 
 def enviar_recordatorio_compra(modeladmin, request, queryset):
-	"""Envía un email recordatorio ás reservas temporais para que completen a compra."""
-	reservas = queryset.filter(estado=ReservaButaca.ESTADO_TEMPORAL)
+	"""Envía un email recordatorio ás reservas temporais para que completen a compra.
+
+	Agrupa as reservas por email, evento, data de creación (truncada ao minuto)
+	e lugar de entrada: só as reservas que comparten os catro datos se consideran
+	da mesma compra e reciben un só email cunha única ligazón que inclúe todos
+	os IDs (?reserva=1,2,3), de xeito que o importe a pagar sexa a suma de
+	todas as entradas dese grupo.
+	"""
+	reservas = queryset.filter(estado=ReservaButaca.ESTADO_TEMPORAL).select_related('evento')
 	excluidas = queryset.count() - reservas.count()
 	if excluidas:
 		modeladmin.message_user(
 			request,
 			f"{excluidas} reserva(s) omitidas por non estar en estado Temporal.",
 			level='warning',
-	)
+		)
 
 	enviados = 0
 	erros = 0
 	sen_email = 0
+	reservas_avisadas = 0
 	_dias_gl = ['Luns', 'Martes', 'Mércores', 'Xoves', 'Venres', 'Sábado', 'Domingo']
 	_meses_gl = ['', 'xaneiro', 'febreiro', 'marzo', 'abril', 'maio', 'xuño', 'xullo', 'agosto', 'setembro', 'outubro', 'novembro', 'decembro']
 	frontend_url = getattr(django_settings, 'FRONTEND_URL', 'http://localhost:5173').rstrip('/')
 
-	for reserva in reservas.select_related('evento'):
+	# Agrupar por (email, evento, data de creación ao minuto, lugar de entrada):
+	# só as reservas que comparten os catro datos se consideran da mesma compra
+	# e comparten un único email e unha única ligazón de compra.
+	grupos = {}
+	for reserva in reservas:
 		if not reserva.email:
 			sen_email += 1
 			continue
-		evento = reserva.evento
+		data_creacion_minuto = reserva.data_creacion.replace(second=0, microsecond=0) if reserva.data_creacion else None
+		clave = (
+			reserva.email.strip().lower(),
+			reserva.evento_id,
+			data_creacion_minuto,
+			(reserva.lugar_entrada or '').strip(),
+		)
+		grupos.setdefault(clave, []).append(reserva)
+
+	for reservas_grupo in grupos.values():
+		evento = reservas_grupo[0].evento
+		email = reservas_grupo[0].email
 		data = localtime(evento.data_evento)
 		data_completa = f"{_dias_gl[data.weekday()]}, {data.day} de {_meses_gl[data.month]} de {data.year} ás {data.strftime('%H:%M')}"
-		url_compra = f"{frontend_url}/info-pagamento/{evento.id}/{reserva.zona}?reserva={reserva.id}"
-		prezo_venta = reserva.prezo_pvp or reserva.prezo_entrada
+		ids_reservas = ",".join(str(r.id) for r in reservas_grupo)
+		url_compra = f"{frontend_url}/info-pagamento/{evento.id}/{reservas_grupo[0].zona}?reserva={ids_reservas}"
+		entradas = []
+		prezo_total = None
+		for r in reservas_grupo:
+			prezo = r.prezo_pvp or r.prezo_entrada
+			if prezo is not None:
+				prezo_total = prezo if prezo_total is None else prezo_total + prezo
+			entradas.append({
+				'zona': r.zona,
+				'fila': r.fila,
+				'butaca': r.butaca,
+				'prezo': prezo,
+			})
 		html_body = render_to_string(
 			'eventos/plantilla_email/recordatorio_compra.html',
 			{
-				'nome_titular': reserva.nome_titular,
+				'nome_titular': reservas_grupo[0].nome_titular,
 				'nome_evento': evento.nome_evento,
 				'data_evento': data_completa,
 				'lugar_evento': evento.localizacion,
-				'lugar_entrada': reserva.lugar_entrada or f"Zona {reserva.zona}",
-				'prezo_entrada': prezo_venta,
+				'entradas': entradas,
+				'num_entradas': len(entradas),
+				'prezo_total': prezo_total,
 				'url_compra': url_compra,
 			}
 		)
 		try:
 			resend.Emails.send({
 				"from": django_settings.DEFAULT_FROM_EMAIL,
-				"to": [reserva.email],
+				"to": [email],
 				"subject": f"⏳ Completa a túa compra para '{evento.nome_evento}'",
 				"html": html_body,
 			})
-			reserva.recordatorio_compra_enviado = True
-			reserva.save(update_fields=["recordatorio_compra_enviado"])
+			for r in reservas_grupo:
+				r.recordatorio_compra_enviado = True
+				r.save(update_fields=["recordatorio_compra_enviado"])
 			enviados += 1
+			reservas_avisadas += len(reservas_grupo)
 		except Exception as e:
 			erros += 1
-			modeladmin.message_user(request, f"Erro ao enviar a {reserva.email}: {e}", level='error')
+			modeladmin.message_user(request, f"Erro ao enviar a {email}: {e}", level='error')
 
 	if enviados:
-		modeladmin.message_user(request, f"{enviados} recordatorio(s) enviado(s) correctamente.")
+		modeladmin.message_user(request, f"{enviados} recordatorio(s) enviado(s) correctamente ({reservas_avisadas} reserva(s) avisadas).")
 	if sen_email:
 		modeladmin.message_user(request, f"{sen_email} reserva(s) sen email, non se puido enviar.", level='warning')
 	if erros:
@@ -177,7 +217,7 @@ class ReservaButacaAdmin(admin.ModelAdmin):
 		"email",
 		"nome_titular",
 		"lugar_entrada",
-		"prezo_entrada",
+		"prezo_venta_comprador",
 		"zona",
 		"fila",
 		"butaca",
@@ -187,9 +227,104 @@ class ReservaButacaAdmin(admin.ModelAdmin):
 		"codigo_validacion",
 		"entrada_usada_validacion",
 	)
+
+	@admin.display(description="Prezo venda", ordering="prezo_pvp")
+	def prezo_venta_comprador(self, obj):
+		"""Prezo final que paga o comprador (PVP con gastos de xestión)."""
+		return obj.prezo_pvp if obj.prezo_pvp is not None else obj.prezo_entrada
 	list_filter = ("tipo_reserva", "estado", "recordatorio_compra_enviado", "zona")
 	search_fields = ("evento__nome_evento", "nome_titular", "email", "codigo_validacion")
 	actions = [enviar_recordatorio_compra]
+
+
+def _eventos_activos():
+	"""Eventos activos: non cancelados e con data futura (ou de hoxe)."""
+	return Evento.objects.filter(
+		evento_cancelado=False,
+		data_evento__gte=timezone.now(),
+	).order_by('data_evento')
+
+
+def _construir_contexto_newsletter(evento):
+	"""Prepara o contexto da plantilla de newsletter a partir dun evento."""
+	_dias_gl = ['Luns', 'Martes', 'Mércores', 'Xoves', 'Venres', 'Sábado', 'Domingo']
+	_meses_gl = ['', 'xaneiro', 'febreiro', 'marzo', 'abril', 'maio', 'xuño', 'xullo', 'agosto', 'setembro', 'outubro', 'novembro', 'decembro']
+	frontend_url = getattr(django_settings, 'FRONTEND_URL', 'http://localhost:5173').rstrip('/')
+
+	data = localtime(evento.data_evento)
+	data_completa = f"{_dias_gl[data.weekday()]}, {data.day} de {_meses_gl[data.month]} de {data.year} ás {data.strftime('%H:%M')}"
+
+	nome_slug = re.sub(r'[^a-z0-9]+', '_', evento.nome_evento.lower()).strip('_')
+	url_evento = f"{frontend_url}/evento/{nome_slug}/{evento.id}"
+
+	# Prezo mínimo de venda: o máis barato entre as zonas ou o prezo xeral
+	prezo_desde = None
+	prezos = [z.prezo_venta for z in evento.zonas.all() if z.prezo_venta is not None]
+	if not prezos and evento.prezo_venta is not None:
+		prezos = [evento.prezo_venta]
+	if prezos:
+		prezo_desde = min(prezos)
+
+	# URL absoluta da imaxe do evento (os clientes de email requiren URL absoluta)
+	imaxe_evento_url = None
+	if evento.imaxe_evento:
+		backend_url = getattr(django_settings, 'BACKEND_URL', '').rstrip('/')
+		if backend_url:
+			imaxe_evento_url = f"{backend_url}{evento.imaxe_evento.url}"
+
+	return {
+		'nome_evento': evento.nome_evento,
+		'data_evento': data_completa,
+		'lugar_evento': evento.localizacion,
+		'descripcion_evento': evento.descripcion_evento,
+		'prezo_desde': prezo_desde,
+		'imaxe_evento_url': imaxe_evento_url,
+		'url_evento': url_evento,
+	}
+
+
+def _enviar_newsletter_evento(modeladmin, request, queryset, evento):
+	"""Envía a newsletter do evento indicado a cada suscriptor seleccionado."""
+	from urllib.parse import quote
+	contexto = _construir_contexto_newsletter(evento)
+	frontend_url = getattr(django_settings, 'FRONTEND_URL', 'http://localhost:5173').rstrip('/')
+	subject = f"📢 {evento.nome_evento} — xa á venda en brasinda.com"
+
+	enviados = 0
+	erros = 0
+	for suscripcion in queryset:
+		# A ligazón de baixa é persoal: leva o email do suscriptor
+		url_baixa = f"{frontend_url}/newsletter/baixa?email={quote(suscripcion.email)}"
+		html_body = render_to_string(
+			'eventos/plantilla_email/newsletter_evento.html',
+			{**contexto, 'url_baixa': url_baixa},
+		)
+		try:
+			resend.Emails.send({
+				"from": django_settings.DEFAULT_FROM_EMAIL,
+				"to": [suscripcion.email],
+				"subject": subject,
+				"html": html_body,
+			})
+			enviados += 1
+		except Exception as e:
+			erros += 1
+			modeladmin.message_user(request, f"Erro ao enviar a {suscripcion.email}: {e}", level='error')
+
+	if enviados:
+		modeladmin.message_user(request, f"Newsletter de '{evento.nome_evento}' enviada a {enviados} suscriptor(es).")
+	if erros:
+		modeladmin.message_user(request, f"{erros} envío(s) fallaron.", level='error')
+
+
+def _crear_accion_newsletter(evento):
+	"""Crea unha acción de admin que envía a newsletter deste evento concreto."""
+	def accion(modeladmin, request, queryset):
+		_enviar_newsletter_evento(modeladmin, request, queryset, evento)
+	accion.__name__ = f"enviar_newsletter_evento_{evento.id}"
+	data = localtime(evento.data_evento)
+	accion.short_description = f"📨 Newsletter: {evento.nome_evento} ({data.strftime('%d/%m/%Y')})"
+	return accion
 
 
 @admin.register(SuscripcionNewsletter)
@@ -199,12 +334,20 @@ class SuscripcionNewsletterAdmin(admin.ModelAdmin):
 	search_fields = ("email", "zonas_interes")
 	readonly_fields = ("fecha_alta",)
 	actions = ["activar_suscripcions", "desactivar_suscripcions"]
-	
+
+	def get_actions(self, request):
+		"""Engade ao dropdown unha acción de newsletter por cada evento activo."""
+		actions = super().get_actions(request)
+		for evento in _eventos_activos():
+			accion = _crear_accion_newsletter(evento)
+			actions[accion.__name__] = (accion, accion.__name__, accion.short_description)
+		return actions
+
 	def activar_suscripcions(self, request, queryset):
 		queryset.update(activo=True)
 		self.message_user(request, f"{queryset.count()} suscripcións activadas.")
 	activar_suscripcions.short_description = "Activar suscripcións seleccionadas"
-	
+
 	def desactivar_suscripcions(self, request, queryset):
 		queryset.update(activo=False)
 		self.message_user(request, f"{queryset.count()} suscripcións desactivadas.")

@@ -1372,3 +1372,21 @@ def stripe_webhook(request):
     return HttpResponse(status=200)
 
 
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def baixa_newsletter(request):
+    """D? de baixa un email da newsletter (activo=False)."""
+    email = (request.data.get("email") or "").strip().lower()
+    if not email:
+        return Response({"success": False, "error": "Falta o email."}, status=400)
+
+    suscripcion = SuscripcionNewsletter.objects.filter(email__iexact=email).first()
+    if not suscripcion:
+        return Response({"success": False, "error": "Este email non est? suscrito ? newsletter."}, status=404)
+
+    if not suscripcion.activo:
+        return Response({"success": True, "xa_baixa": True, "message": "Este email xa estaba dado de baixa."})
+
+    suscripcion.activo = False
+    suscripcion.save(update_fields=["activo"])
+    return Response({"success": True, "xa_baixa": False, "message": "Email dado de baixa correctamente."})

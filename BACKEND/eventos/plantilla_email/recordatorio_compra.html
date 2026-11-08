@@ -102,15 +102,20 @@
       <div class="ticket-icon">🎟️</div>
       <h1>A túa entrada está a agardar!</h1>
       <p>
-        {% if nome_titular %}Ola <strong>{{ nome_titular }}</strong>, d{% else %}D{% endif %}etectamos que comezaches a reserva da túa praza pero non completaches a compra.
+        {% if nome_titular %}Ola <strong>{{ nome_titular }}</strong>, d{% else %}D{% endif %}etectamos que comezaches a reserva {% if num_entradas > 1 %}das túas prazas{% else %}da túa praza{% endif %} pero non completaches a compra.
       </p>
 
       <div class="event-info">
         <h3>{{ nome_evento }}</h3>
         <p><strong>Data:</strong> {{ data_evento }}</p>
         <p><strong>Lugar:</strong> {{ lugar_evento }}</p>
-        <p><strong>Entrada:</strong> {{ lugar_entrada }}</p>
-        {% if prezo_entrada %}<p><strong>Prezo:</strong> {{ prezo_entrada }} €</p>{% endif %}
+        {% if entradas %}
+        <p><strong>{% if num_entradas == 1 %}1 entrada{% else %}{{ num_entradas }} entradas{% endif %}:</strong></p>
+        {% for entrada in entradas %}
+        <p>🎫 {% if entrada.fila and entrada.butaca %}Fila {{ entrada.fila }} · Butaca {{ entrada.butaca }} (zona {{ entrada.zona }}){% else %}Entrada xeral{% endif %}{% if entrada.prezo %} — {{ entrada.prezo }} €{% endif %}</p>
+        {% endfor %}
+        {% endif %}
+        {% if prezo_total %}<p><strong>Total a pagar:</strong> {{ prezo_total }} €</p>{% endif %}
       </div>
 
       <p>Non deixes escapar a túa praza! Preme no botón para completar a compra:</p>

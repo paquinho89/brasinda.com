@@ -631,12 +631,17 @@ const InfoPagamentoWrapper: React.FC = () => {
     else if (cantidade > 0) entradas = Array.from({ length: cantidade }, (_, i) => ({ idx: i }));
 
     // Se non hai entradas no state, mirar se vén un ?reserva=ID na URL
-    // (p.e. desde o email de recordatorio de compra)
+    // (p.e. desde o email de recordatorio de compra). Admite varios IDs
+    // separados por comas (?reserva=1,2,3) para pagar todas as reservas xuntas.
     if (entradas.length === 0) {
       const params = new URLSearchParams(window.location.search);
-      const reservaId = params.get("reserva");
-      if (reservaId) {
-        entradas = [{ id: Number(reservaId) }];
+      const reservaParam = params.get("reserva");
+      if (reservaParam) {
+        entradas = reservaParam
+          .split(",")
+          .map((v) => Number(v.trim()))
+          .filter((n) => Number.isInteger(n) && n > 0)
+          .map((id) => ({ id }));
       }
     }
 
