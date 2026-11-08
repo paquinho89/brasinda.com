@@ -121,7 +121,11 @@
       </div>
 
       {% if descripcion_evento %}
-      <div class="descripcion">{{ descripcion_evento|linebreaksbr|truncatewords:60 }}</div>
+      <div class="descripcion">{{ descripcion_evento|linebreaksbr|truncatewords:60 }}
+        {% if descripcion_evento|wordcount > 60 %}
+        <a href="{{ url_evento }}" style="color: #ff0093; text-decoration: none; font-weight: 600;">(Ver máis)</a>
+        {% endif %}
+      </div>
       {% endif %}
 
       <a href="{{ url_evento }}" class="cta-button">Ver evento e mercar entradas</a>
