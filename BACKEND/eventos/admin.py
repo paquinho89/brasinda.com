@@ -288,7 +288,7 @@ def _enviar_newsletter_evento(modeladmin, request, queryset, evento):
 	from urllib.parse import quote
 	contexto = _construir_contexto_newsletter(evento)
 	frontend_url = getattr(django_settings, 'FRONTEND_URL', 'http://localhost:5173').rstrip('/')
-	subject = f"📢 {evento.nome_evento} — xa á venda en brasinda.com"
+	subject = f"📢 {evento.nome_evento}"
 
 	enviados = 0
 	erros = 0
