@@ -108,7 +108,7 @@
       <img src="branding/logo.png" alt="brasinda.com" class="logo" />
 
       <div class="badge">📢 Novo evento</div>
-      <h1>{{ nome_evento }}</h1>
+      <h1><a href="{{ url_evento }}" style="color: #ff0093; text-decoration: none;">{{ nome_evento }}</a></h1>
 
       {% if imaxe_evento_url %}
       <img src="{{ imaxe_evento_url }}" alt="{{ nome_evento }}" class="evento-imaxe" />
